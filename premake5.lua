@@ -10,6 +10,12 @@ workspace "GameEngine"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+-- Include directories relative to root folder (solution directory)
+IncludeDir = {}
+IncludeDir["GLFW"] = "GameEngine/vendor/GLFW/include"
+
+include "GameEngine/vendor/GLFW"
+
 project "GameEngine"
 	location "GameEngine"
 	kind "SharedLib"
@@ -17,6 +23,9 @@ project "GameEngine"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	pchheader "enginepch.h"
+	pchsource "GameEngine/src/enginepch.cpp"
 
 	files
 	{
@@ -27,7 +36,14 @@ project "GameEngine"
 	includedirs
 	{
 		"%{prj.name}/src",
-		"%{prj.name}/vendor/spdlog/include"
+		"%{prj.name}/vendor/spdlog/include",
+		"%{IncludeDir.GLFW}"
+	}
+
+	links
+	{
+		"GLFW",
+		"opengl32.lib"
 	}
 
 	filter "system:windows"
@@ -37,8 +53,8 @@ project "GameEngine"
 
 		defines
 		{
-			"GE_PLATFORM_WINDOWS",
-			"GE_BUILD_DLL"
+			"ENGINE_PLATFORM_WINDOWS",
+			"ENGINE_BUILD_DLL"
 		}
 
 		postbuildcommands
@@ -47,15 +63,15 @@ project "GameEngine"
 		}
 
 	filter "configurations:Debug"
-		defines "GE_DEBUG"
+		defines "ENGINE_DEBUG"
 		symbols "On"
 
 	filter "configurations:Release"
-		defines "GE_RELEASE"
+		defines "ENGINE_RELEASE"
 		optimize "On"
 
 	filter "configurations:Dist"
-		defines "GE_DIST"
+		defines "ENGINE_DIST"
 		optimize "On"
 
 project "Sandbox"
@@ -90,17 +106,17 @@ project "Sandbox"
 
 		defines
 		{
-			"GE_PLATFORM_WINDOWS"
+			"ENGINE_PLATFORM_WINDOWS"
 		}
 
 	filter "configurations:Debug"
-		defines "GE_DEBUG"
+		defines "ENGINE_DEBUG"
 		symbols "On"
 
 	filter "configurations:Release"
-		defines "GE_RELEASE"
+		defines "ENGINE_RELEASE"
 		optimize "On"
 
 	filter "configurations:Dist"
-		defines "GE_DIST"
+		defines "ENGINE_DIST"
 		optimize "On"
