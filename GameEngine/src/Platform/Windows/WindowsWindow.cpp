@@ -73,7 +73,7 @@ namespace Engine
 			data.EventCallback(event);
 		});
 		
-		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int modes)
+		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
@@ -99,6 +99,15 @@ namespace Engine
 				}
 			}
 		});
+
+		glfwSetCharCallback(m_Window, [](GLFWwindow* window, unsigned int keycode)
+		{
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			
+			KeyTypedEvent event(keycode);
+			data.EventCallback(event);
+		});
+
 		
 		glfwSetMouseButtonCallback(m_Window, [](GLFWwindow* window, int button, int action, int modes)
 		{
