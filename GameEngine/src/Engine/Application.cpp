@@ -49,9 +49,28 @@ namespace Engine
 
 	void Application::Run()
 	{
+		float r = 1.0f, g = 0.0f, b = 0.0f;
+		const float increment = 0.005f;
 		while (m_Running)
 		{
-			glClearColor(0.25f, 1.0f, 0.5f, 1.0f);
+			if (r <= 1.0f && g <= 0.0f && b <= 0.0f)
+				r += increment;
+			else if (r >= 1.0f && g <= 1.0f && b <= 0.0f)
+				g += increment;
+			else if (g >= 1.0f && r >= 0.0f && b <= 0.0f)
+				r -= increment;
+			else if (g >= 1.0f && b <= 1.0f && r <= 0.0f)
+				b += increment;
+			else if (b >= 1.0f && g >= 0.0f && r <= 0.0f)
+				g -= increment;
+			else if (b >= 1.0f && r <= 1.0f && g <= 0.0f)
+				r += increment;
+			else if (r >= 1.0f && b >= 0.0f && g <= 0.0f)
+				b -= increment;
+
+			ENGINE_CORE_INFO("R: {0}, G: {1}, B: {2} ", r, g, b);
+
+			glClearColor(r, g, b, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			for (Layer* layer : m_LayerStack)
