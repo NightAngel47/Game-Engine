@@ -70,19 +70,11 @@ namespace Engine
 			else if (r >= 1.0f && b >= 0.0f && g <= 0.0f)
 				b -= increment;
 
-			ENGINE_CORE_INFO("R: {0}, G: {1}, B: {2} ", r, g, b);
-
 			glClearColor(r, g, b, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
-
-			auto[x, y] = Input::GetMousePosition();
-			ENGINE_CORE_TRACE("{0}, {1}", x, y);
-
-			auto state = Input::IsMouseButtonReleased(0);
-			ENGINE_CORE_TRACE("{0}", state);
 			
 			m_Window->OnUpdate();
 		}
