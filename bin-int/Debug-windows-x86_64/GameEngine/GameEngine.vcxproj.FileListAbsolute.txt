@@ -1,0 +1,2 @@
+D:\GitHub\Game-Engine\bin\Debug-windows-x86_64\GameEngine\GameEngine.pdb
+D:\GitHub\Game-Engine\bin-int\Debug-windows-x86_64\GameEngine\GameEngine.pdb
