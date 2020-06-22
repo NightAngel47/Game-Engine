@@ -9,6 +9,8 @@
 
 #include "Engine/ImGui/ImGuiLayer.h"
 
+#include "Renderer/Shader.h"
+
 namespace Engine
 {
 	class Application
@@ -35,6 +37,7 @@ namespace Engine
 		LayerStack m_LayerStack;
 
 		unsigned int m_VertexArray, m_VertexBuffer, m_IndexBuffer;
+		std::unique_ptr<Shader> m_Shader;
 	private:
 		static Application* s_Instance;
 	};
