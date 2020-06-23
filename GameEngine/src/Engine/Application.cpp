@@ -3,7 +3,7 @@
 
 #include "Engine/Log.h"
 
-#include <glad/glad.h>
+#include "Renderer/Renderer.h"
 
 #include "Input.h"
 
@@ -162,35 +162,20 @@ namespace Engine
 
 	void Application::Run()
 	{
-		float r = 1.0f, g = 0.0f, b = 0.0f;
-		const float increment = 0.005f;
 		while (m_Running)
 		{
-			if (r <= 1.0f && g <= 0.0f && b <= 0.0f)
-				r += increment;
-			else if (r >= 1.0f && g <= 1.0f && b <= 0.0f)
-				g += increment;
-			else if (g >= 1.0f && r >= 0.0f && b <= 0.0f)
-				r -= increment;
-			else if (g >= 1.0f && b <= 1.0f && r <= 0.0f)
-				b += increment;
-			else if (b >= 1.0f && g >= 0.0f && r <= 0.0f)
-				g -= increment;
-			else if (b >= 1.0f && r <= 1.0f && g <= 0.0f)
-				r += increment;
-			else if (r >= 1.0f && b >= 0.0f && g <= 0.0f)
-				b -= increment;
-
-			glClearColor(r, g, b, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-
+			RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1.0f});
+			RenderCommand::Clear();
+			
+			Renderer::BeginScene();
+			
 			m_SquareShader->Bind();
-			m_SquareVA->Bind();
-			glDrawElements(GL_TRIANGLES, m_SquareVA->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+			Renderer::Submit(m_SquareVA);
 			
 			m_Shader->Bind();
-			m_VertexArray->Bind();
-			glDrawElements(GL_TRIANGLES, m_VertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+			Renderer::Submit(m_VertexArray);
+			
+			Renderer::EndScene();
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
