@@ -2,11 +2,13 @@
 
 #include "imgui/imgui.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 class ExampleLayer : public Engine::Layer
 {
 public:
 	ExampleLayer()
-		: Layer("Example"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_CameraPosition(0.0f)
+		: Layer("Example"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_CameraPosition(0.0f), m_TrianglePosition(0.0f)
 	{
 		m_VertexArray.reset(Engine::VertexArray::Create());
 
@@ -34,10 +36,10 @@ public:
 		m_SquareVA.reset(Engine::VertexArray::Create());
 		
 		float squareVertices[3 * 4] = {
-			-0.75f, -0.75f, 0.0f,
-			 0.75f, -0.75f, 0.0f,
-			 0.75f,  0.75f, 0.0f,
-			-0.75f,  0.75f, 0.0f
+			-0.5f, -0.5f, 0.0f,
+			 0.5f, -0.5f, 0.0f,
+			 0.5f,  0.5f, 0.0f,
+			-0.5f,  0.5f, 0.0f
 		};
 		
 		std::shared_ptr<Engine::VertexBuffer> squareVB;
@@ -59,6 +61,7 @@ public:
 			layout(location = 1) in vec4 a_Color;
 
 			uniform mat4 u_ViewProjection;
+			uniform mat4 u_Transform;
 
 			out vec3 v_Position;
 			out vec4 v_Color;
@@ -67,7 +70,7 @@ public:
 			{
 				v_Position = a_Position;
 				v_Color = a_Color;
-				gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
 			}
 		)";
 		
@@ -94,13 +97,14 @@ public:
 			layout(location = 0) in vec3 a_Position;
 		
 			uniform mat4 u_ViewProjection;
+			uniform mat4 u_Transform;
 
 			out vec3 v_Position;
 		
 			void main()
 			{
 				v_Position = a_Position;
-				gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
 			}
 		)";
 		
@@ -124,9 +128,6 @@ public:
 	void OnUpdate(Engine::Timestep ts) override
 	{
 		ENGINE_TRACE("Delta time: {0}s ({1}ms)", ts, ts.GetMilliseconds());
-		
-		Engine::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1.0f});
-		Engine::RenderCommand::Clear();
 
 		if(Engine::Input::IsKeyPressed(ENGINE_KEY_D) || Engine::Input::IsKeyPressed(ENGINE_KEY_RIGHT))
 			m_CameraPosition.x -= m_CameraMoveSpeed * ts;
@@ -138,18 +139,43 @@ public:
 		if(Engine::Input::IsKeyPressed(ENGINE_KEY_S) || Engine::Input::IsKeyPressed(ENGINE_KEY_DOWN))
 			m_CameraPosition.y += m_CameraMoveSpeed * ts;
 		
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_Q) || Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_1))
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_Q))
 			m_CameraRotation -= m_CameraRotateSpeed * ts;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_E) || Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_2))
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_E))
 			m_CameraRotation += m_CameraRotateSpeed * ts;
+		
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_J))
+			m_TrianglePosition.x -= m_TriangleMoveSpeed * ts;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_L))
+			m_TrianglePosition.x += m_TriangleMoveSpeed * ts;
+		
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_I))
+			m_TrianglePosition.y += m_TriangleMoveSpeed * ts;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_K))
+			m_TrianglePosition.y -= m_TriangleMoveSpeed * ts;
+		
+		Engine::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1.0f});
+		Engine::RenderCommand::Clear();
 
 		m_Camera.SetPosition(m_CameraPosition);
 		m_Camera.SetRotation(m_CameraRotation);
 		
 		Engine::Renderer::BeginScene(m_Camera);
-		
-		Engine::Renderer::Submit(m_SquareShader, m_SquareVA);
-		Engine::Renderer::Submit(m_Shader, m_VertexArray);
+
+		const glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+
+		for(int x = 0; x < 20; x++)
+		{
+			for(int y = 0; y < 20; y++)
+			{
+				glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
+				glm::mat4 squareTransform = glm::translate(glm::mat4(1.0f), pos) * scale;
+				Engine::Renderer::Submit(m_SquareShader, m_SquareVA, squareTransform);
+			}
+		}
+
+		glm::mat4 traingleTransfrom = glm::translate(glm::mat4(1.0f), m_TrianglePosition);
+		Engine::Renderer::Submit(m_Shader, m_VertexArray, traingleTransfrom);
 		
 		Engine::Renderer::EndScene();
 	}
@@ -177,6 +203,9 @@ private:
 	
 	float m_CameraRotation = 0.0f;
 	float m_CameraRotateSpeed = 90.0f;
+
+	glm::vec3 m_TrianglePosition;
+	float m_TriangleMoveSpeed = 1.0f;
 };
 
 class Sandbox : public Engine::Application
