@@ -159,19 +159,6 @@ namespace Engine
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(ENGINE_BIND_EVENT_FN(Application::OnWindowClose));
 
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_W) || Engine::Input::IsKeyPressed(ENGINE_KEY_UP))
-			m_VerticalMovement -= m_MoveSpeed;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_A) || Engine::Input::IsKeyPressed(ENGINE_KEY_LEFT))
-			m_HorizontalMovement += m_MoveSpeed;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_S) || Engine::Input::IsKeyPressed(ENGINE_KEY_DOWN))
-			m_VerticalMovement += m_MoveSpeed;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_D) || Engine::Input::IsKeyPressed(ENGINE_KEY_RIGHT))
-			m_HorizontalMovement -= m_MoveSpeed;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_Q) || Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_1))
-			m_RotationMovement -= m_RotateSpeed;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_E) || Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_2))
-			m_RotationMovement += m_RotateSpeed;
-
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{
 			(*--it)->OnEvent(e);
@@ -182,13 +169,32 @@ namespace Engine
 
 	void Application::Run()
 	{
+		float horizontalMovement = 0.0f;
+		float verticalMovement = 0.0f;
+		float moveSpeed = 0.025f;
+		float rotationMovement = 0.0f;
+		float rotateSpeed = 0.5f;
+		
 		while (m_Running)
 		{
 			RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1.0f});
 			RenderCommand::Clear();
 
-			m_Camera.SetPosition({m_HorizontalMovement, m_VerticalMovement, 0.0f});
-			m_Camera.SetRotation(m_RotationMovement);
+			if(Engine::Input::IsKeyPressed(ENGINE_KEY_W) || Engine::Input::IsKeyPressed(ENGINE_KEY_UP))
+				verticalMovement -= moveSpeed;
+			if(Engine::Input::IsKeyPressed(ENGINE_KEY_A) || Engine::Input::IsKeyPressed(ENGINE_KEY_LEFT))
+				horizontalMovement += moveSpeed;
+			if(Engine::Input::IsKeyPressed(ENGINE_KEY_S) || Engine::Input::IsKeyPressed(ENGINE_KEY_DOWN))
+				verticalMovement += moveSpeed;
+			if(Engine::Input::IsKeyPressed(ENGINE_KEY_D) || Engine::Input::IsKeyPressed(ENGINE_KEY_RIGHT))
+				horizontalMovement -= moveSpeed;
+			if(Engine::Input::IsKeyPressed(ENGINE_KEY_Q) || Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_1))
+				rotationMovement -= rotateSpeed;
+			if(Engine::Input::IsKeyPressed(ENGINE_KEY_E) || Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_2))
+				rotationMovement += rotateSpeed;
+
+			m_Camera.SetPosition({horizontalMovement, verticalMovement, 0.0f});
+			m_Camera.SetRotation(rotationMovement);
 			
 			Renderer::BeginScene(m_Camera);
 			
