@@ -6,6 +6,8 @@
 #include "Renderer/Renderer.h"
 
 #include "Input.h"
+#include "KeyCodes.h"
+#include "MouseButtonCodes.h"
 
 namespace Engine
 {
@@ -157,6 +159,19 @@ namespace Engine
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(ENGINE_BIND_EVENT_FN(Application::OnWindowClose));
 
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_W) || Engine::Input::IsKeyPressed(ENGINE_KEY_UP))
+			m_VerticalMovement -= m_MoveSpeed;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_A) || Engine::Input::IsKeyPressed(ENGINE_KEY_LEFT))
+			m_HorizontalMovement += m_MoveSpeed;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_S) || Engine::Input::IsKeyPressed(ENGINE_KEY_DOWN))
+			m_VerticalMovement += m_MoveSpeed;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_D) || Engine::Input::IsKeyPressed(ENGINE_KEY_RIGHT))
+			m_HorizontalMovement -= m_MoveSpeed;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_Q) || Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_1))
+			m_RotationMovement -= m_RotateSpeed;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_E) || Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_2))
+			m_RotationMovement += m_RotateSpeed;
+
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{
 			(*--it)->OnEvent(e);
@@ -172,8 +187,8 @@ namespace Engine
 			RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1.0f});
 			RenderCommand::Clear();
 
-			m_Camera.SetPosition({0.5f, 0.5f, 0.0f});
-			m_Camera.SetRotation(45.0f);
+			m_Camera.SetPosition({m_HorizontalMovement, m_VerticalMovement, 0.0f});
+			m_Camera.SetRotation(m_RotationMovement);
 			
 			Renderer::BeginScene(m_Camera);
 			

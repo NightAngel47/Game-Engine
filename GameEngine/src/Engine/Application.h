@@ -47,6 +47,12 @@ namespace Engine
 		std::shared_ptr<VertexArray> m_SquareVA;
 
 		OrthographicCamera m_Camera;
+		
+		float m_HorizontalMovement = 0.0f;
+		float m_VerticalMovement = 0.0f;
+		float m_MoveSpeed = 0.025f;
+		float m_RotationMovement = 0.0f;
+		float m_RotateSpeed = 0.5f;
 	private:
 		static Application* s_Instance;
 	};
