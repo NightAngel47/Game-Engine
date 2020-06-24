@@ -223,7 +223,7 @@ public:
 		}
 
 		m_Texture->Bind();
-		const glm::mat4 shipScale = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
+		const glm::mat4 shipScale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 		const glm::mat4 shipTransform = glm::translate(glm::mat4(1.0f), m_ShipPosition) * shipScale;
 		Engine::Renderer::Submit(m_TextureShader, m_SquareVA, shipTransform);
 
