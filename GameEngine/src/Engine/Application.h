@@ -7,8 +7,6 @@
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 
-#include "Engine/Core/Timestep.h"
-
 #include "Engine/ImGui/ImGuiLayer.h"
 
 namespace Engine
@@ -19,7 +17,7 @@ namespace Engine
 	{
 	public:
 		Application();
-		virtual ~Application();
+		virtual ~Application() = default;
 
 		void Run();
 
