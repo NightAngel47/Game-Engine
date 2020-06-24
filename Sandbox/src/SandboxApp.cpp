@@ -11,7 +11,7 @@ class ExampleLayer : public Engine::Layer
 {
 public:
 	ExampleLayer()
-		: Layer("Example"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_CameraPosition(0.0f), m_TrianglePosition(0.0f)
+		: Layer("Example"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_CameraPosition(0.0f), m_ShipPosition(0.0f)
 	{
 		m_VertexArray.reset(Engine::VertexArray::Create());
 
@@ -38,17 +38,18 @@ public:
 
 		m_SquareVA.reset(Engine::VertexArray::Create());
 		
-		float squareVertices[3 * 4] = {
-			-0.5f, -0.5f, 0.0f,
-			 0.5f, -0.5f, 0.0f,
-			 0.5f,  0.5f, 0.0f,
-			-0.5f,  0.5f, 0.0f
+		float squareVertices[5 * 4] = {
+			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 
+			 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 
+			 0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 
+			-0.5f,  0.5f, 0.0f, 0.0f, 1.0f
 		};
 		
 		Engine::Ref<Engine::VertexBuffer> squareVB;
 		squareVB.reset(Engine::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
 		squareVB->SetLayout({
-			{ Engine::ShaderDataType::Float3, "a_Position" }
+			{ Engine::ShaderDataType::Float3, "a_Position" },
+			{ Engine::ShaderDataType::Float2, "a_TexCoord" }
 		});
 		m_SquareVA->AddVertexBuffer(squareVB);
 		
@@ -127,36 +128,76 @@ public:
 		)";
 		
 		m_FlatColorShader.reset(Engine::Shader::Create(flatColorShaderVertexSrc, flatColorShaderFragmentSrc));
+		
+		std::string textureShaderVertexSrc = R"(
+			#version 330 core
+
+			layout(location = 0) in vec3 a_Position;
+			layout(location = 1) in vec2 a_TexCoord;
+		
+			uniform mat4 u_ViewProjection;
+			uniform mat4 u_Transform;
+
+			out vec2 v_TexCoord;
+		
+			void main()
+			{
+				v_TexCoord = a_TexCoord;
+				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
+			}
+		)";
+		
+		std::string textureShaderFragmentSrc = R"(
+			#version 330 core
+
+			layout(location = 0) out vec4 color;
+
+			in vec2 v_TexCoord;
+
+			uniform sampler2D u_Texture;
+		
+			void main()
+			{
+				color = texture(u_Texture, v_TexCoord);
+			}
+		)";
+		
+		m_TextureShader.reset(Engine::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc));
+
+		m_Texture = Engine::Texture2D::Create("assets/textures/shipGreen_manned.png");
+		
+		std::dynamic_pointer_cast<Engine::OpenGLShader>(m_TextureShader)->Bind();
+		std::dynamic_pointer_cast<Engine::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
 	}
 
 	void OnUpdate(Engine::Timestep ts) override
 	{
 		// ENGINE_TRACE("Delta time: {0}s ({1}ms)", ts, ts.GetMilliseconds());
 
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_D) || Engine::Input::IsKeyPressed(ENGINE_KEY_RIGHT))
-			m_CameraPosition.x -= m_CameraMoveSpeed * ts;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_A) || Engine::Input::IsKeyPressed(ENGINE_KEY_LEFT))
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_RIGHT))
 			m_CameraPosition.x += m_CameraMoveSpeed * ts;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_LEFT))
+			m_CameraPosition.x -= m_CameraMoveSpeed * ts;
 		
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_W) || Engine::Input::IsKeyPressed(ENGINE_KEY_UP))
-			m_CameraPosition.y -= m_CameraMoveSpeed * ts;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_S) || Engine::Input::IsKeyPressed(ENGINE_KEY_DOWN))
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_UP))
 			m_CameraPosition.y += m_CameraMoveSpeed * ts;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_DOWN))
+			m_CameraPosition.y -= m_CameraMoveSpeed * ts;
 		
 		if(Engine::Input::IsKeyPressed(ENGINE_KEY_Q))
 			m_CameraRotation -= m_CameraRotateSpeed * ts;
 		if(Engine::Input::IsKeyPressed(ENGINE_KEY_E))
 			m_CameraRotation += m_CameraRotateSpeed * ts;
 		
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_J))
-			m_TrianglePosition.x -= m_TriangleMoveSpeed * ts;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_L))
-			m_TrianglePosition.x += m_TriangleMoveSpeed * ts;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_A))
+			m_ShipPosition.x -= m_ShipMoveSpeed * ts;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_D))
+			m_ShipPosition.x += m_ShipMoveSpeed * ts;
 		
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_I))
-			m_TrianglePosition.y += m_TriangleMoveSpeed * ts;
-		if(Engine::Input::IsKeyPressed(ENGINE_KEY_K))
-			m_TrianglePosition.y -= m_TriangleMoveSpeed * ts;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_W))
+			m_ShipPosition.y += m_ShipMoveSpeed * ts;
+		if(Engine::Input::IsKeyPressed(ENGINE_KEY_S))
+			m_ShipPosition.y -= m_ShipMoveSpeed * ts;
 		
 		Engine::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1.0f});
 		Engine::RenderCommand::Clear();
@@ -181,8 +222,13 @@ public:
 			}
 		}
 
-		glm::mat4 traingleTransfrom = glm::translate(glm::mat4(1.0f), m_TrianglePosition);
-		Engine::Renderer::Submit(m_Shader, m_VertexArray, traingleTransfrom);
+		m_Texture->Bind();
+		const glm::mat4 shipScale = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
+		const glm::mat4 shipTransform = glm::translate(glm::mat4(1.0f), m_ShipPosition) * shipScale;
+		Engine::Renderer::Submit(m_TextureShader, m_SquareVA, shipTransform);
+
+		// Triangle
+		// Engine::Renderer::Submit(m_Shader, m_VertexArray);
 		
 		Engine::Renderer::EndScene();
 	}
@@ -202,8 +248,10 @@ private:
 	Engine::Ref<Engine::Shader> m_Shader;
 	Engine::Ref<Engine::VertexArray> m_VertexArray;
 	
-	Engine::Ref<Engine::Shader> m_FlatColorShader;
+	Engine::Ref<Engine::Shader> m_FlatColorShader, m_TextureShader;
 	Engine::Ref<Engine::VertexArray> m_SquareVA;
+
+	Engine::Ref<Engine::Texture2D> m_Texture;
 
 	Engine::OrthographicCamera m_Camera;
 
@@ -213,8 +261,8 @@ private:
 	float m_CameraRotation = 0.0f;
 	float m_CameraRotateSpeed = 90.0f;
 
-	glm::vec3 m_TrianglePosition;
-	float m_TriangleMoveSpeed = 1.0f;
+	glm::vec3 m_ShipPosition;
+	float m_ShipMoveSpeed = 1.0f;
 
 	glm::vec3 m_SquareColor = {0.2f, 0.3f, 0.8f};
 };
