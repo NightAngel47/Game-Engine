@@ -1,9 +1,7 @@
 #include "enginepch.h"
 #include "Application.h"
 
-#include "Engine/Log.h"
-
-#include "Renderer/Renderer.h"
+#include "Engine/Renderer/Renderer.h"
 
 #include <GLFW/glfw3.h>
 

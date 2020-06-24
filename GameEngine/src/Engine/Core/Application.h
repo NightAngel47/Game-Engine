@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Engine/Core.h"
+#include "Engine/Core/Core.h"
 
 #include "Window.h"
-#include "Engine/LayerStack.h"
-#include "Events/Event.h"
-#include "Events/ApplicationEvent.h"
+#include "Engine/Core/LayerStack.h"
+#include "Engine/Events/Event.h"
+#include "Engine/Events/ApplicationEvent.h"
 
 #include "Engine/ImGui/ImGuiLayer.h"
 
