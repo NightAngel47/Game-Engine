@@ -20,5 +20,5 @@ private:
 	Engine::Ref<Engine::VertexArray> m_VertexArray;
 	Engine::Ref<Engine::Shader> m_FlatColorShader;
 	
-	glm::vec4 m_SquareColor = {0.2f, 0.3f, 0.8f, 1.0f};
+	glm::vec4 m_SquareColor = {0.8f, 0.2f, 0.3f, 1.0f};
 };
