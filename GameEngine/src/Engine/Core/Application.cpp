@@ -1,5 +1,5 @@
 #include "enginepch.h"
-#include "Application.h"
+#include "Engine/Core/Application.h"
 
 #include "Engine/Renderer/Renderer.h"
 
@@ -22,7 +22,12 @@ namespace Engine
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
 	}
-	
+
+	Application::~Application()
+	{
+		Renderer::Shutdown();
+	}
+
 	void Application::PushLayer(Layer* layer)
 	{
 		m_LayerStack.PushLayer(layer);

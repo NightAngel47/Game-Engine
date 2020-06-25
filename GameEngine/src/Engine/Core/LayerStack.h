@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engine/Core/Core.h"
-#include "Layer.h"
+#include "Engine/Core/Layer.h"
 
 #include <vector>
 
@@ -10,7 +10,7 @@ namespace Engine
 	class LayerStack
 	{
 	public:
-		LayerStack();
+		LayerStack() = default;
 		~LayerStack();
 
 		void PushLayer(Layer* layer);

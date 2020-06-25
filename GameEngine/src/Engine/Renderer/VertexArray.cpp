@@ -1,7 +1,7 @@
 #include "enginepch.h"
-#include "VertexArray.h"
-
-#include "Renderer.h"
+#include "Engine/Renderer/VertexArray.h"
+		  
+#include "Engine/Renderer/Renderer.h"
 #include "Platform/OpenGL/OpenGLVertexArray.h"
 
 namespace Engine

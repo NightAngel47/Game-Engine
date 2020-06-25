@@ -1,12 +1,8 @@
 #include "enginepch.h"
-#include "LayerStack.h"
+#include "Engine/Core/LayerStack.h"
 
 namespace Engine
 {
-	LayerStack::LayerStack()
-	{
-	}
-
 	LayerStack::~LayerStack()
 	{
 		for (Layer* layer : m_Layers)

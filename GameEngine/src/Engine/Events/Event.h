@@ -2,8 +2,6 @@
 
 #include "Engine/Core/Core.h"
 
-#include <string>
-
 namespace Engine
 {
 	// Events in Engine are currently blocking, meaning when an event occurs it

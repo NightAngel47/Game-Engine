@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "Buffer.h"
+#include "Engine/Renderer/Buffer.h"
 
 namespace Engine
 {
