@@ -5,8 +5,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Platform/OpenGL/OpenGLShader.h"
-
 ExampleLayer::ExampleLayer()
 	: Layer("Example"), m_CameraController(1280.0f / 720.0f, true), m_ShipPosition(0.0f)
 {
@@ -98,8 +96,8 @@ void ExampleLayer::OnAttach()
 
 	m_Texture = Engine::Texture2D::Create("assets/textures/shipGreen_manned.png");
 	
-	std::dynamic_pointer_cast<Engine::OpenGLShader>(textureShader)->Bind();
-	std::dynamic_pointer_cast<Engine::OpenGLShader>(textureShader)->UploadUniformInt("u_Texture", 0);
+	textureShader->Bind();
+	textureShader->SetInt("u_Texture", 0);
 }
 
 void ExampleLayer::OnDetach()
@@ -129,8 +127,8 @@ void ExampleLayer::OnUpdate(Engine::Timestep ts)
 
 	const glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
-	std::dynamic_pointer_cast<Engine::OpenGLShader>(m_FlatColorShader)->Bind();
-	std::dynamic_pointer_cast<Engine::OpenGLShader>(m_FlatColorShader)->UploadUniformFloat4("u_Color", m_SquareColor);
+	m_FlatColorShader->Bind();
+	m_FlatColorShader->SetFloat4("u_Color", m_SquareColor);
 	
 	for(int x = 0; x < 20; x++)
 	{

@@ -4,8 +4,6 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Platform/OpenGL/OpenGLShader.h"
-
 Sandbox2D::Sandbox2D()
 	: Layer("Sandbox2D"), m_CameraController(1280.0f / 720.0f, true)
 {
@@ -25,6 +23,8 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 {
 	// Update
 	m_CameraController.OnUpdate(ts);
+
+	m_SmallSquareRotation += m_RotationSpeed * ts;
 	
 	// Render
 	Engine::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1.0f});
@@ -32,19 +32,19 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 	
 	Engine::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
-	Engine::Renderer2D::DrawQuad({0.0f, 0.0f}, {1.0f, 1.0f}, m_SquareColor);
+	Engine::Renderer2D::DrawQuad({-1.0f, 1.0f}, {1.0f, 1.0f}, m_SquareColor);
+	Engine::Renderer2D::DrawQuad({1.0f, 1.0f}, m_SmallSquareRotation, {0.5f, 0.5f}, m_SmallSquareColor);
+	Engine::Renderer2D::DrawQuad({0.0f, -1.0f}, 35.0f, {2.5f, 0.5f}, m_RectColor);
 	
 	Engine::Renderer2D::EndScene();
-	
-	// TODO: Add these functions - Shader::SetMa4, Shader::SetFloat4
-	// std::dynamic_pointer_cast<Engine::OpenGLShader>(m_FlatColorShader)->Bind();
-	// std::dynamic_pointer_cast<Engine::OpenGLShader>(m_FlatColorShader)->UploadUniformFloat4("u_Color", m_SquareColor);
 }
 
 void Sandbox2D::OnImGuiRender()
 {
 	ImGui::Begin("Settings");
 	ImGui::ColorEdit4("Square Color", glm::value_ptr(m_SquareColor));
+	ImGui::ColorEdit4("Small Square Color", glm::value_ptr(m_SmallSquareColor));
+	ImGui::ColorEdit4("Rectangle Color", glm::value_ptr(m_RectColor));
 	ImGui::End();
 }
 
