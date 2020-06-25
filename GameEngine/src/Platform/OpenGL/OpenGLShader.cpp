@@ -172,7 +172,7 @@ namespace Engine
 		glUseProgram(0);
 	}
 
-	void OpenGLShader::SetInt(const std::string& name, const int value)
+	void OpenGLShader::SetInt(const std::string& name, int value)
 	{
 		UploadUniformInt(name, value);
 	}
