@@ -2,7 +2,8 @@
 
 #include "imgui/imgui.h"
 
-#include "glm/gtc/type_ptr.hpp"
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Platform/OpenGL/OpenGLShader.h"
 
 Sandbox2D::Sandbox2D()
@@ -53,17 +54,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 	std::dynamic_pointer_cast<Engine::OpenGLShader>(m_FlatColorShader)->Bind();
 	std::dynamic_pointer_cast<Engine::OpenGLShader>(m_FlatColorShader)->UploadUniformFloat4("u_Color", m_SquareColor);
 	
-	const glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
-	
-	for(int x = 0; x < 20; x++)
-	{
-		for(int y = 0; y < 20; y++)
-		{
-			glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
-			glm::mat4 squareTransform = glm::translate(glm::mat4(1.0f), pos) * scale;
-			Engine::Renderer::Submit(m_FlatColorShader, m_VertexArray, squareTransform);
-		}
-	}
+	Engine::Renderer::Submit(m_FlatColorShader, m_VertexArray, glm::mat4(1.0f));
 	
 	Engine::Renderer::EndScene();
 }
