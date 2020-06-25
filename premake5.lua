@@ -83,8 +83,6 @@ project "GameEngine"
 
 		defines
 		{
-			"ENGINE_PLATFORM_WINDOWS",
-			"ENGINE_BUILD_DLL",
 			"GLFW_INCLUDE_NONE"
 		}
 

@@ -81,9 +81,11 @@ namespace Engine
 			std::string type = source.substr(begin, eol - begin);
 			ENGINE_CORE_ASSERT(ShaderTypeFromString(type), "Invalid shader type specified!");
 			
-			size_t nextLinePos = source.find_first_of("\r\n", eol);
+			size_t nextLinePos = source.find_first_not_of("\r\n", eol);
+			ENGINE_CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
 			pos = source.find(typeToken, nextLinePos);
-			shaderSources[ShaderTypeFromString(type)] = source.substr(nextLinePos, pos - (nextLinePos == std::string::npos ? source.size() - 1 : nextLinePos));
+
+			shaderSources[ShaderTypeFromString(type)] = (pos == std::string::npos) ? source.substr(nextLinePos) : source.substr(nextLinePos, pos - nextLinePos);
 		}
 
 		return shaderSources;
@@ -152,7 +154,10 @@ namespace Engine
 		}
 		
 		for (auto id : glShaderIDs)
+		{
 			glDetachShader(program, id);
+			glDeleteShader(id);
+		}
 
 		m_RenderID = program;
 	}

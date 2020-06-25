@@ -11,7 +11,7 @@ class ExampleLayer : public Engine::Layer
 {
 public:
 	ExampleLayer()
-		: Layer("Example"), m_CameraController(1280.0f / 720.0f, false), m_ShipPosition(0.0f)
+		: Layer("Example"), m_CameraController(1280.0f / 720.0f, true), m_ShipPosition(0.0f)
 	{
 		m_VertexArray.reset(Engine::VertexArray::Create());
 

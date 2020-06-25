@@ -2,6 +2,7 @@
 
 #include "Engine/Core/Core.h"
 
+#include <string>
 
 namespace Engine
 {
