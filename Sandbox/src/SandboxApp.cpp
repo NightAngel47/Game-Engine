@@ -9,13 +9,15 @@ class Sandbox : public Engine::Application
 public:
 	Sandbox()
 	{
+		ENGINE_PROFILE_FUNCTION();
+		
 		//PushLayer(new ExampleLayer());
 		PushLayer(new Sandbox2D());
 	}
 
 	~Sandbox()
 	{
-		
+		ENGINE_PROFILE_FUNCTION();
 	}
 };
 

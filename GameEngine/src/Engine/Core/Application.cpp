@@ -101,6 +101,8 @@ namespace Engine
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)
 	{
+		ENGINE_PROFILE_FUNCTION();
+		
 		m_Running = false;
 		return true;
 	}
