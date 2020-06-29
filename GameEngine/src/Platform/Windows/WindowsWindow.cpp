@@ -198,9 +198,5 @@ namespace Engine
 	{
 		return m_Data.VSync;
 	}
-
-	void* WindowsWindow::GetNativeWindow() const
-	{
-		return m_Window;
-	}
+	
 }
