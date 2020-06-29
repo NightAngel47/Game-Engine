@@ -351,3 +351,9 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+Sandbox/EngineProfile-Runtime.json
+Sandbox/EngineProfile-Shutdown.json
+Sandbox/EngineProfile-Startup.json
+
+.tlog/

@@ -46,12 +46,14 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 		Engine::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
 		Engine::Renderer2D::DrawQuad({-1.0f, 1.0f}, {1.0f, 1.0f}, m_SquareColor);
-		Engine::Renderer2D::DrawQuad({1.0f, 1.0f}, m_SmallSquareRotation, {0.5f, 0.5f}, m_SmallSquareColor);
-		Engine::Renderer2D::DrawQuad({0.0f, -1.0f}, 35.0f, {2.5f, 0.5f}, m_RectColor);
+		//Engine::Renderer2D::DrawQuad({1.0f, 1.0f}, m_SmallSquareRotation, {0.5f, 0.5f}, m_SmallSquareColor);
+		Engine::Renderer2D::DrawQuad({1.0f, 1.0f}, {0.5f, 0.5f}, m_SmallSquareColor);
+		//Engine::Renderer2D::DrawQuad({0.0f, -1.0f}, 35.0f, {2.5f, 0.5f}, m_RectColor);
+		Engine::Renderer2D::DrawQuad({0.0f, -1.0f}, {2.5f, 0.5f}, m_RectColor);
 		
-		Engine::Renderer2D::DrawQuad({0.0f, 0.0f, -0.2f}, {64.0f, 64.0f}, m_CheckerboardTexture, 10.0f);
-		Engine::Renderer2D::DrawQuad({0.0f, 0.0f, -0.1f}, {22.3f, 13.1f}, m_TempleTexture, 1.0f, {0.65f, 0.0f, 0.65f, 1.0f});
-		Engine::Renderer2D::DrawQuad({0.0f, 0.0f}, {1.24f, 1.23f}, m_ShipTexture);
+		//Engine::Renderer2D::DrawQuad({0.0f, 0.0f, -0.2f}, {64.0f, 64.0f}, m_CheckerboardTexture, 10.0f);
+		//Engine::Renderer2D::DrawQuad({0.0f, 0.0f, -0.1f}, {22.3f, 13.1f}, m_TempleTexture, 1.0f, {0.65f, 0.0f, 0.65f, 1.0f});
+		//Engine::Renderer2D::DrawQuad({0.0f, 0.0f}, {1.24f, 1.23f}, m_ShipTexture);
 		
 		Engine::Renderer2D::EndScene();
 	}
