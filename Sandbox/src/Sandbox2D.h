@@ -24,6 +24,7 @@ private:
 	glm::vec4 m_RectColor = {0.3f, 0.8f, 0.2f, 1.0f};
 
 	Engine::Ref<Engine::Texture2D> m_ShipTexture, m_TempleTexture, m_CheckerboardTexture, m_SpriteSheet;
+	Engine::Ref<Engine::SubTexture2D> m_TextureStairs, m_TextureBarrel, m_TextureTree;
 
 	float m_SmallSquareRotation = 0.0f;
 	float m_RotationSpeed = 5.0f;

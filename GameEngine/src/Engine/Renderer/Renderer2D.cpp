@@ -162,8 +162,10 @@ namespace Engine
 	void Renderer2D::DrawQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const glm::vec4& color)
 	{
 		ENGINE_PROFILE_FUNCTION();
+
+		constexpr glm::vec2 textureCoords[] = {{ 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f }};
 		
-		SetQuadVertexBuffer(GenTransform(position, rotation, size), color, 0.0f, 1.0f);
+		SetQuadVertexBuffer(GenTransform(position, rotation, size), color, textureCoords, 0.0f, 1.0f);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float& tiling, const glm::vec4& color)
@@ -174,6 +176,8 @@ namespace Engine
 	void Renderer2D::DrawQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float& tiling, const glm::vec4& color)
 	{
 		ENGINE_PROFILE_FUNCTION();
+		
+		constexpr glm::vec2 textureCoords[] = {{ 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f }};
 		
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
@@ -195,7 +199,42 @@ namespace Engine
 			s_Data.TextureSlotIndex++;
 		}
 		
-		SetQuadVertexBuffer(GenTransform(position, rotation, size), color, textureIndex, tiling);
+		SetQuadVertexBuffer(GenTransform(position, rotation, size), color, textureCoords, textureIndex, tiling);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float& tiling, const glm::vec4& color)
+	{
+		DrawQuad({position.x, position.y, 0.0f}, rotation, size, subtexture, tiling, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float& tiling, const glm::vec4& color)
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		const Ref<Texture2D> texture = subtexture->GetTexture();
+		const glm::vec2* textureCoords = subtexture->GetTexCoords();
+		
+		float textureIndex = 0.0f;
+		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+		{
+			if (*s_Data.TextureSlots[i].get() == *texture.get())
+			{
+				textureIndex = (float)i;
+				break;
+			}
+		}
+		
+		if (textureIndex == 0.0f)
+		{
+			if (s_Data.TextureSlotIndex >= Render2DData::MaxTextureSlots)
+				FlushAndReset();
+			
+			textureIndex = (float)s_Data.TextureSlotIndex;
+			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+			s_Data.TextureSlotIndex++;
+		}
+		
+		SetQuadVertexBuffer(GenTransform(position, rotation, size), color, textureCoords, textureIndex, tiling);
 	}
 
 	glm::mat4 Renderer2D::GenTransform(const glm::vec3& position, const float& rotation, const glm::vec2& size)
@@ -219,28 +258,10 @@ namespace Engine
 		return transform;
 	}
 
-	void Renderer2D::SetQuadVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color, const float& textureIndex, const float& tiling)
+	void Renderer2D::SetQuadVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color,  const glm::vec2* textureCoords, const float& textureIndex, const float& tiling)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		constexpr float x = 7, y = 6;
-		constexpr float sheetWidth = 2560.0f, sheetHeight = 1664.0f;
-		constexpr float spriteWidth = 128.0f, spriteHeight = 128.0f;
-
-		constexpr glm::vec2 textureCoords[] = {
-			{ 0.0f, 0.0f },
-			{ 1.0f, 0.0f },
-			{ 1.0f, 1.0f },
-			{ 0.0f, 1.0f }
-		};
-
-		constexpr glm::vec2 textureSpriteCoords[] = {
-			{ (x * spriteWidth) / sheetWidth, (y * spriteHeight) / sheetHeight},
-			{ ((x + 1) * spriteWidth) / sheetWidth, (y * spriteHeight) / sheetHeight},
-			{ ((x + 1) * spriteWidth) / sheetWidth, ((y + 1) * spriteHeight) / sheetHeight},
-			{ (x * spriteWidth) / sheetWidth, ((y + 1) * spriteHeight) / sheetHeight}
-		};
-		
 		if (s_Data.QuadIndexCount >= Render2DData::MaxIndices)
 			FlushAndReset();
 		
@@ -248,7 +269,7 @@ namespace Engine
 		{
 			s_Data.QuadVertexBufferPtr->Position = transfrom * s_Data.QuadVertexPositions[i];
 			s_Data.QuadVertexBufferPtr->Color = color;
-			s_Data.QuadVertexBufferPtr->TexCoord = textureSpriteCoords[i];
+			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			s_Data.QuadVertexBufferPtr->TexureIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TilingFactor = tiling;
 			s_Data.QuadVertexBufferPtr++;
