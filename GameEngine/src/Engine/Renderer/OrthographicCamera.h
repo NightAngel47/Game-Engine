@@ -4,6 +4,7 @@
 
 namespace Engine
 {
+	
 	class OrthographicCamera
 	{
 	public:

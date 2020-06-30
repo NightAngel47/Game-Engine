@@ -1,6 +1,8 @@
 #pragma once
 #include <Engine.h>
 
+#include "ParticleSystem.h"
+
 class Sandbox2D : public Engine::Layer
 {
 public:
@@ -25,4 +27,7 @@ private:
 
 	float m_SmallSquareRotation = 0.0f;
 	float m_RotationSpeed = 5.0f;
+
+	ParticleProps m_Particle;
+	ParticleSystem m_ParticleSystem;
 };
