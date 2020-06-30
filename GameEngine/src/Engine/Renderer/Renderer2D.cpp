@@ -187,6 +187,9 @@ namespace Engine
 		
 		if (textureIndex == 0.0f)
 		{
+			if (s_Data.TextureSlotIndex >= Render2DData::MaxTextureSlots)
+				FlushAndReset();
+			
 			textureIndex = (float)s_Data.TextureSlotIndex;
 			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
 			s_Data.TextureSlotIndex++;
@@ -219,31 +222,17 @@ namespace Engine
 	void Renderer2D::SetQuadVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color, const float& textureIndex, const float& tiling)
 	{
 		ENGINE_PROFILE_FUNCTION();
-
+		
 		if (s_Data.QuadIndexCount >= Render2DData::MaxIndices)
 			FlushAndReset();
+
+		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 		
 		for (uint32_t i = 0; i < 4; i++)
 		{
 			s_Data.QuadVertexBufferPtr->Position = transfrom * s_Data.QuadVertexPositions[i];
 			s_Data.QuadVertexBufferPtr->Color = color;
-			
-			switch (i)
-			{
-			case 0:
-				s_Data.QuadVertexBufferPtr->TexCoord = {0.0f, 0.0f};
-				break;
-			case 1:
-				s_Data.QuadVertexBufferPtr->TexCoord = {1.0f, 0.0f};
-				break;
-			case 2:
-				s_Data.QuadVertexBufferPtr->TexCoord = {1.0f, 1.0f};
-				break;
-			case 3:
-				s_Data.QuadVertexBufferPtr->TexCoord = {0.0f, 1.0f};
-				break;
-			}
-			
+			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			s_Data.QuadVertexBufferPtr->TexureIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TilingFactor = tiling;
 			s_Data.QuadVertexBufferPtr++;
