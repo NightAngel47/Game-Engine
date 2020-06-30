@@ -63,9 +63,6 @@
     <ClInclude Include="src\Engine\Core\Application.h">
       <Filter>src\Engine\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Core.h">
-      <Filter>src\Engine\Core</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Core\EntryPoint.h">
       <Filter>src\Engine\Core</Filter>
     </ClInclude>
@@ -1399,6 +1396,9 @@
       <Filter>src\Engine\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\SubTexture2D.h" />
+    <ClInclude Include="src\Engine\Core\Base.h">
+      <Filter>src\Engine\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine\Core\Application.cpp">
