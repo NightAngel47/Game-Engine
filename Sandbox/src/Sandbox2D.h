@@ -31,4 +31,7 @@ private:
 
 	ParticleProps m_Particle;
 	ParticleSystem m_ParticleSystem;
+
+	uint32_t m_MapWidth, m_MapHeight;
+	std::unordered_map<char, Engine::Ref<Engine::SubTexture2D>> s_TextureMap;
 };
