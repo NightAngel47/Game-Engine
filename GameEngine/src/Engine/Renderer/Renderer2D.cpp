@@ -14,15 +14,15 @@ namespace Engine
 		glm::vec3 Position;
 		glm::vec4 Color;
 		glm::vec2 TexCoord;
-		float TexIndex;
+		float TexureIndex;
 		float TilingFactor;
 	};
 	
 	struct Render2DData
 	{
-		const uint32_t MaxQuads = 10000;
-		const uint32_t MaxVertices = MaxQuads * 4;
-		const uint32_t MaxIndices = MaxQuads * 6;
+		static const uint32_t MaxQuads = 10000;
+		static const uint32_t MaxVertices = MaxQuads * 4;
+		static const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
 		
 		Ref<VertexArray> QuadVertexArray;
@@ -38,6 +38,8 @@ namespace Engine
 		uint32_t TextureSlotIndex = 1; // 0 = white texture
 
 		glm::vec4 QuadVertexPositions[4];
+
+		Renderer2D::Statistics Stats;
 	};
 
 	static Render2DData s_Data;
@@ -53,7 +55,7 @@ namespace Engine
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float4, "a_Color" },
 			{ ShaderDataType::Float2, "a_TexCoord" },
-			{ ShaderDataType::Float, "a_TexIndex" },
+			{ ShaderDataType::Float, "a_TexureIndex" },
 			{ ShaderDataType::Float, "a_TilingFactor" }
 		});
 		s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
@@ -136,6 +138,20 @@ namespace Engine
 			s_Data.TextureSlots[i]->Bind(i);
 
 		RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
+
+		s_Data.Stats.DrawCalls++;
+	}
+
+	void Renderer2D::FlushAndReset()
+	{
+		ENGINE_PROFILE_FUNCTION();
+		
+		EndScene();
+		
+		s_Data.QuadIndexCount = 0;
+		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+
+		s_Data.TextureSlotIndex = 1;
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const glm::vec4& color)
@@ -146,7 +162,7 @@ namespace Engine
 	void Renderer2D::DrawQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const glm::vec4& color)
 	{
 		ENGINE_PROFILE_FUNCTION();
-
+		
 		SetQuadVertexBuffer(GenTransform(position, rotation, size), color, 0.0f, 1.0f);
 	}
 
@@ -203,6 +219,9 @@ namespace Engine
 	void Renderer2D::SetQuadVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color, const float& textureIndex, const float& tiling)
 	{
 		ENGINE_PROFILE_FUNCTION();
+
+		if (s_Data.QuadIndexCount >= Render2DData::MaxIndices)
+			FlushAndReset();
 		
 		for (uint32_t i = 0; i < 4; i++)
 		{
@@ -225,11 +244,24 @@ namespace Engine
 				break;
 			}
 			
-			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
+			s_Data.QuadVertexBufferPtr->TexureIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TilingFactor = tiling;
 			s_Data.QuadVertexBufferPtr++;
 		}
 
 		s_Data.QuadIndexCount += 6;
+
+		s_Data.Stats.QuadCount++;
 	}
+
+	void Renderer2D::ResetStats()
+	{
+		memset(&s_Data.Stats, 0, sizeof(Statistics));
+	}
+
+	Renderer2D::Statistics Renderer2D::GetStats()
+	{
+		return s_Data.Stats;
+	}
+	
 }

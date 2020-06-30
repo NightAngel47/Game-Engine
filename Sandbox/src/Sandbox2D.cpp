@@ -35,14 +35,17 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 	m_SmallSquareRotation += m_RotationSpeed * ts;
 	
 	// Render
+	Engine::Renderer2D::ResetStats();
 	{
 		ENGINE_PROFILE_SCOPE("Renderer Prep");
+		
 		Engine::RenderCommand::SetClearColor(m_ClearColor);
 		Engine::RenderCommand::Clear();
 	}
 
 	{
 		ENGINE_PROFILE_SCOPE("Renderer Draw");
+		
 		Engine::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
 		Engine::Renderer2D::DrawQuad({-1.0f, 1.0f}, 0.0f, {1.0f, 1.0f}, m_SquareColor);
@@ -55,6 +58,19 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 		Engine::Renderer2D::DrawQuad({0.0f, 0.0f}, 0.0f, {1.24f, 1.23f}, m_ShipTexture);
 		
 		Engine::Renderer2D::EndScene();
+		
+		Engine::Renderer2D::BeginScene(m_CameraController.GetCamera());
+
+		for (float y = -15.0f; y < -5.0f; y += 0.5f)
+		{
+			for (float x = -15.0f; x < -5.0f; x += 0.5f)
+			{
+				glm::vec4 color = {(x + 15.0f) / 10.0f, 0.4f, (y + 15.0f) / 10.0f, 0.75f};
+				Engine::Renderer2D::DrawQuad({x, y}, 0.0f, {0.45f, 0.45f}, color);
+			}
+		}
+		
+		Engine::Renderer2D::EndScene();
 	}
 }
 
@@ -63,10 +79,21 @@ void Sandbox2D::OnImGuiRender()
 	ENGINE_PROFILE_FUNCTION();
 	
 	ImGui::Begin("Settings");
+
+	auto stats = Engine::Renderer2D::GetStats();
+	ImGui::Text("Renderer2D Stats:");
+	ImGui::Text("Draw Calls: %d", stats.DrawCalls);
+	ImGui::Text("Quad Count: %d", stats.QuadCount);
+	ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
+	ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
+	
+	ImGui::Text("");
+	
 	ImGui::ColorEdit3("Clear Color", glm::value_ptr(m_ClearColor));
 	ImGui::ColorEdit4("Square Color", glm::value_ptr(m_SquareColor));
 	ImGui::ColorEdit4("Small Square Color", glm::value_ptr(m_SmallSquareColor));
 	ImGui::ColorEdit4("Rectangle Color", glm::value_ptr(m_RectColor));
+	
 	ImGui::End();
 }
 
