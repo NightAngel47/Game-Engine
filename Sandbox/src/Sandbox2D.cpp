@@ -17,6 +17,7 @@ void Sandbox2D::OnAttach()
 	m_CheckerboardTexture = Engine::Texture2D::Create("assets/textures/Checkerboard.png");
 	m_TempleTexture = Engine::Texture2D::Create("assets/textures/temple.png");
 	m_ShipTexture = Engine::Texture2D::Create("assets/textures/shipGreen_manned.png");
+	m_SpriteSheet = Engine::Texture2D::Create("assets/game/textures/RPGpack_sheet_2X.png");
 
 	m_Particle.ColorBegin = { 254 / 255.0f, 212 / 255.0f, 123 / 255.0f, 1.0f };
 	m_Particle.ColorEnd = { 254 / 255.0f, 109 / 255.0f, 41 / 255.0f, 1.0f };
@@ -53,7 +54,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 
 	{
 		ENGINE_PROFILE_SCOPE("Renderer Draw");
-		
+		/*
 		Engine::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
 		Engine::Renderer2D::DrawQuad({-1.0f, 1.0f}, 0.0f, {1.0f, 1.0f}, m_SquareColor);
@@ -79,6 +80,13 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 		}
 		
 		Engine::Renderer2D::EndScene();
+		*/
+		
+		Engine::Renderer2D::BeginScene(m_CameraController.GetCamera());
+
+		Engine::Renderer2D::DrawQuad({0.0f, 0.0f}, 0.0f, {1.0f, 1.0f}, m_SpriteSheet);
+		
+		Engine::Renderer2D::EndScene();
 	}
 
 	if (Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_LEFT))
@@ -92,7 +100,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 		x = (x / width) * bounds.GetWidth() - bounds.GetWidth() * 0.5f;
 		y = bounds.GetHeight() * 0.5f - (y / height) * bounds.GetHeight();
 		m_Particle.Position = { x + pos.x, y + pos.y };
-		for (int i = 0; i < 50; i++)
+		for (int i = 0; i < 5; i++)
 			m_ParticleSystem.Emit(m_Particle);
 	}
 
