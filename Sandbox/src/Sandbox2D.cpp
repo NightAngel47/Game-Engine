@@ -92,7 +92,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 		x = (x / width) * bounds.GetWidth() - bounds.GetWidth() * 0.5f;
 		y = bounds.GetHeight() * 0.5f - (y / height) * bounds.GetHeight();
 		m_Particle.Position = { x + pos.x, y + pos.y };
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 50; i++)
 			m_ParticleSystem.Emit(m_Particle);
 	}
 
