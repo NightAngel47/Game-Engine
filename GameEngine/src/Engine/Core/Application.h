@@ -19,14 +19,16 @@ namespace Engine
 		Application();
 		virtual ~Application();
 
-
 		void OnEvent(Event& e);
 
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* overlay);
 
-		static Application& Get() { return *s_Instance; }
 		Window& GetWindow() { return *m_Window; }
+
+		void Close();
+		
+		static Application& Get() { return *s_Instance; }
 	private:
 		void Run();
 		bool OnWindowClose(WindowCloseEvent& e);
