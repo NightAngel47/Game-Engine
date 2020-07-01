@@ -16,7 +16,7 @@ namespace Engine
 	class Application
 	{
 	public:
-		Application();
+		Application(const std::string& name = "Game Engine");
 		virtual ~Application();
 
 		void OnEvent(Event& e);

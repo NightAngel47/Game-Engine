@@ -17,7 +17,6 @@ public:
 	virtual void OnEvent(Engine::Event& event) override;
 private:
 	Engine::OrthographicCameraController m_CameraController;
-	Engine::Ref<Engine::Framebuffer> m_Framebuffer;
 
 	glm::vec4 m_ClearColor = {0.1f, 0.1f, 0.1f, 1.0f};
 	glm::vec4 m_SquareColor = {0.8f, 0.2f, 0.3f, 1.0f};
