@@ -32,6 +32,11 @@ Sandbox2D::Sandbox2D()
 void Sandbox2D::OnAttach()
 {
 	ENGINE_PROFILE_FUNCTION();
+
+	Engine::FramebufferSpecification fbSpec;
+	fbSpec.Width = 1280;
+	fbSpec.Height = 720;
+	m_Framebuffer = Engine::Framebuffer::Create(fbSpec);
 	
 	m_CheckerboardTexture = Engine::Texture2D::Create("assets/textures/Checkerboard.png");
 	m_TempleTexture = Engine::Texture2D::Create("assets/textures/temple.png");
@@ -78,6 +83,8 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 	Engine::Renderer2D::ResetStats();
 	{
 		ENGINE_PROFILE_SCOPE("Renderer Prep");
+
+		m_Framebuffer->Bind();
 		
 		Engine::RenderCommand::SetClearColor(m_ClearColor);
 		Engine::RenderCommand::Clear();
@@ -85,6 +92,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 
 	{
 		ENGINE_PROFILE_SCOPE("Renderer Draw");
+		
 		/*
 		Engine::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
@@ -154,6 +162,8 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 
 	m_ParticleSystem.OnUpdate(ts);
 	m_ParticleSystem.OnRender(m_CameraController.GetCamera());
+
+	m_Framebuffer->Unbind();
 }
 
 void Sandbox2D::OnImGuiRender()
@@ -238,8 +248,8 @@ void Sandbox2D::OnImGuiRender()
 	
 	ImGui::Text("");
 
-	uint32_t textureID = m_CheckerboardTexture->GetRendererID();
-	ImGui::Image((void*)textureID, ImVec2{256.0f, 256.0f});
+	uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+	ImGui::Image((void*)textureID, ImVec2{1280.0f, 720.0f});
 	
 	ImGui::End();
 

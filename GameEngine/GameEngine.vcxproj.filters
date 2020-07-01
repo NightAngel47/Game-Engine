@@ -1399,6 +1399,8 @@
     <ClInclude Include="src\Engine\Core\Base.h">
       <Filter>src\Engine\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\Framebuffer.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLFramebuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine\Core\Application.cpp">
@@ -1485,5 +1487,7 @@
     <ClCompile Include="src\Engine\Core\Input.cpp" />
     <ClCompile Include="src\Engine\Core\Window.cpp" />
     <ClCompile Include="src\Engine\Renderer\SubTexture2D.cpp" />
+    <ClCompile Include="src\Engine\Renderer\Framebuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLFramebuffer.cpp" />
   </ItemGroup>
 </Project>
