@@ -68,7 +68,8 @@ namespace Engine
 		ENGINE_PROFILE_FUNCTION();
 		
 		// Update
-		m_CameraController.OnUpdate(ts);
+		if (m_ViewportFocused)
+			m_CameraController.OnUpdate(ts);
 
 		m_SmallSquareRotation += m_RotationSpeed * ts;
 		
@@ -223,6 +224,11 @@ namespace Engine
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
 		ImGui::Begin("Viewport");
+
+		m_ViewportFocused = ImGui::IsWindowFocused();
+		m_ViewportHovered = ImGui::IsWindowHovered();
+		Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused || !m_ViewportHovered);
+		
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize))
 		{
@@ -242,7 +248,7 @@ namespace Engine
 	void EditorLayer::OnEvent(Engine::Event& e)
 	{
 		ENGINE_PROFILE_FUNCTION();
-			
+		
 		m_CameraController.OnEvent(e);
 	}
 	
