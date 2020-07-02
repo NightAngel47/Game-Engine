@@ -2,10 +2,6 @@
 
 #include "Engine/Core/Layer.h"
 
-#include "Engine/Events/KeyEvent.h"
-#include "Engine/Events/MouseEvent.h"
-#include "Engine/Events/ApplicationEvent.h"
-
 namespace Engine
 {
 
