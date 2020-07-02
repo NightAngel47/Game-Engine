@@ -65,6 +65,14 @@ namespace Engine
 		dispatcher.Dispatch<WindowResizeEvent>(ENGINE_BIND_EVENT_FN(OrthographicCameraController::OnWindowResized));
 	}
 
+	void OrthographicCameraController::OnResize(float width, float height)
+	{
+		ENGINE_PROFILE_FUNCTION();
+		
+		m_AspectRatio = width / height;
+		CalculateView();
+	}
+
 	void OrthographicCameraController::CalculateView()
 	{
 		ENGINE_PROFILE_FUNCTION();
@@ -87,8 +95,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
-		m_AspectRatio = (float)e.GetWidth() / (float)e.GetHeight();
-		CalculateView();
+		OnResize((float)e.GetWidth(), (float)e.GetHeight());
 		return false;
 	}
 }

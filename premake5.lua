@@ -1,6 +1,6 @@
 workspace "GameEngine"
 	architecture "x86_64"
-	startproject "Sandbox"
+	startproject "Engine-Editor"
 
 	configurations
 	{
