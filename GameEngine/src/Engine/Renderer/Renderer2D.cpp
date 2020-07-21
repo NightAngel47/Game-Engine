@@ -161,11 +161,7 @@ namespace Engine
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const glm::vec4& color)
 	{
-		ENGINE_PROFILE_FUNCTION();
-
-		constexpr glm::vec2 textureCoords[] = {{ 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f }};
-		
-		SetQuadVertexBuffer(GenTransform(position, rotation, size), color, textureCoords, 0.0f, 1.0f);
+		DrawQuad(GenTransform(position, rotation, size), color);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float& tiling, const glm::vec4& color)
@@ -174,6 +170,31 @@ namespace Engine
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float& tiling, const glm::vec4& color)
+	{
+		DrawQuad(GenTransform(position, rotation, size), texture, tiling, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float& tiling, const glm::vec4& color)
+	{
+		DrawQuad({position.x, position.y, 0.0f}, rotation, size, subtexture, tiling, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float& tiling, const glm::vec4& color)
+	{
+		
+		DrawQuad(GenTransform(position, rotation, size), subtexture, tiling, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::mat4 transform, const glm::vec4& color)
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		constexpr glm::vec2 textureCoords[] = {{ 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f }};
+		
+		SetQuadVertexBuffer(transform, color, textureCoords, 0.0f, 1.0f);
+	}
+
+	void Renderer2D::DrawQuad(const glm::mat4 transform, const Ref<Texture2D>& texture, const float& tiling, const glm::vec4& color)
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
@@ -199,15 +220,10 @@ namespace Engine
 			s_Data.TextureSlotIndex++;
 		}
 		
-		SetQuadVertexBuffer(GenTransform(position, rotation, size), color, textureCoords, textureIndex, tiling);
+		SetQuadVertexBuffer(transform, color, textureCoords, textureIndex, tiling);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float& tiling, const glm::vec4& color)
-	{
-		DrawQuad({position.x, position.y, 0.0f}, rotation, size, subtexture, tiling, color);
-	}
-
-	void Renderer2D::DrawQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float& tiling, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4 transform, const Ref<SubTexture2D>& subtexture, const float& tiling, const glm::vec4& color)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
@@ -234,7 +250,7 @@ namespace Engine
 			s_Data.TextureSlotIndex++;
 		}
 		
-		SetQuadVertexBuffer(GenTransform(position, rotation, size), color, textureCoords, textureIndex, tiling);
+		SetQuadVertexBuffer(transform, color, textureCoords, textureIndex, tiling);
 	}
 
 	glm::mat4 Renderer2D::GenTransform(const glm::vec3& position, const float& rotation, const glm::vec2& size)
