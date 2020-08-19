@@ -7,15 +7,9 @@
 
 namespace Engine
 {
-	Scene::Scene()
-	{
-		
-	}
+	Scene::Scene() {}
 
-	Scene::~Scene()
-	{
-		
-	}
+	Scene::~Scene() {}
 
 	Entity Scene::CreateEntity(const std::string& name)
 	{
@@ -33,17 +27,16 @@ namespace Engine
 		{
 			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
 			{
+
+				// TODO: Move to Scene::OnScenePlay
 				if (!nsc.Instance)
 				{
-					nsc.InstantiateFunction();
+					nsc.Instance = nsc.InstantiateScript();
 					nsc.Instance->m_Entity = Entity{ entity, this };
-					
-					if (nsc.OnCreateFunction)
-						nsc.OnCreateFunction(nsc.Instance);
+					nsc.Instance->OnCreate();
 				}
 				
-				if (nsc.OnUpdateFunction)
-						nsc.OnUpdateFunction(nsc.Instance, ts);
+				nsc.Instance->OnUpdate(ts);
 			});
 		}
 		
@@ -54,7 +47,7 @@ namespace Engine
 			auto view = m_Registry.view<TransformComponent, CameraComponent>();
 			for (auto entity : view)
 			{
-				auto& [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+				auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
 				
 				if (camera.Primary)
 				{
@@ -72,7 +65,7 @@ namespace Engine
 			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 			for (auto entity : group)
 			{
-				auto& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 				
 				Renderer2D::DrawQuad(transform, sprite.Color);
 			}
