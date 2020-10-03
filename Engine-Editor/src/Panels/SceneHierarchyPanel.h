@@ -18,9 +18,11 @@ namespace Engine
 	private:
 		void DrawEntityNode(Entity entity);
 		void DrawComponents(Entity entity);
+		
+		template <typename T, typename Func>
+		void DrawComponent(const char* name, Func);
 	private:
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
 	};
-	
 }
