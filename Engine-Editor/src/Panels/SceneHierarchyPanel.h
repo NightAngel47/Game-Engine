@@ -20,7 +20,7 @@ namespace Engine
 		void DrawComponents(Entity entity);
 		
 		template <typename T, typename Func>
-		void DrawComponent(const char* name, Func);
+		void DrawComponent(const std::string&, Func& func);
 	private:
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
