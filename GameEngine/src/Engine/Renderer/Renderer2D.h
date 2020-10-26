@@ -45,7 +45,8 @@ namespace Engine
 		static Statistics GetStats();
 		static void ResetStats();
 	private:
-		static void FlushAndReset();
+		static void StartBatch();
+		static void NextBatch();
 		static glm::mat4 GenTransform(const glm::vec3& position, const float& rotation, const glm::vec2& size);
 		static void SetQuadVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color, const glm::vec2* textureCoords, const float& textureIndex, const float& tiling);
 	};
