@@ -4,7 +4,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include <Engine/Scene/SceneSerializer.h>
+#include "Engine/Scene/SceneSerializer.h"
+#include "Engine/Utils/PlatformUtils.h"
 
 namespace Engine
 {
@@ -179,21 +180,21 @@ namespace Engine
 	            // which we can't undo at the moment without finer window depth/z control.
 	            //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
 
-	        	// TODO improve scene saving system
-	        	if (ImGui::MenuItem("Serialize"))
-	            {
-					SceneSerializer serializer(m_ActiveScene);
-					serializer.Serialize("assets/scenes/Example.scene");
-	            }
+	        	if (ImGui::MenuItem("New", "Ctrl+N)"))
+					NewScene();
 
-	        	// TODO improve scene loading system
-	            if (ImGui::MenuItem("Deserialize"))
-	            {
-					SceneSerializer serializer(m_ActiveScene);
-					serializer.Deserialize("assets/scenes/Example.scene");
-	            }
+	        	if (ImGui::MenuItem("Open...", "Ctrl+O)"))
+	        		OpenScene();
 
-	            if (ImGui::MenuItem("Exit")) Application::Get().Close();
+	            if (ImGui::MenuItem("Save", "Ctrl+S)"))
+					SaveScene();
+
+	            if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S)"))
+					SaveSceneAs();
+
+	            if (ImGui::MenuItem("Exit"))
+					Application::Get().Close();
+	        	
 	            ImGui::EndMenu();
 	        }
 
@@ -236,6 +237,87 @@ namespace Engine
 		ENGINE_PROFILE_FUNCTION();
 		
 		m_CameraController.OnEvent(e);
+
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<KeyPressedEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
 	}
-	
+
+	bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
+	{
+		// Shortcuts
+		if (e.GetRepeatCount() > 0) return false;
+		
+		bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
+		bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
+		switch (e.GetKeyCode())
+		{
+			case Key::N:
+			{
+				if(control)
+					NewScene();
+		
+				break;
+			}
+			case Key::O:
+			{
+				if(control)
+					OpenScene();
+		
+				break;
+			}
+			case Key::S:
+			{
+				if(control && shift)
+					SaveSceneAs();
+				else if(control && !shift)
+					SaveScene();
+		
+				break;
+			}
+		}
+	}
+
+	void EditorLayer::NewScene()
+	{
+		m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+		m_SceneFilePath = {};
+	}
+
+	void EditorLayer::OpenScene()
+	{
+		std::string filepath = FileDialogs::OpenFile("Game Scene (*.scene)\0*.scene\0");
+		if (!filepath.empty())
+		{
+			NewScene();
+			
+			m_SceneFilePath = filepath;
+			SceneSerializer serializer(m_ActiveScene);
+			serializer.Deserialize(filepath);
+		}	
+	}
+
+	void EditorLayer::SaveSceneAs()
+	{
+		std::string filepath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
+		
+		m_SceneFilePath = filepath;
+		SceneSerializer serializer(m_ActiveScene);
+		serializer.Serialize(filepath);
+	}
+
+	void EditorLayer::SaveScene()
+	{
+		if (m_SceneFilePath.empty())
+		{
+			SaveSceneAs();
+		}
+		else
+		{
+			SceneSerializer serializer(m_ActiveScene);
+			serializer.Serialize(m_SceneFilePath);
+		}
+	}
 }

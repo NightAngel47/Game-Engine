@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine.h>
 #include "Panels/SceneHierarchyPanel.h"
+#include "Engine/Events/KeyEvent.h"
 
 namespace Engine
 {
@@ -17,6 +18,13 @@ namespace Engine
 		virtual void OnImGuiRender() override;
 		virtual void OnEvent(Event& event) override;
 	private:
+		bool OnKeyPressed(KeyPressedEvent& e);
+
+		void NewScene();
+		void OpenScene();
+		void SaveSceneAs();
+		void SaveScene();
+	private:
 		OrthographicCameraController m_CameraController;
 		Ref<Framebuffer> m_Framebuffer;
 		glm::vec2 m_ViewportSize = glm::vec2{1.0f};
@@ -31,6 +39,9 @@ namespace Engine
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
+
+		// Scene Filepath
+		std::string m_SceneFilePath;
 	};
 
 }
