@@ -4,6 +4,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Engine/Debug/Instrumentor.h"
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Utils/PlatformUtils.h"
 

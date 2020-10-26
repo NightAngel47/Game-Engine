@@ -19,7 +19,6 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
-#include <thread>
 
 namespace Engine
 {
