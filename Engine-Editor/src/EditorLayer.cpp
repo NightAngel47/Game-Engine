@@ -62,13 +62,13 @@ namespace Engine
 				auto& position = GetComponent<TransformComponent>().Position;
 				float speed = 5.0f;
 				
-				if (Input::IsKeyPressed(KeyCode::A))
+				if (Input::IsKeyPressed(Key::A))
 					position.x -= speed * ts;
-				if (Input::IsKeyPressed(KeyCode::D))
+				if (Input::IsKeyPressed(Key::D))
 					position.x += speed * ts;
-				if (Input::IsKeyPressed(KeyCode::W))
+				if (Input::IsKeyPressed(Key::W))
 					position.y += speed * ts;
-				if (Input::IsKeyPressed(KeyCode::S))
+				if (Input::IsKeyPressed(Key::S))
 					position.y -= speed * ts;
 			}
 		};
