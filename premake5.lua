@@ -25,6 +25,7 @@ IncludeDir["glm"] = "GameEngine/vendor/glm"
 IncludeDir["stb_image"] = "GameEngine/vendor/stb_image"
 IncludeDir["entt"] = "GameEngine/vendor/entt/include"
 IncludeDir["yaml_cpp"] = "GameEngine/vendor/yaml-cpp/include"
+IncludeDir["ImGuizmo"] = "GameEngine/vendor/ImGuizmo"
 
 group "Dependencies"
 	include "GameEngine/vendor/GLFW"
@@ -54,7 +55,10 @@ project "GameEngine"
 		"%{prj.name}/vendor/stb_image/**.h",
 		"%{prj.name}/vendor/stb_image/**.cpp",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
-		"%{prj.name}/vendor/glm/glm/**.inl"
+		"%{prj.name}/vendor/glm/glm/**.inl",
+
+		"%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
+		"%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp"
 	}
 
 	defines
@@ -74,7 +78,8 @@ project "GameEngine"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.yaml_cpp}"
+		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.ImGuizmo}"
 	}
 
 	links
@@ -85,6 +90,10 @@ project "GameEngine"
 		"yaml-cpp",
 		"opengl32.lib"
 	}
+
+	filter "files:GameEngine/vendor/ImGuizmo/**.cpp"
+	flags { "NoPCH" }
+
 
 	filter "system:windows"
 		systemversion "latest"
