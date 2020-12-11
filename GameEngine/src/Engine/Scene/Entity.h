@@ -1,8 +1,9 @@
 #pragma once
 
-#include <entt.hpp>
-
 #include "Engine/Scene/Scene.h"
+#include "Engine/Core/Log.h"
+
+#include <entt.hpp>
 
 namespace Engine
 {

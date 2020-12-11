@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine.h>
 #include "Panels/SceneHierarchyPanel.h"
+#include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Events/KeyEvent.h"
 
 namespace Engine
@@ -37,7 +38,10 @@ namespace Engine
 
 		bool m_PrimaryCamera = true;
 
+		EditorCamera m_EditorCamera;
+
 		int m_GizmoType = -1;
+		bool m_IsGizmoInUse = false;
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;

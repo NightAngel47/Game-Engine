@@ -167,6 +167,7 @@
     <ClInclude Include="src\Engine\OrthographicCameraController.h" />
     <ClInclude Include="src\Engine\Renderer\Buffer.h" />
     <ClInclude Include="src\Engine\Renderer\Camera.h" />
+    <ClInclude Include="src\Engine\Renderer\EditorCamera.h" />
     <ClInclude Include="src\Engine\Renderer\Framebuffer.h" />
     <ClInclude Include="src\Engine\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Engine\Renderer\OrthographicCamera.h" />
@@ -616,6 +617,7 @@
     <ClCompile Include="src\Engine\Math\Math.cpp" />
     <ClCompile Include="src\Engine\OrthographicCameraController.cpp" />
     <ClCompile Include="src\Engine\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\Engine\Renderer\EditorCamera.cpp" />
     <ClCompile Include="src\Engine\Renderer\Framebuffer.cpp" />
     <ClCompile Include="src\Engine\Renderer\GraphicsContext.cpp" />
     <ClCompile Include="src\Engine\Renderer\OrthographicCamera.cpp" />
@@ -666,4 +668,4 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-</Project>
+</Project> 

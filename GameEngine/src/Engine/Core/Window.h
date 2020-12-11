@@ -41,5 +41,7 @@ namespace Engine
 		virtual void* GetNativeWindow() const = 0;
 
 		static Scope<Window> Create(const WindowProps& = WindowProps());
+	public:
+		static float s_HighDPIScaleFactor;
 	};
 }

@@ -11,6 +11,8 @@
 
 namespace Engine
 {
+	float Window::s_HighDPIScaleFactor = 1.0f;
+	
 	static uint8_t s_GLFWWindowCount = 0;
 
 	static void GLFWErrorCallback(int error, const char* description)
@@ -53,6 +55,17 @@ namespace Engine
 
 		{
 			ENGINE_PROFILE_SCOPE("glfwCreateWindow");
+
+			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+			float xScale, yScale;
+			glfwGetMonitorContentScale(monitor, &xScale, &yScale);
+
+			if(xScale > 1.0f || yScale > 1.0f)
+			{
+				s_HighDPIScaleFactor = yScale;
+				glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+			}
+			
 			#if defined(ENGINE_DEBUG)
 				if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
 					glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);

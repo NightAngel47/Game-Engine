@@ -29,6 +29,8 @@ namespace Engine
 
 		m_ActiveScene = CreateRef<Scene>();
 
+		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+
 #if 0
 		// Entity
 		Entity square = m_ActiveScene->CreateEntity("Square");
@@ -101,13 +103,17 @@ namespace Engine
 		{
 			m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 			m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
-
+			m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 		}
 		
 		// Update
 		if (m_ViewportFocused)
+		{
 			m_CameraController.OnUpdate(ts);
+		}
+
+		m_EditorCamera.OnUpdate(ts);
 		
 		// Render
 		Renderer2D::ResetStats();
@@ -116,7 +122,8 @@ namespace Engine
 		RenderCommand::Clear();
 
 		// Update Scene
-		m_ActiveScene->OnUpdate(ts);
+		m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+		//m_ActiveScene->OnUpdateRuntime(ts);
 
 		m_Framebuffer->Unbind();
 	}
@@ -242,11 +249,17 @@ namespace Engine
 			ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
 			// Camera
-			auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
-			const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-			const glm::mat4& cameraProjection = camera.GetProjection();
-			glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
+			
+			// Runtime Camera
+			// auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+			// const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+			// const glm::mat4& cameraProjection = camera.GetProjection();
+			// glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
 
+			// Editor Camera
+			const glm::mat4& cameraProjection = m_EditorCamera.GetProjection();
+			glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
+			
 			// Entity transform
 			auto& transformComponent = selectedEntity.GetComponent<TransformComponent>();
 			glm::mat4 transform = transformComponent.GetTransform();
@@ -266,6 +279,7 @@ namespace Engine
 
 			if(ImGuizmo::IsUsing())
 			{
+				m_IsGizmoInUse = true;
 				glm::vec3 position, rotation, scale;
 				Math::DecomposeTransform(transform, position, rotation, scale);
 				
@@ -274,6 +288,10 @@ namespace Engine
 				transformComponent.Position = position;
 				transformComponent.Rotation += deltaRotation;
 				transformComponent.Scale = scale;
+			}
+			else
+			{
+				m_IsGizmoInUse = false;
 			}
 		}
 		
@@ -288,6 +306,7 @@ namespace Engine
 		ENGINE_PROFILE_FUNCTION();
 		
 		m_CameraController.OnEvent(e);
+		m_EditorCamera.OnEvent(e);
 
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
@@ -329,22 +348,26 @@ namespace Engine
 			// Gizmos
 			case Key::Q:
 			{
-				m_GizmoType = -1;
+				if(!m_IsGizmoInUse)
+					m_GizmoType = -1;
 				break;
 			}
 			case Key::W:
 			{
-				m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+				if(!m_IsGizmoInUse)
+					m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
 				break;
 			}
 			case Key::E:
 			{
-				m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+				if(!m_IsGizmoInUse)
+					m_GizmoType = ImGuizmo::OPERATION::ROTATE;
 				break;
 			}
 			case Key::R:
 			{
-				m_GizmoType = ImGuizmo::OPERATION::SCALE;
+				if(!m_IsGizmoInUse)
+					m_GizmoType = ImGuizmo::OPERATION::SCALE;
 				break;
 			}
 		}

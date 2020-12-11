@@ -6,6 +6,8 @@
 
 #include "Engine/Scene/Components.h"
 
+#include <cstring>
+
 namespace Engine
 {
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
