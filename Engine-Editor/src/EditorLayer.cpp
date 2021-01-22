@@ -109,9 +109,7 @@ namespace Engine
 		
 		// Update
 		if (m_ViewportFocused)
-		{
 			m_CameraController.OnUpdate(ts);
-		}
 
 		m_EditorCamera.OnUpdate(ts);
 		
