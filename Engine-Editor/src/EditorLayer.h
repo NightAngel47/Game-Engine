@@ -48,6 +48,8 @@ namespace Engine
 
 		// Scene Filepath
 		std::string m_SceneFilePath;
+
+		bool m_RenderTarget = 0;
 	};
 
 }

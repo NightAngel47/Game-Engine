@@ -4,6 +4,51 @@ Entities:
     TagComponent:
       Tag: Empty Entity
     TransformComponent:
+      Position: [-1.20000005, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 0.88607347, 0, 1]
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Position: [1.20000005, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 0, 0, 1]
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Position: [0, -1.20000005, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.987341404, 0, 1, 1]
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Position: [0, 1.20000005, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0, 0.0759494305, 1, 1]
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0, 1, 0.154761791, 1]
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
@@ -18,12 +63,3 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 1894728905743
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Position: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0, 1, 0.154761791, 1]
