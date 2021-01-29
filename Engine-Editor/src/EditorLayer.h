@@ -27,9 +27,8 @@ namespace Engine
 		void SaveScene();
 	private:
 		OrthographicCameraController m_CameraController;
+
 		Ref<Framebuffer> m_Framebuffer;
-		glm::vec2 m_ViewportSize = glm::vec2{1.0f};
-		bool m_ViewportFocused = false, m_ViewportHovered = false;
 
 		Ref<Scene> m_ActiveScene;
 		Entity m_SquareEntity;
@@ -40,6 +39,12 @@ namespace Engine
 
 		EditorCamera m_EditorCamera;
 
+		// ImGui
+		glm::vec2 m_ViewportSize = glm::vec2{1.0f};
+		bool m_ViewportFocused = false, m_ViewportHovered = false;
+		glm::vec2 m_ViewportBounds[2];
+
+		// Gizmos
 		int m_GizmoType = -1;
 		bool m_IsGizmoInUse = false;
 
@@ -48,8 +53,6 @@ namespace Engine
 
 		// Scene Filepath
 		std::string m_SceneFilePath;
-
-		bool m_RenderTarget = 0;
 	};
 
 }

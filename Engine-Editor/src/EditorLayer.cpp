@@ -23,7 +23,7 @@ namespace Engine
 		ENGINE_PROFILE_FUNCTION();
 
 		FramebufferSpecification fbSpec;
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::Depth };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
 		fbSpec.Width = 1280;
 		fbSpec.Height = 720;
 		m_Framebuffer = Framebuffer::Create(fbSpec);
@@ -123,6 +123,21 @@ namespace Engine
 		// Update Scene
 		m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
 		//m_ActiveScene->OnUpdateRuntime(ts);
+
+		auto[mx, my] = ImGui::GetMousePos();
+		mx -= m_ViewportBounds[0].x;
+		my -= m_ViewportBounds[0].y;
+		glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+		my = viewportSize.y - my;
+
+		int mouseX = (int)mx;
+		int mouseY = (int)my;
+
+		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+		{
+			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
+			ENGINE_CORE_WARN("Pixel Data = {0}", pixelData);
+		}
 
 		m_Framebuffer->Unbind();
 	}
@@ -225,6 +240,7 @@ namespace Engine
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
 		ImGui::Begin("Viewport");
+		auto viewportOffset = ImGui::GetCursorPos(); // Includes the tab bar
 
 		m_ViewportFocused = ImGui::IsWindowFocused();
 		m_ViewportHovered = ImGui::IsWindowHovered();
@@ -233,9 +249,18 @@ namespace Engine
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 		
-		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID(m_RenderTarget);
+		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
 		ImGui::Image((void*)textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
 
+		auto windowSize = ImGui::GetWindowSize();
+		ImVec2 minBound = ImGui::GetWindowPos();
+		minBound.x += viewportOffset.x;
+		minBound.y += viewportOffset.y;
+
+		ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+		m_ViewportBounds[0] = { minBound.x, minBound.y };
+		m_ViewportBounds[1] = { maxBound.x, maxBound.y };
+		
 		// Gizmos
 		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 		if(selectedEntity && m_GizmoType != -1)
@@ -367,14 +392,6 @@ namespace Engine
 			{
 				if(!m_IsGizmoInUse)
 					m_GizmoType = ImGuizmo::OPERATION::SCALE;
-				break;
-			}
-
-
-			// TODO: TEMP, WILL BE REMOVED, JUST FOR TESTING
-			case Key::Space:
-			{
-				m_RenderTarget = !m_RenderTarget;
 				break;
 			}
 		}
