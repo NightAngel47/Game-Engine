@@ -16,6 +16,9 @@ namespace Engine
 		glm::vec2 TexCoord;
 		float TexureIndex;
 		float TilingFactor;
+
+		// Editor-only
+		int EntityID;
 	};
 	
 	struct Render2DData
@@ -52,11 +55,12 @@ namespace Engine
 
 		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
 		s_Data.QuadVertexBuffer->SetLayout({
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float4, "a_Color" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-			{ ShaderDataType::Float, "a_TexIndex" },
-			{ ShaderDataType::Float, "a_TilingFactor" }
+			{ ShaderDataType::Float3,	"a_Position"		},
+			{ ShaderDataType::Float4,	"a_Color"			},
+			{ ShaderDataType::Float2,	"a_TexCoord"		},
+			{ ShaderDataType::Float,	"a_TexIndex"		},
+			{ ShaderDataType::Float,	"a_TilingFactor"	},
+			{ ShaderDataType::Int,		"a_EntityID"		}
 		});
 		s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
 
@@ -212,16 +216,16 @@ namespace Engine
 		DrawQuad(GenTransform(position, rotation, size), subtexture, tiling, color);
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4 transform, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4 transform, const glm::vec4& color, int entityID)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
 		constexpr glm::vec2 textureCoords[] = {{ 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f }};
 		
-		SetQuadVertexBuffer(transform, color, textureCoords, 0.0f, 1.0f);
+		SetQuadVertexBuffer(transform, color, textureCoords, 0.0f, 1.0f, entityID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4 transform, const Ref<Texture2D>& texture, const float& tiling, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4 transform, const Ref<Texture2D>& texture, const float& tiling, const glm::vec4& color, int entityID)
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
@@ -247,10 +251,10 @@ namespace Engine
 			s_Data.TextureSlotIndex++;
 		}
 		
-		SetQuadVertexBuffer(transform, color, textureCoords, textureIndex, tiling);
+		SetQuadVertexBuffer(transform, color, textureCoords, textureIndex, tiling, entityID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4 transform, const Ref<SubTexture2D>& subtexture, const float& tiling, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4 transform, const Ref<SubTexture2D>& subtexture, const float& tiling, const glm::vec4& color, int entityID)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
@@ -277,7 +281,15 @@ namespace Engine
 			s_Data.TextureSlotIndex++;
 		}
 		
-		SetQuadVertexBuffer(transform, color, textureCoords, textureIndex, tiling);
+		SetQuadVertexBuffer(transform, color, textureCoords, textureIndex, tiling, entityID);
+	}
+
+	void Renderer2D::DrawSprite(const glm::mat4 transform, SpriteRendererComponent& src, int entityID)
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		DrawQuad(transform, src.Color, entityID);
+		
 	}
 
 	glm::mat4 Renderer2D::GenTransform(const glm::vec3& position, const float& rotation, const glm::vec2& size)
@@ -301,7 +313,7 @@ namespace Engine
 		return transform;
 	}
 
-	void Renderer2D::SetQuadVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color,  const glm::vec2* textureCoords, const float& textureIndex, const float& tiling)
+	void Renderer2D::SetQuadVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color,  const glm::vec2* textureCoords, const float& textureIndex, const float& tiling, int entityID)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
@@ -315,6 +327,7 @@ namespace Engine
 			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			s_Data.QuadVertexBufferPtr->TexureIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TilingFactor = tiling;
+			s_Data.QuadVertexBufferPtr->EntityID = entityID;
 			s_Data.QuadVertexBufferPtr++;
 		}
 

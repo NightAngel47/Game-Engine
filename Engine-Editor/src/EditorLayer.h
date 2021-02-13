@@ -34,6 +34,8 @@ namespace Engine
 		Entity m_SquareEntity;
 		Entity m_CameraEntity;
 		Entity m_SecondCamera;
+		
+		Entity m_SelectedEntity;
 
 		bool m_PrimaryCamera = true;
 

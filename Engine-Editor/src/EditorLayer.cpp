@@ -136,10 +136,12 @@ namespace Engine
 		int mouseX = (int)mx;
 		int mouseY = (int)my;
 
-		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+		if (ImGui::IsMouseDown(0) && !m_IsGizmoInUse &&
+			mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
 		{
 			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
-			ENGINE_CORE_WARN("Pixel Data = {0}", pixelData);
+			m_SelectedEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
+			m_SceneHierarchyPanel.SetSelectedEntity(m_SelectedEntity);
 		}
 
 		m_Framebuffer->Unbind();
@@ -231,6 +233,11 @@ namespace Engine
 		m_SceneHierarchyPanel.OnImGuiRender();
 
 		ImGui::Begin("Stats");
+
+		std::string name = "None";
+		if (m_SelectedEntity)
+			name = m_SelectedEntity.GetComponent<TagComponent>().Tag;
+		ImGui::Text("Selected Entity: %s", name.c_str());
 		
 		auto stats = Renderer2D::GetStats();
 		ImGui::Text("Renderer2D Stats:");
