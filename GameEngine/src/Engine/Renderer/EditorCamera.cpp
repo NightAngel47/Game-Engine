@@ -45,7 +45,7 @@ namespace Engine
 
 	float EditorCamera::RotationSpeed() const
 	{
-		return 0.0f;
+		return 0.8f;
 	}
 
 	float EditorCamera::ZooomSpeed() const
