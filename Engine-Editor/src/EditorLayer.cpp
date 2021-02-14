@@ -136,12 +136,10 @@ namespace Engine
 		int mouseX = (int)mx;
 		int mouseY = (int)my;
 
-		if (ImGui::IsMouseDown(0) && !m_IsGizmoInUse &&
-			mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
 		{
 			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
-			m_SelectedEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
-			m_SceneHierarchyPanel.SetSelectedEntity(m_SelectedEntity);
+			m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
 		}
 
 		m_Framebuffer->Unbind();
@@ -235,8 +233,8 @@ namespace Engine
 		ImGui::Begin("Stats");
 
 		std::string name = "None";
-		if (m_SelectedEntity)
-			name = m_SelectedEntity.GetComponent<TagComponent>().Tag;
+		if (m_HoveredEntity)
+			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
 		ImGui::Text("Selected Entity: %s", name.c_str());
 		
 		auto stats = Renderer2D::GetStats();
@@ -344,6 +342,7 @@ namespace Engine
 
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
+		dispatcher.Dispatch<MouseButtonPressedEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
 	}
 
 	bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
@@ -405,6 +404,16 @@ namespace Engine
 				break;
 			}
 		}
+	}
+
+	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+	{
+		if(e.GetMouseButton() == Mouse::Button0 && !m_IsGizmoInUse && m_ViewportHovered)
+		{
+			m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+		}
+		
+		return false;
 	}
 
 	void EditorLayer::NewScene()

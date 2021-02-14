@@ -20,6 +20,7 @@ namespace Engine
 		virtual void OnEvent(Event& event) override;
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);
+		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
 		void NewScene();
 		void OpenScene();
@@ -35,7 +36,7 @@ namespace Engine
 		Entity m_CameraEntity;
 		Entity m_SecondCamera;
 		
-		Entity m_SelectedEntity;
+		Entity m_HoveredEntity;
 
 		bool m_PrimaryCamera = true;
 
