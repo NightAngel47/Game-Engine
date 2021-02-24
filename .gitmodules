@@ -2,10 +2,6 @@
 	path = GameEngine/vendor/spdlog
 	url = https://github.com/gabime/spdlog
 	branch = v1.x
-[submodule "GameEngine/vendor/GLFW"]
-	path = GameEngine/vendor/GLFW
-	url = https://github.com/NightAngel47/glfw
-	branch = master
 [submodule "GameEngine/vendor/imgui"]
 	path = GameEngine/vendor/imgui
 	url = https://github.com/NightAngel47/imgui
@@ -20,3 +16,7 @@
 [submodule "GameEngine/vendor/ImGuizmo"]
 	path = GameEngine/vendor/ImGuizmo
 	url = https://github.com/NightAngel47/imguizmo
+[submodule "GameEngine/vendor/GLFW"]
+	path = GameEngine/vendor/GLFW
+	url = https://github.com/NightAngel47/GLFW
+	branch = master
