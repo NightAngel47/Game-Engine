@@ -8,7 +8,7 @@ project "GameEngine"
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	pchheader "enginepch.h"
-	pchsource "GameEngine/src/enginepch.cpp"
+	pchsource "src/enginepch.cpp"
 
 	files
 	{
@@ -52,7 +52,7 @@ project "GameEngine"
 		"opengl32.lib"
 	}
 
-	filter "files:GameEngine/vendor/ImGuizmo/**.cpp"
+	filter "files:vendor/ImGuizmo/**.cpp"
 	flags { "NoPCH" }
 
 	filter "system:windows"

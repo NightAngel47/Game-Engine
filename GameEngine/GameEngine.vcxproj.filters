@@ -588,6 +588,12 @@
     <ClInclude Include="vendor\glm\glm\ext\matrix_int4x4_sized.hpp">
       <Filter>vendor\glm\glm\ext</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\glm\glm\ext\matrix_integer.hpp">
+      <Filter>vendor\glm\glm\ext</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\glm\glm\ext\matrix_integer.inl">
+      <Filter>vendor\glm\glm\ext</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\glm\glm\ext\matrix_projection.hpp">
       <Filter>vendor\glm\glm\ext</Filter>
     </ClInclude>
@@ -738,6 +744,12 @@
     <ClInclude Include="vendor\glm\glm\ext\scalar_packing.inl">
       <Filter>vendor\glm\glm\ext</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\glm\glm\ext\scalar_reciprocal.hpp">
+      <Filter>vendor\glm\glm\ext</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\glm\glm\ext\scalar_reciprocal.inl">
+      <Filter>vendor\glm\glm\ext</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\glm\glm\ext\scalar_relational.hpp">
       <Filter>vendor\glm\glm\ext</Filter>
     </ClInclude>
@@ -867,6 +879,12 @@
     <ClInclude Include="vendor\glm\glm\ext\vector_packing.inl">
       <Filter>vendor\glm\glm\ext</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\glm\glm\ext\vector_reciprocal.hpp">
+      <Filter>vendor\glm\glm\ext</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\glm\glm\ext\vector_reciprocal.inl">
+      <Filter>vendor\glm\glm\ext</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\glm\glm\ext\vector_relational.hpp">
       <Filter>vendor\glm\glm\ext</Filter>
     </ClInclude>
@@ -991,9 +1009,6 @@
       <Filter>vendor\glm\glm\gtc</Filter>
     </ClInclude>
     <ClInclude Include="vendor\glm\glm\gtc\reciprocal.hpp">
-      <Filter>vendor\glm\glm\gtc</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\glm\glm\gtc\reciprocal.inl">
       <Filter>vendor\glm\glm\gtc</Filter>
     </ClInclude>
     <ClInclude Include="vendor\glm\glm\gtc\round.hpp">
