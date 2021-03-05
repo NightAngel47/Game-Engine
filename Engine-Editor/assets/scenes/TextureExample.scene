@@ -10,6 +10,7 @@ Entities:
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       Path: D:\GitHub\Game-Engine\Engine-Editor\assets\textures\Checkerboard.png
+      Tiling: 1
   - Entity: 1894728905743
     TagComponent:
       Tag: Sprite
@@ -20,3 +21,4 @@ Entities:
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       Path: D:\GitHub\Game-Engine\Engine-Editor\assets\textures\shipGreen_manned.png
+      Tiling: 1

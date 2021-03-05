@@ -2,12 +2,12 @@ Scene: Untitled
 Entities:
   - Entity: 1894728905743
     TagComponent:
-      Tag: Empty Entity
+      Tag: Tiles
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      Path: ""
-      Tiling: 1
+      Color: [0.733333349, 0.474509805, 0.839215696, 1]
+      Path: D:\GitHub\Game-Engine\Engine-Editor\assets\textures\Checkerboard.png
+      Tiling: 10

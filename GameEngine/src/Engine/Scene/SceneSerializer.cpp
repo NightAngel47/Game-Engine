@@ -146,6 +146,7 @@ namespace Engine
 			auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
 			out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
 			out << YAML::Key << "Path" << YAML::Value << spriteRendererComponent.Path;
+			out << YAML::Key << "Tiling" << YAML::Value << spriteRendererComponent.Tiling;
 
 			out << YAML::EndMap; // SpriteRendererComponent
 		}
@@ -250,6 +251,7 @@ namespace Engine
 					auto& spriteRenderer = deserializedEntity.AddComponent<SpriteRendererComponent>();
 					spriteRenderer.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 					spriteRenderer.Path = spriteRendererComponent["Path"].as<std::string>();
+					spriteRenderer.Tiling = spriteRendererComponent["Tiling"].as<float>();
 
 					if(!spriteRenderer.Path.empty()) spriteRenderer.LoadTexture();
 				}

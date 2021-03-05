@@ -290,7 +290,7 @@ namespace Engine
 
 		if(src.Texture != nullptr)
 		{
-			DrawQuad(transform, src.Texture, 1.0f, src.Color, entityID);
+			DrawQuad(transform, src.Texture, src.Tiling, src.Color, entityID);
 			return;
 		}
 		

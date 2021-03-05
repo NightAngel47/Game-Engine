@@ -322,6 +322,10 @@ namespace Engine
 				component.SetPathFromFolder();
 				component.LoadTexture();
 			}
+
+			float tiling = component.Tiling;
+			if (ImGui::DragFloat("Tiling", &tiling, 0.1f))
+				component.Tiling = tiling;
 			
 		});
 	}

@@ -49,11 +49,12 @@ namespace Engine
 		glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
 		std::string Path;
 		Ref<Texture2D> Texture = nullptr;
+		float Tiling = 1.0f;
 	
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
-			: Color(color) {}
+			: Color(color) { Tiling = 1.0f; }
 
 		void SetPathFromFolder()
 		{
