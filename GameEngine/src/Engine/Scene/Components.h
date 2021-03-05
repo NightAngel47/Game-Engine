@@ -5,8 +5,11 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
+
+#include "Engine/Renderer/Texture.h"
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Scene/ScriptableEntity.h"
+#include "Engine/Utils/PlatformUtils.h"
 
 namespace Engine
 {
@@ -44,11 +47,23 @@ namespace Engine
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+		std::string Path;
+		Ref<Texture2D> Texture = nullptr;
 	
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
+
+		void SetPathFromFolder()
+		{
+			Path = FileDialogs::OpenFile("Image (*.png)\0*.png\0");
+		}
+		
+		void LoadTexture()
+		{
+			if(!Path.empty()) Texture = Ref<Texture2D>()->Create(Path);
+		}
 	};
 
 	struct CameraComponent

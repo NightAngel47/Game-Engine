@@ -288,8 +288,13 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		DrawQuad(transform, src.Color, entityID);
+		if(src.Texture != nullptr)
+		{
+			DrawQuad(transform, src.Texture, 1.0f, src.Color, entityID);
+			return;
+		}
 		
+		DrawQuad(transform, src.Color, entityID);
 	}
 
 	glm::mat4 Renderer2D::GenTransform(const glm::vec3& position, const float& rotation, const glm::vec2& size)

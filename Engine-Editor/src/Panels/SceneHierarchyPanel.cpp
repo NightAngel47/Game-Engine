@@ -312,6 +312,17 @@ namespace Engine
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
 		{
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+			
+			ImGui::Text(component.Path.c_str());
+			
+			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			const ImVec2 buttonSize = {lineHeight + 80.0f, lineHeight};
+			if(ImGui::Button("Load Texture", buttonSize))
+			{
+				component.SetPathFromFolder();
+				component.LoadTexture();
+			}
+			
 		});
 	}
 }

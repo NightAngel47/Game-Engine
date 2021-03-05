@@ -9,6 +9,7 @@ Entities:
       Scale: [1, 0.999999821, 0.999999821]
     SpriteRendererComponent:
       Color: [1, 0.88607347, 0, 1]
+      Path: D:\GitHub\Game-Engine\Engine-Editor\assets\textures\Checkerboard.png
   - Entity: 1894728905743
     TagComponent:
       Tag: Red
@@ -18,6 +19,7 @@ Entities:
       Scale: [2.29999995, 0.452724487, 2.29999995]
     SpriteRendererComponent:
       Color: [1, 0, 0, 1]
+      Path: ""
   - Entity: 1894728905743
     TagComponent:
       Tag: Pink
@@ -27,6 +29,7 @@ Entities:
       Scale: [1.00000167, 1, 1]
     SpriteRendererComponent:
       Color: [0.987341404, 0, 1, 1]
+      Path: ""
   - Entity: 1894728905743
     TagComponent:
       Tag: Blue
@@ -36,6 +39,7 @@ Entities:
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [0, 0.0759494305, 1, 1]
+      Path: ""
   - Entity: 1894728905743
     TagComponent:
       Tag: Green
@@ -45,6 +49,7 @@ Entities:
       Scale: [1, 1.00000012, 1]
     SpriteRendererComponent:
       Color: [0, 1, 0.154761791, 1]
+      Path: ""
   - Entity: 1894728905743
     TagComponent:
       Tag: Camera

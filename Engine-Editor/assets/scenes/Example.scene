@@ -9,6 +9,7 @@ Entities:
       Scale: [1.70099998, 1, 1]
     SpriteRendererComponent:
       Color: [1, 0, 0, 1]
+      Path: ""
   - Entity: 1894728905743
     TagComponent:
       Tag: Square
@@ -18,6 +19,7 @@ Entities:
       Scale: [12.6999998, 2.9000001, 1]
     SpriteRendererComponent:
       Color: [0, 1, 0, 1]
+      Path: ""
   - Entity: 1894728905743
     TagComponent:
       Tag: Another Square
@@ -27,6 +29,7 @@ Entities:
       Scale: [5.69999981, 6.5999999, 1]
     SpriteRendererComponent:
       Color: [0.759493351, 0, 1, 1]
+      Path: ""
   - Entity: 1894728905743
     TagComponent:
       Tag: Camera Entity
