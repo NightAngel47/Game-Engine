@@ -403,9 +403,12 @@ namespace Engine
 
 	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 	{
-		if(e.GetMouseButton() == Mouse::Button0 && !m_IsGizmoInUse && m_ViewportHovered)
+		if(e.GetMouseButton() == Mouse::ButtonLeft)
 		{
-			m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+			if(m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
+			{
+				m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+			}
 		}
 		
 		return false;
