@@ -7,7 +7,8 @@
 extern Engine::Application* Engine::CreateApplication();
 
 extern "C" {
-	__declspec(dllexport) uint32_t NvOptimusEnablement = 0x00000001;
+inline __declspec(dllexport) uint32_t NvOptimusEnablement = 0x00000001;
+inline __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 
 int main(int argc, char** argv)
