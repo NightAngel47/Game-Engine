@@ -109,14 +109,14 @@ void ExampleLayer::OnUpdate(Engine::Timestep ts)
 	// Update
 	m_CameraController.OnUpdate(ts);
 	
-	if(Engine::Input::IsKeyPressed(ENGINE_KEY_LEFT))
+	if(Engine::Input::IsKeyPressed(Engine::Key::Left))
 		m_ShipPosition.x -= m_ShipMoveSpeed * ts;
-	if(Engine::Input::IsKeyPressed(ENGINE_KEY_RIGHT))
+	if(Engine::Input::IsKeyPressed(Engine::Key::Right))
 		m_ShipPosition.x += m_ShipMoveSpeed * ts;
 	
-	if(Engine::Input::IsKeyPressed(ENGINE_KEY_UP))
+	if(Engine::Input::IsKeyPressed(Engine::Key::Up))
 		m_ShipPosition.y += m_ShipMoveSpeed * ts;
-	if(Engine::Input::IsKeyPressed(ENGINE_KEY_DOWN))
+	if(Engine::Input::IsKeyPressed(Engine::Key::Down))
 		m_ShipPosition.y -= m_ShipMoveSpeed * ts;
 
 	// Render

@@ -4,6 +4,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Engine/Debug/Instrumentor.h"
+
 
 static const uint32_t s_MapWidth = 24;
 static const char* s_MapTiles = 
@@ -138,17 +140,17 @@ void Sandbox2D::OnUpdate(Engine::Timestep ts)
 		Engine::Renderer2D::EndScene();
 	}
 
-	if (Engine::Input::IsMouseButtonPressed(ENGINE_MOUSE_BUTTON_LEFT))
+	if (Engine::Input::IsMouseButtonPressed(Engine::Mouse::ButtonLeft))
 	{
-		auto [x, y] = Engine::Input::GetMousePosition();
+		auto mousePos = Engine::Input::GetMousePosition();
 		auto width = Engine::Application::Get().GetWindow().GetWidth();
 		auto height = Engine::Application::Get().GetWindow().GetHeight();
 
 		auto bounds = m_CameraController.GetBounds();
 		auto pos = m_CameraController.GetCamera().GetPosition();
-		x = (x / width) * bounds.GetWidth() - bounds.GetWidth() * 0.5f;
-		y = bounds.GetHeight() * 0.5f - (y / height) * bounds.GetHeight();
-		m_Particle.Position = { x + pos.x, y + pos.y };
+		mousePos.x = (mousePos.x / width) * bounds.GetWidth() - bounds.GetWidth() * 0.5f;
+		mousePos.y = bounds.GetHeight() * 0.5f - (mousePos.y / height) * bounds.GetHeight();
+		m_Particle.Position = { mousePos.x + pos.x, mousePos.y + pos.y };
 		for (int i = 0; i < 5; i++)
 			m_ParticleSystem.Emit(m_Particle);
 	}
