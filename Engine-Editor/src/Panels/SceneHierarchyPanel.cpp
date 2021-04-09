@@ -38,7 +38,17 @@ namespace Engine
 		if (ImGui::BeginPopupContextWindow(0, 1, false))
 		{
 			if (ImGui::MenuItem("Create Empty Entity"))
+			{
 				m_Context->CreateEntity("Empty Entity");
+			}
+			else if (ImGui::MenuItem("Create Sprite"))
+			{
+				m_Context->CreateEntity("Sprite").AddComponent<SpriteRendererComponent>();
+			}
+			else if (ImGui::MenuItem("Create Camera"))
+			{
+				m_Context->CreateEntity("Camera").AddComponent<CameraComponent>();
+			}
 
 			ImGui::EndPopup();
 		}
