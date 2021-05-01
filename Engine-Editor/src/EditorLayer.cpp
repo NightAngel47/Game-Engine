@@ -30,6 +30,14 @@ namespace Engine
 
 		m_ActiveScene = CreateRef<Scene>();
 
+		auto commandLineArgs = Application::Get().GetCommandLineArgs();
+		if (commandLineArgs.Count > 1)
+		{
+			auto sceneFilePath = commandLineArgs[1];
+			SceneSerializer serializer(m_ActiveScene);
+			serializer.Deserialize(sceneFilePath);
+		}
+
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 
 #if 0
@@ -160,8 +168,8 @@ namespace Engine
 	    if (opt_fullscreen)
 	    {
 	        ImGuiViewport* viewport = ImGui::GetMainViewport();
-	        ImGui::SetNextWindowPos(viewport->GetWorkPos());
-	        ImGui::SetNextWindowSize(viewport->GetWorkSize());
+	        ImGui::SetNextWindowPos(viewport->WorkPos);
+	        ImGui::SetNextWindowSize(viewport->WorkSize);
 	        ImGui::SetNextWindowViewport(viewport->ID);
 	        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);

@@ -1,4 +1,5 @@
 include "./vendor/premake/premake_customization/solution_items.lua"
+include "Dependencies.lua"
 
 workspace "GameEngine"
 	architecture "x86_64"
@@ -22,17 +23,6 @@ workspace "GameEngine"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-
--- Include directories relative to root folder (solution directory)
-IncludeDir = {}
-IncludeDir["GLFW"] = "%{wks.location}/GameEngine/vendor/GLFW/include"
-IncludeDir["Glad"] = "%{wks.location}/GameEngine/vendor/Glad/include"
-IncludeDir["ImGui"] = "%{wks.location}/GameEngine/vendor/imgui"
-IncludeDir["glm"] = "%{wks.location}/GameEngine/vendor/glm"
-IncludeDir["stb_image"] = "%{wks.location}/GameEngine/vendor/stb_image"
-IncludeDir["entt"] = "%{wks.location}/GameEngine/vendor/entt/include"
-IncludeDir["yaml_cpp"] = "%{wks.location}/GameEngine/vendor/yaml-cpp/include"
-IncludeDir["ImGuizmo"] = "%{wks.location}/GameEngine/vendor/ImGuizmo"
 
 group "Dependencies"
 	include "vendor/premake"
