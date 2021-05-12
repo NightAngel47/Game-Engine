@@ -15,7 +15,7 @@ namespace Engine
 			case RendererAPI::API::OpenGL:		return CreateRef<OpenGLUniformBuffer>(size, binding);
 		}
 
-		ENGINE_CORE_ASSERT(false, "Unknown RendererAPI!");
+		ENGINE_CORE_ASSERT(false, "Unknown RendererAPI!")
 		return nullptr;
 	}
 }
