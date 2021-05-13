@@ -22,7 +22,7 @@ namespace Engine
 			if (type == "vertex") return GL_VERTEX_SHADER;
 			if (type == "fragment" || type == "pixel") return GL_FRAGMENT_SHADER;
 
-			ENGINE_CORE_ASSERT(false, "Unknown shader type!");
+			ENGINE_CORE_ASSERT(false, "Unknown shader type!")
 			return 0;
 		}
 
@@ -47,7 +47,7 @@ namespace Engine
 				case GL_FRAGMENT_SHADER:	return shaderc_glsl_fragment_shader;
 			}
 
-			ENGINE_CORE_ASSERT(false, "Shader Kind Not Supported");
+			ENGINE_CORE_ASSERT(false, "Shader Kind Not Supported")
 			return (shaderc_shader_kind)0;
 		}
 
@@ -59,7 +59,7 @@ namespace Engine
 				case GL_FRAGMENT_SHADER:	return "GL_FRAGMENT_SHADER";
 			}
 
-			ENGINE_CORE_ASSERT(false, "Shader Kind Not Supported");
+			ENGINE_CORE_ASSERT(false, "Shader Kind Not Supported")
 			return nullptr;
 		}
 
@@ -71,7 +71,7 @@ namespace Engine
 				case GL_FRAGMENT_SHADER:	return ".cached_vulkan.frag";
 			}
 
-			ENGINE_CORE_ASSERT(false, "Shader Kind Not Supported");
+			ENGINE_CORE_ASSERT(false, "Shader Kind Not Supported")
 			return nullptr;
 		}
 
@@ -83,12 +83,13 @@ namespace Engine
 				case GL_FRAGMENT_SHADER:	return ".cached_opengl.frag";
 			}
 
-			ENGINE_CORE_ASSERT(false, "Shader Kind Not Supported");
+			ENGINE_CORE_ASSERT(false, "Shader Kind Not Supported")
 			return nullptr;
 		}
 	}
 	
 	OpenGLShader::OpenGLShader(const std::string& filepath)
+		: m_FilePath(filepath)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
@@ -121,7 +122,14 @@ namespace Engine
 		std::unordered_map<GLenum, std::string> shaderSources;
 		shaderSources[GL_VERTEX_SHADER] = vertexSrc;
 		shaderSources[GL_FRAGMENT_SHADER] = fragmentSrc;
-		//Compile(shaderSources);
+
+		{
+			Timer timer;
+			CompileOrGetVulkanBinaries(shaderSources);
+			CompileOrGetOpenGLBinaries();
+			CreateProgram();
+			ENGINE_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
+		}
 	}
 
 	OpenGLShader::~OpenGLShader()
@@ -282,7 +290,7 @@ namespace Engine
 				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
 					ENGINE_CORE_ERROR(module.GetErrorMessage());
-					ENGINE_CORE_ASSERT(false, "Shader Compilation Failed.");
+					ENGINE_CORE_ASSERT(false, "Shader Compilation Failed.")
 				}
 
 				shaderData[stage] = std::vector<uint32_t>(module.cbegin(), module.cend());

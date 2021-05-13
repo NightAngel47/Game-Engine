@@ -1,7 +1,5 @@
 #pragma once
 
-#include <filesystem>
-
 #include "Engine/Renderer/Shader.h"
 
 #include <glm/glm.hpp>
