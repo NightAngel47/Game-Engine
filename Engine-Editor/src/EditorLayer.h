@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine.h>
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/ContentBrowserPanel.h"
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Events/KeyEvent.h"
 
@@ -53,6 +54,7 @@ namespace Engine
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
+		ContentBrowserPanel m_ContentBrowserPanel;
 
 		// Scene Filepath
 		std::string m_SceneFilePath;
