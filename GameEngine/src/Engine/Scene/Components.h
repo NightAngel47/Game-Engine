@@ -13,6 +13,9 @@
 
 namespace Engine
 {
+	// TODO REMOVE CAUSE TEMP
+	extern const std::filesystem::path g_AssetsPath;
+
 	struct TagComponent
 	{
 		std::string Tag;
@@ -61,7 +64,7 @@ namespace Engine
 			if(!path.empty())
 			{
 				Path = path.string();
-				Texture = Ref<Texture2D>()->Create(Path);
+				Texture = Ref<Texture2D>()->Create(std::filesystem::path(g_AssetsPath / Path).string());
 			}
 		}
 	};

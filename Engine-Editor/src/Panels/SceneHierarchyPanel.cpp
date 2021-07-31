@@ -10,9 +10,6 @@
 
 namespace Engine
 {
-	// TODO REMOVE CAUSE TEMP
-	extern const std::filesystem::path g_AssetsPath;
-
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 	{
 		SetContext(context);
@@ -330,7 +327,9 @@ namespace Engine
 			const ImVec2 buttonSize = {0.0f, lineHeight};
 			ImGui::Text("Texture");
 			ImGui::SameLine();
-			ImGui::Button(component.Path.c_str(), buttonSize);
+
+			std::string textureName = component.Path.empty() ? "None" : component.Path;
+			ImGui::Button(textureName.c_str(), buttonSize);
 
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -341,7 +340,7 @@ namespace Engine
 				
 					if (std::wcscmp(fileExtension, L".png") == 0)
 					{
-						component.LoadTexture(std::filesystem::path(g_AssetsPath / path));
+						component.LoadTexture(path);
 					}
 					else
 					{

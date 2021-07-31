@@ -253,7 +253,7 @@ namespace Engine
 					spriteRenderer.Path = spriteRendererComponent["Path"].as<std::string>();
 					spriteRenderer.Tiling = spriteRendererComponent["Tiling"].as<float>();
 
-					if(!spriteRenderer.Path.empty()) spriteRenderer.LoadTexture();
+					if(!spriteRenderer.Path.empty()) spriteRenderer.LoadTexture(spriteRenderer.Path);
 				}
 			}
 		}

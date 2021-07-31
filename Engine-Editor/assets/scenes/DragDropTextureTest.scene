@@ -9,5 +9,5 @@ Entities:
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
-      Path: assets\textures\temple.png
+      Path: textures\shipGreen_manned.png
       Tiling: 1
