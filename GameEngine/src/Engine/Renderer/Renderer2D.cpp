@@ -16,8 +16,8 @@ namespace Engine
 		glm::vec3 Position;
 		glm::vec4 Color;
 		glm::vec2 TexCoord;
-		float TexureIndex;
 		float TilingFactor;
+		float TexureIndex;
 
 		// Editor-only
 		int EntityID;
@@ -286,7 +286,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		if(src.Texture != nullptr)
+		if(src.Texture)
 		{
 			DrawQuad(transform, src.Texture, src.Tiling, src.Color, entityID);
 			return;
@@ -328,8 +328,8 @@ namespace Engine
 			s_Data.QuadVertexBufferPtr->Position = transfrom * s_Data.QuadVertexPositions[i];
 			s_Data.QuadVertexBufferPtr->Color = color;
 			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-			s_Data.QuadVertexBufferPtr->TexureIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TilingFactor = tiling;
+			s_Data.QuadVertexBufferPtr->TexureIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->EntityID = entityID;
 			s_Data.QuadVertexBufferPtr++;
 		}
