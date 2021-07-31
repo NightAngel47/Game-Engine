@@ -9,8 +9,8 @@ namespace Engine
 	class EngineEditor : public Application
 	{
 	public:
-		EngineEditor()
-			: Application("Engine Editor")
+		EngineEditor(ApplicationCommandLineArgs args)
+			: Application("Engine Editor", args)
 		{
 			ENGINE_PROFILE_FUNCTION();
 			
@@ -23,9 +23,9 @@ namespace Engine
 		}
 	};
 
-	Application* CreateApplication()
+	Application* CreateApplication(ApplicationCommandLineArgs args)
 	{
-		return new EngineEditor();
+		return new EngineEditor(args);
 	}
 	
 }

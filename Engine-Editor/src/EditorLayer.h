@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine.h>
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/ContentBrowserPanel.h"
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Events/KeyEvent.h"
 
@@ -22,8 +23,9 @@ namespace Engine
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-		void NewScene();
+		void NewScene(const std::filesystem::path& path = std::string());
 		void OpenScene();
+		void OpenScene(const std::filesystem::path& path);
 		void SaveSceneAs();
 		void SaveScene();
 	private:
@@ -53,6 +55,7 @@ namespace Engine
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
+		ContentBrowserPanel m_ContentBrowserPanel;
 
 		// Scene Filepath
 		std::string m_SceneFilePath;

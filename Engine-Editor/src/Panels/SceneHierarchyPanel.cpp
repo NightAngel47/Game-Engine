@@ -323,14 +323,33 @@ namespace Engine
 		{
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 			
-			ImGui::Text(component.Path.c_str());
-			
 			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-			const ImVec2 buttonSize = {lineHeight + 80.0f, lineHeight};
-			if(ImGui::Button("Load Texture", buttonSize))
+			const ImVec2 buttonSize = {0.0f, lineHeight};
+			ImGui::Text("Texture");
+			ImGui::SameLine();
+
+			std::string textureName = component.Path.empty() ? "None" : component.Path;
+			ImGui::Button(textureName.c_str(), buttonSize);
+
+			if (ImGui::BeginDragDropTarget())
 			{
-				component.SetPathFromFolder();
-				component.LoadTexture();
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					const wchar_t* fileExtension = std::wcsrchr(path, '.');
+				
+					if (std::wcscmp(fileExtension, L".png") == 0)
+					{
+						component.LoadTexture(path);
+					}
+					else
+					{
+						std::wstring ws(fileExtension);
+						ENGINE_CORE_WARN("File type is not supported by drag and drop in the Sprite Renderer Texture Slot: " + std::string(ws.begin(), ws.end()));
+					}
+				}
+			
+				ImGui::EndDragDropTarget();
 			}
 
 			float tiling = component.Tiling;

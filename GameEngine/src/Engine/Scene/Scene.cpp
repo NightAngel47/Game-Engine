@@ -11,6 +11,9 @@ namespace Engine
 {
 	Scene::Scene() {}
 
+	Scene::Scene(std::string name)
+		:m_Name(name) {}
+
 	Scene::~Scene() {}
 
 	Entity Scene::CreateEntity(const std::string& name)
@@ -145,7 +148,8 @@ namespace Engine
 	template<>
 	void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
 	{
-		component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+		if(m_ViewportWidth > 0 && m_ViewportHeight > 0)
+			component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 	}
 
 	template<>

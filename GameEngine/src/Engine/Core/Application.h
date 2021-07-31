@@ -13,10 +13,22 @@ int main(int argc, char** argv);
 
 namespace Engine
 {
+	struct ApplicationCommandLineArgs
+	{
+		int Count = 0;
+		char** Args = nullptr;
+
+		const char* operator[](int index) const
+		{
+			ENGINE_CORE_ASSERT(index < Count, "Index less than Count");
+			return Args[index];
+		}
+	};
+	
 	class Application
 	{
 	public:
-		Application(const std::string& name = "Game Engine");
+		Application(const std::string& name = "Game Engine", ApplicationCommandLineArgs args = ApplicationCommandLineArgs());
 		virtual ~Application();
 
 		void OnEvent(Event& e);
@@ -31,11 +43,14 @@ namespace Engine
 		ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 		
 		static Application& Get() { return *s_Instance; }
+
+		ApplicationCommandLineArgs GetCommandLineArgs() const { return m_CommandLineArgs; }
 	private:
 		void Run();
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 	private:
+		ApplicationCommandLineArgs m_CommandLineArgs;
 		Scope<Window> m_Window;
 		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
@@ -48,5 +63,5 @@ namespace Engine
 	};
 
 	// To be definded in CLIENT
-	Application* CreateApplication();
+	Application* CreateApplication(ApplicationCommandLineArgs args);
 }

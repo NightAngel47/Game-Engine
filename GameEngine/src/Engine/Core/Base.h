@@ -18,13 +18,8 @@
 	#define ENGINE_DEBUGBREAK()
 #endif
 
-#ifdef ENGINE_ENABLE_ASSERTS
-	#define ENGINE_ASSERT(x, ...) { if(!(x)) {ENGINE_ERROR("Assertion Failed: {0}", __VA_ARGS__); ENGINE_DEBUGBREAK(); } }
-	#define ENGINE_CORE_ASSERT(x, ...) { if(!(x)) {ENGINE_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); ENGINE_DEBUGBREAK(); } }
-#else
-	#define ENGINE_ASSERT(x, ...)
-	#define ENGINE_CORE_ASSERT(x, ...)
-#endif
+#define ENGINE_EXPAND_MACRO(x) x
+#define ENGINE_STRINGIFY_MACRO(x) #x
 
 #define BIT(x) (1 << x)
 
@@ -49,3 +44,6 @@ namespace Engine
 	}
 	
 }
+
+#include "Engine/Core/Log.h"
+#include "Engine/Core/Assert.h"

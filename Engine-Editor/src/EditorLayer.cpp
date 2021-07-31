@@ -12,6 +12,9 @@
 
 namespace Engine
 {
+	// TODO REMOVE CAUSE TEMP
+	extern const std::filesystem::path g_AssetsPath;
+	
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer"), m_CameraController(1280.0f / 720.0f, false)
 	{
@@ -29,6 +32,14 @@ namespace Engine
 		m_Framebuffer = Framebuffer::Create(fbSpec);
 
 		m_ActiveScene = CreateRef<Scene>();
+
+		auto commandLineArgs = Application::Get().GetCommandLineArgs();
+		if (commandLineArgs.Count > 1)
+		{
+			auto sceneFilePath = commandLineArgs[1];
+			SceneSerializer serializer(m_ActiveScene);
+			serializer.Deserialize(sceneFilePath);
+		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 
@@ -160,8 +171,8 @@ namespace Engine
 	    if (opt_fullscreen)
 	    {
 	        ImGuiViewport* viewport = ImGui::GetMainViewport();
-	        ImGui::SetNextWindowPos(viewport->GetWorkPos());
-	        ImGui::SetNextWindowSize(viewport->GetWorkSize());
+	        ImGui::SetNextWindowPos(viewport->WorkPos);
+	        ImGui::SetNextWindowSize(viewport->WorkSize);
 	        ImGui::SetNextWindowViewport(viewport->ID);
 	        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -229,6 +240,7 @@ namespace Engine
 	    }
 
 		m_SceneHierarchyPanel.OnImGuiRender();
+		m_ContentBrowserPanel.OnImGuiRender();
 
 		ImGui::Begin("Stats");
 
@@ -255,7 +267,6 @@ namespace Engine
 		m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
 		m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 		
-
 		m_ViewportFocused = ImGui::IsWindowFocused();
 		m_ViewportHovered = ImGui::IsWindowHovered();
 		Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
@@ -265,6 +276,27 @@ namespace Engine
 		
 		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
 		ImGui::Image((void*)textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+			{
+				const wchar_t* path = (const wchar_t*)payload->Data;
+				const wchar_t* fileExtension = std::wcsrchr(path, '.');
+				
+				if (std::wcscmp(fileExtension, L".scene") == 0)
+				{
+					OpenScene(std::filesystem::path(g_AssetsPath / path));
+				}
+				else
+				{
+					std::wstring ws(fileExtension);
+					ENGINE_CORE_WARN("File type is not supported by drag and drop in the Viewport: " + std::string(ws.begin(), ws.end()));
+				}
+			}
+			
+			ImGui::EndDragDropTarget();
+		}
 		
 		// Gizmos
 		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
@@ -414,9 +446,11 @@ namespace Engine
 		return false;
 	}
 
-	void EditorLayer::NewScene()
+	void EditorLayer::NewScene(const std::filesystem::path& path)
 	{
-		m_ActiveScene = CreateRef<Scene>();
+		std::string filenameString = path.empty() ? "Untitled" : path.filename().string();
+
+		m_ActiveScene = CreateRef<Scene>(filenameString);
         m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
@@ -428,21 +462,28 @@ namespace Engine
 		std::string filepath = FileDialogs::OpenFile("Game Scene (*.scene)\0*.scene\0");
 		if (!filepath.empty())
 		{
-			NewScene();
-			
-			m_SceneFilePath = filepath;
-			SceneSerializer serializer(m_ActiveScene);
-			serializer.Deserialize(filepath);
+			OpenScene(filepath);
 		}	
+	}
+
+	void EditorLayer::OpenScene(const std::filesystem::path& path)
+	{
+		NewScene(path);
+			
+		m_SceneFilePath = path.string();
+		SceneSerializer serializer(m_ActiveScene);
+		serializer.Deserialize(path.string());
 	}
 
 	void EditorLayer::SaveSceneAs()
 	{
-		std::string filepath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
+		std::filesystem::path filepath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
 		
-		m_SceneFilePath = filepath;
+		m_SceneFilePath = filepath.string();
+		m_ActiveScene->SetSceneName(filepath.filename().string());
+
 		SceneSerializer serializer(m_ActiveScene);
-		serializer.Serialize(filepath);
+		serializer.Serialize(m_SceneFilePath);
 	}
 
 	void EditorLayer::SaveScene()
