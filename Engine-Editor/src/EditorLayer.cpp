@@ -291,7 +291,7 @@ namespace Engine
 				else
 				{
 					std::wstring ws(fileExtension);
-					ENGINE_CORE_WARN("File type is not supported by drag and drop: " + std::string(ws.begin(), ws.end()));
+					ENGINE_CORE_WARN("File type is not supported by drag and drop in the Viewport: " + std::string(ws.begin(), ws.end()));
 				}
 			}
 			

@@ -29,7 +29,7 @@ namespace Engine
 		}
 
 		static float padding = 16.0f;
-		static float thumbnailSize = 128;
+		static float thumbnailSize = 64;
 		float cellSize = thumbnailSize + padding;
 
 		
@@ -75,7 +75,7 @@ namespace Engine
 		
 		ImGui::EndTable();
 		
-		ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 64, 256);
+		ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 32, 164);
 		//ImGui::SliderFloat("Padding Size", &padding, 0, 32);
 		// TODO: Status bar
 		

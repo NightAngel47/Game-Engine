@@ -10,6 +10,9 @@
 
 namespace Engine
 {
+	// TODO REMOVE CAUSE TEMP
+	extern const std::filesystem::path g_AssetsPath;
+
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 	{
 		SetContext(context);
@@ -323,14 +326,31 @@ namespace Engine
 		{
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 			
-			ImGui::Text(component.Path.c_str());
-			
 			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-			const ImVec2 buttonSize = {lineHeight + 80.0f, lineHeight};
-			if(ImGui::Button("Load Texture", buttonSize))
+			const ImVec2 buttonSize = {0.0f, lineHeight};
+			ImGui::Text("Texture");
+			ImGui::SameLine();
+			ImGui::Button(component.Path.c_str(), buttonSize);
+
+			if (ImGui::BeginDragDropTarget())
 			{
-				component.SetPathFromFolder();
-				component.LoadTexture();
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					const wchar_t* fileExtension = std::wcsrchr(path, '.');
+				
+					if (std::wcscmp(fileExtension, L".png") == 0)
+					{
+						component.LoadTexture(std::filesystem::path(g_AssetsPath / path));
+					}
+					else
+					{
+						std::wstring ws(fileExtension);
+						ENGINE_CORE_WARN("File type is not supported by drag and drop in the Sprite Renderer Texture Slot: " + std::string(ws.begin(), ws.end()));
+					}
+				}
+			
+				ImGui::EndDragDropTarget();
 			}
 
 			float tiling = component.Tiling;

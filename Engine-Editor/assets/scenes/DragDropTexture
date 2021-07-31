@@ -1,0 +1,13 @@
+Scene: Untitled
+Entities:
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Path: assets\textures\temple.png
+      Tiling: 1

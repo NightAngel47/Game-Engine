@@ -47,23 +47,22 @@ namespace Engine
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
-		std::string Path;
 		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
+		std::string Path;
 	
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) { Tiling = 1.0f; }
-
-		void SetPathFromFolder()
-		{
-			Path = FileDialogs::OpenFile("Image (*.png)\0*.png\0");
-		}
 		
-		void LoadTexture()
+		void LoadTexture(const std::filesystem::path& path = "")
 		{
-			if(!Path.empty()) Texture = Ref<Texture2D>()->Create(Path);
+			if(!path.empty())
+			{
+				Path = path.string();
+				Texture = Ref<Texture2D>()->Create(Path);
+			}
 		}
 	};
 
