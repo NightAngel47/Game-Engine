@@ -1,0 +1,13 @@
+Scene: SpriteTest.scene
+Entities:
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [-0.848204017, 0.132784203, 0.570435226]
+      Rotation: [0.352500468, 0.583248734, 0.194645107]
+      Scale: [4.40939188, 1.82272553, 1.13919973]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Path: textures\temple.png
+      Tiling: 1

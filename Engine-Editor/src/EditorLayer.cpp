@@ -446,9 +446,11 @@ namespace Engine
 		return false;
 	}
 
-	void EditorLayer::NewScene()
+	void EditorLayer::NewScene(const std::filesystem::path& path)
 	{
-		m_ActiveScene = CreateRef<Scene>();
+		std::string filenameString = path.empty() ? "Untitled" : path.filename().string();
+
+		m_ActiveScene = CreateRef<Scene>(filenameString);
         m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
@@ -466,7 +468,7 @@ namespace Engine
 
 	void EditorLayer::OpenScene(const std::filesystem::path& path)
 	{
-		NewScene();
+		NewScene(path);
 			
 		m_SceneFilePath = path.string();
 		SceneSerializer serializer(m_ActiveScene);
@@ -475,11 +477,13 @@ namespace Engine
 
 	void EditorLayer::SaveSceneAs()
 	{
-		std::string filepath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
+		std::filesystem::path filepath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
 		
-		m_SceneFilePath = filepath;
+		m_SceneFilePath = filepath.string();
+		m_ActiveScene->SetSceneName(filepath.filename().string());
+
 		SceneSerializer serializer(m_ActiveScene);
-		serializer.Serialize(filepath);
+		serializer.Serialize(m_SceneFilePath);
 	}
 
 	void EditorLayer::SaveScene()

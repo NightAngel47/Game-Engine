@@ -23,7 +23,7 @@ namespace Engine
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-		void NewScene();
+		void NewScene(const std::filesystem::path& path = std::string());
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
 		void SaveSceneAs();
