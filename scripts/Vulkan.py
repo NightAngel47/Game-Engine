@@ -36,7 +36,7 @@ def CheckVulkanSDK():
 		return False
 	elif ENGINE_VULKAN_VERSION not in VULKAN_SDK:
 		print(f"Located Vulkan SDK at {VULKAN_SDK}")
-		print(f"You don't have the correct Vulkan SDK version! (Engine requires {ENGINE_VULKAN_VERSION}")
+		print(f"You don't have the correct Vulkan SDK version! (Engine requires {ENGINE_VULKAN_VERSION})")
 		return False
 
 	print(f"Correct Vulkan SDK located at {VULKAN_SDK}")
@@ -47,9 +47,9 @@ OutputDirectory = "GameEngine/vendor/VulkanSDK"
 TempZipFile = f"{OutputDirectory}/VulkanSDK.zip"
 
 def CheckVulkanSDKDebugLibs():
-	shadercdLib = Path(f"{OutputDirectory}/Lib/shaderc_shaderdd.lib")
+	shadercdLib = Path(f"{OutputDirectory}/Lib/shaderc_sharedd.lib")
 	if (not shadercdLib.exists()):
-		print(f"No Vulkan SDK debug libs found. (Checked {shadercdLib}")
+		print(f"No Vulkan SDK debug libs found. (Checked {shadercdLib})")
 		print("Downloading", VulkanSDKDebugLibURL)
 		with urlopen(VulkanSDKDebugLibURL) as zipresp:
 			with ZipFile(BytesIO(zipresp.read())) as zFile:
