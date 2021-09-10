@@ -30,6 +30,7 @@ group "Dependencies"
 	include "GameEngine/vendor/Glad"
 	include "GameEngine/vendor/imgui"
 	include "GameEngine/vendor/yaml-cpp"
+	include "GameEngine/vendor/box2d"
 group ""
 
 include "GameEngine"
