@@ -25,6 +25,9 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
+		m_PlayButtonTexture = Texture2D::Create("Resources/Icons/PlayButton.png");
+		m_StopButtonTexture = Texture2D::Create("Resources/Icons/StopButton.png");
+
 		FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
 		fbSpec.Width = 1280;
@@ -119,12 +122,6 @@ namespace Engine
 			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 		}
 		
-		// Update
-		if (m_ViewportFocused)
-			m_CameraController.OnUpdate(ts);
-
-		m_EditorCamera.OnUpdate(ts);
-		
 		// Render
 		Renderer2D::ResetStats();
 		m_Framebuffer->Bind();		
@@ -135,8 +132,27 @@ namespace Engine
 		m_Framebuffer->ClearAttachment(1, -1);
 
 		// Update Scene
-		m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
-		//m_ActiveScene->OnUpdateRuntime(ts);
+		switch (m_SceneState)
+		{
+			case SceneState::Edit:
+			{
+				// Update
+				if (m_ViewportFocused)
+					m_CameraController.OnUpdate(ts);
+
+				m_EditorCamera.OnUpdate(ts);
+
+				m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+				break;
+			}
+			case SceneState::Play:
+			{
+				m_ActiveScene->OnUpdateRuntime(ts);
+				break;
+			}
+			default:
+				break;
+		}
 
 		auto[mx, my] = ImGui::GetMousePos();
 		mx -= m_ViewportBounds[0].x;
@@ -356,8 +372,50 @@ namespace Engine
 		
 		ImGui::End();
 		ImGui::PopStyleVar();
+
+		UI_Toolbar();
 		
 	    ImGui::End();
+	}
+
+	void EditorLayer::UI_Toolbar()
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		auto& colors = ImGui::GetStyle().Colors;
+		const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+		const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+
+		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+		float size = ImGui::GetWindowHeight() - 8.0f;
+		Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_PlayButtonTexture : m_StopButtonTexture;
+		ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+		if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+		{
+			switch (m_SceneState)
+			{
+				case SceneState::Edit:
+				{
+					OnScenePlay();
+					break; 
+				}
+				case SceneState::Play:
+				{
+					OnSceneStop();
+					break;
+				}
+				default:
+					break;
+			}
+		}
+
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(3);
+		ImGui::End();
 	}
 
 	void EditorLayer::OnEvent(Event& e)
@@ -497,5 +555,17 @@ namespace Engine
 			SceneSerializer serializer(m_ActiveScene);
 			serializer.Serialize(m_SceneFilePath);
 		}
+	}
+
+	void EditorLayer::OnScenePlay()
+	{
+		ENGINE_CORE_TRACE("SceneState changed to Play.");
+		m_SceneState = SceneState::Play;
+	}
+
+	void EditorLayer::OnSceneStop()
+	{
+		ENGINE_CORE_TRACE("SceneState changed to Edit.");
+		m_SceneState = SceneState::Edit;
 	}
 }

@@ -28,6 +28,12 @@ namespace Engine
 		void OpenScene(const std::filesystem::path& path);
 		void SaveSceneAs();
 		void SaveScene();
+
+		void OnScenePlay();
+		void OnSceneStop();
+
+		// UI Panels
+		void UI_Toolbar();
 	private:
 		OrthographicCameraController m_CameraController;
 
@@ -41,8 +47,14 @@ namespace Engine
 		Entity m_HoveredEntity;
 
 		bool m_PrimaryCamera = true;
-
 		EditorCamera m_EditorCamera;
+
+		enum class SceneState
+		{
+			Edit = 0, Play = 1
+		};
+
+		SceneState m_SceneState = SceneState::Edit;
 
 		// ImGui
 		glm::vec2 m_ViewportSize = glm::vec2{1.0f};
@@ -56,6 +68,9 @@ namespace Engine
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		ContentBrowserPanel m_ContentBrowserPanel;
+
+		// Editor Resources
+		Ref<Texture2D> m_PlayButtonTexture, m_StopButtonTexture;
 
 		// Scene Filepath
 		std::string m_SceneFilePath;
