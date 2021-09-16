@@ -9,12 +9,18 @@
 
 namespace Engine
 {
-	Scene::Scene() {}
+	Scene::Scene() 
+	{
+	}
 
 	Scene::Scene(std::string name)
-		:m_Name(name) {}
+		:m_Name(name) 
+	{
+	}
 
-	Scene::~Scene() {}
+	Scene::~Scene() 
+	{
+	}
 
 	Entity Scene::CreateEntity(const std::string& name)
 	{
@@ -31,14 +37,54 @@ namespace Engine
 		m_Registry.destroy(entity);
 	}
 
+	void Scene::OnScenePlay()
+	{
+		// Create Physics Objects
+		{
+			m_World = new b2World(m_Gravity);
+
+			m_Registry.view<RigidbodyComponent>().each([=](auto entity, auto& rbc)
+			{
+				rbc.Rigidbody.CreateBody(*m_World);
+				Entity gameEntity = Entity{ entity, this };
+				if (gameEntity.HasComponent<BoxColliderComponent>())
+					rbc.Rigidbody.CreateFixture(gameEntity.GetComponent<BoxColliderComponent>().BoxCollider.GetShape());
+			});
+		}
+
+		// Start Scripts
+		{
+			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+			{
+				if (!nsc.Instance)
+				{
+					nsc.Instance = nsc.InstantiateScript();
+					nsc.Instance->m_Entity = Entity{ entity, this };
+					nsc.Instance->OnCreate();
+				}
+			});
+		}
+	}
+
+	void Scene::OnSceneStop()
+	{
+		// Destroy Physics Objects
+		{
+			m_Registry.view<RigidbodyComponent>().each([=](auto entity, auto& rbc)
+			{
+				rbc.Rigidbody.DestroyBody(*m_World);
+			});
+
+			delete(m_World);
+		}
+	}
+
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
 		// Update scripts
 		{
 			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
 			{
-
-				// TODO: Move to Scene::OnScenePlay
 				if (!nsc.Instance)
 				{
 					nsc.Instance = nsc.InstantiateScript();
@@ -81,6 +127,23 @@ namespace Engine
 			}
 
 			Renderer2D::EndScene();
+		}
+	}
+
+	void Scene::OnUpdatePhysics(Timestep ts)
+	{
+		m_World->Step(ts, m_VelocityIteractions, m_PositionIteractions);
+
+		auto view = m_Registry.view<TransformComponent, RigidbodyComponent>();
+		for (auto entity : view)
+		{
+			auto [transform, rigidbody] = view.get<TransformComponent, RigidbodyComponent>(entity);
+
+			if (rigidbody.Rigidbody.GetBodyType() != Engine::PhysicsBodyType::Static)
+			{
+				transform.Position = glm::vec3(rigidbody.Rigidbody.GetPosition(), transform.Position.z);
+				transform.Rotation = glm::vec3(transform.Rotation.x, transform.Rotation.y, rigidbody.Rigidbody.GetAngle());
+			}
 		}
 	}
 
@@ -156,6 +219,21 @@ namespace Engine
 	void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
 	{
 		
+	}
+
+	template<>
+	void Scene::OnComponentAdded<RigidbodyComponent>(Entity entity, RigidbodyComponent& component)
+	{
+		Engine::TransformComponent transformComponent = entity.GetComponent<TransformComponent>();
+		component.Rigidbody.SetPosition((glm::vec2)transformComponent.Position);
+		component.Rigidbody.SetAngle(transformComponent.Rotation.z);
+	}
+
+	template<>
+	void Scene::OnComponentAdded<BoxColliderComponent>(Entity entity, BoxColliderComponent& component)
+	{
+		Engine::TransformComponent transformComponent = entity.GetComponent<TransformComponent>();
+		component.BoxCollider.SetExtents(transformComponent.Scale.x / 2, transformComponent.Scale.y / 2);
 	}
 
 	template<>

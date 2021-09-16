@@ -9,6 +9,8 @@
 #include "Engine/Renderer/Texture.h"
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Scene/ScriptableEntity.h"
+#include "Engine/Physics/Rigidbody.h"
+#include "Engine/Physics/Collider.h"
 #include "Engine/Utils/PlatformUtils.h"
 
 namespace Engine
@@ -49,7 +51,7 @@ namespace Engine
 	
 	struct SpriteRendererComponent
 	{
-		glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
 		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
 		std::string Path;
@@ -77,6 +79,33 @@ namespace Engine
 		
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
+	};
+
+	struct RigidbodyComponent
+	{
+		const char* BodyTypeStr = "Static";
+		Engine::Rigidbody Rigidbody;
+
+		RigidbodyComponent() = default;
+		RigidbodyComponent(const RigidbodyComponent&) = default;
+		RigidbodyComponent(Engine::PhysicsBodyType& bodyType)
+		{
+			Rigidbody.SetBodyType(bodyType);
+		}
+	};
+
+	struct BoxColliderComponent
+	{
+		glm::vec2 Extents{ 0.5f };
+		Engine::BoxCollider BoxCollider;
+
+		BoxColliderComponent() = default;
+		BoxColliderComponent(const BoxColliderComponent&) = default;
+		BoxColliderComponent(const glm::vec2& extents)
+			:Extents(extents)
+		{
+			BoxCollider.SetExtents(Extents);
+		}
 	};
 
 	struct NativeScriptComponent

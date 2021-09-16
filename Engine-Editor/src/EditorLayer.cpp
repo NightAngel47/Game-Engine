@@ -147,6 +147,7 @@ namespace Engine
 			}
 			case SceneState::Play:
 			{
+				m_ActiveScene->OnUpdatePhysics();
 				m_ActiveScene->OnUpdateRuntime(ts);
 				break;
 			}
@@ -363,6 +364,12 @@ namespace Engine
 				transformComponent.Position = position;
 				transformComponent.Rotation += deltaRotation;
 				transformComponent.Scale = scale;
+
+				if (selectedEntity.HasComponent<RigidbodyComponent>())
+				{
+					selectedEntity.GetComponent<RigidbodyComponent>().Rigidbody.SetPosition(position);
+					selectedEntity.GetComponent<RigidbodyComponent>().Rigidbody.SetAngle(rotation.z);
+				}
 			}
 			else
 			{
@@ -561,11 +568,13 @@ namespace Engine
 	{
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
 		m_SceneState = SceneState::Play;
+		m_ActiveScene->OnScenePlay();
 	}
 
 	void EditorLayer::OnSceneStop()
 	{
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
 		m_SceneState = SceneState::Edit;
+		m_ActiveScene->OnSceneStop();
 	}
 }

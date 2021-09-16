@@ -51,6 +51,7 @@ project "GameEngine"
 		"Glad",
 		"ImGui",
 		"yaml-cpp",
+		"box2d",
 		"opengl32.lib"
 	}
 

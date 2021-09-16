@@ -247,6 +247,18 @@ namespace Engine
 				ImGui::CloseCurrentPopup();
 			}
 			
+			if (ImGui::MenuItem("Rigidbody"))
+			{
+				m_SelectionContext.AddComponent<RigidbodyComponent>();
+				ImGui::CloseCurrentPopup();
+			}
+			
+			if (ImGui::MenuItem("Box Collider"))
+			{
+				m_SelectionContext.AddComponent<BoxColliderComponent>();
+				ImGui::CloseCurrentPopup();
+			}
+			
 			ImGui::EndPopup();
 		}
 		ImGui::PopItemWidth();
@@ -356,6 +368,29 @@ namespace Engine
 			if (ImGui::DragFloat("Tiling", &tiling, 0.1f))
 				component.Tiling = tiling;
 			
+		});
+		
+		DrawComponent<RigidbodyComponent>("Rigidbody", entity, [](auto& component)
+		{
+			// Temp for switching between static and dynamic
+			if (ImGui::Button(component.BodyTypeStr))
+			{
+				if (component.Rigidbody.GetBodyType() == Engine::PhysicsBodyType::Static)
+				{
+					component.Rigidbody.SetBodyType(Engine::PhysicsBodyType::Dynamic);
+					component.BodyTypeStr = "Dynamic";
+				}
+				else
+				{
+					component.Rigidbody.SetBodyType(Engine::PhysicsBodyType::Static);
+					component.BodyTypeStr = "Static";
+				}
+			}
+		});
+		
+		DrawComponent<BoxColliderComponent>("Box Collider", entity, [](auto& component)
+		{
+
 		});
 	}
 }
