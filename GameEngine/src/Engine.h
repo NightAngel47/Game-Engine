@@ -21,9 +21,6 @@
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Scene/Components.h"
 
-#include "Engine/Physics/Rigidbody.h"
-#include "Engine/Physics/Collider.h"
-
 // ---Renderer------------------------------
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Renderer/Renderer2D.h"

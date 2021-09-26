@@ -8,6 +8,7 @@
 
 #include <cstring>
 
+
 namespace Engine
 {
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
@@ -235,28 +236,40 @@ namespace Engine
 
 		if (ImGui::BeginPopup("AddComponent"))
 		{
-			if (ImGui::MenuItem("Camera"))
+			if (!m_SelectionContext.HasComponent<CameraComponent>())
 			{
-				m_SelectionContext.AddComponent<CameraComponent>();
-				ImGui::CloseCurrentPopup();
+				if (ImGui::MenuItem("Camera"))
+				{
+					m_SelectionContext.AddComponent<CameraComponent>();
+					ImGui::CloseCurrentPopup();
+				}
 			}
-			
-			if (ImGui::MenuItem("Sprite Renderer"))
+
+			if (!m_SelectionContext.HasComponent<SpriteRendererComponent>())
 			{
-				m_SelectionContext.AddComponent<SpriteRendererComponent>();
-				ImGui::CloseCurrentPopup();
+				if (ImGui::MenuItem("Sprite Renderer"))
+				{
+					m_SelectionContext.AddComponent<SpriteRendererComponent>();
+					ImGui::CloseCurrentPopup();
+				}
 			}
-			
-			if (ImGui::MenuItem("Rigidbody"))
+
+			if (!m_SelectionContext.HasComponent<Rigidbody2DComponent>())
 			{
-				m_SelectionContext.AddComponent<RigidbodyComponent>();
-				ImGui::CloseCurrentPopup();
+				if (ImGui::MenuItem("Rigidbody 2D"))
+				{
+					m_SelectionContext.AddComponent<Rigidbody2DComponent>();
+					ImGui::CloseCurrentPopup();
+				}
 			}
-			
-			if (ImGui::MenuItem("Box Collider"))
+
+			if (!m_SelectionContext.HasComponent<BoxCollider2DComponent>())
 			{
-				m_SelectionContext.AddComponent<BoxColliderComponent>();
-				ImGui::CloseCurrentPopup();
+				if (ImGui::MenuItem("Box Collider 2D"))
+				{
+					m_SelectionContext.AddComponent<BoxCollider2DComponent>();
+					ImGui::CloseCurrentPopup();
+				}
 			}
 			
 			ImGui::EndPopup();
@@ -282,12 +295,11 @@ namespace Engine
 			const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
 			if (ImGui::BeginCombo("Projection", currentProjectionTypeString)) 
 			{
-				for (int i = 0; i < 2; i++)
+				for (int i = 0; i < 2; ++i)
 				{
 					bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
 					if(ImGui::Selectable(projectionTypeStrings[i], isSelected))
 					{
-						currentProjectionTypeString = projectionTypeStrings[i];
 						camera.SetProjectionType((SceneCamera::ProjectionType)i);
 					}
 
@@ -363,34 +375,45 @@ namespace Engine
 			
 				ImGui::EndDragDropTarget();
 			}
-
-			float tiling = component.Tiling;
-			if (ImGui::DragFloat("Tiling", &tiling, 0.1f))
-				component.Tiling = tiling;
 			
+			ImGui::DragFloat("Tiling", &component.Tiling, 0.1f);
 		});
 		
-		DrawComponent<RigidbodyComponent>("Rigidbody", entity, [](auto& component)
+		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
 		{
-			// Temp for switching between static and dynamic
-			if (ImGui::Button(component.BodyTypeStr))
-			{
-				if (component.Rigidbody.GetBodyType() == Engine::PhysicsBodyType::Static)
-				{
-					component.Rigidbody.SetBodyType(Engine::PhysicsBodyType::Dynamic);
-					component.BodyTypeStr = "Dynamic";
-				}
-				else
-				{
-					component.Rigidbody.SetBodyType(Engine::PhysicsBodyType::Static);
-					component.BodyTypeStr = "Static";
-				}
-			}
-		});
-		
-		DrawComponent<BoxColliderComponent>("Box Collider", entity, [](auto& component)
-		{
+			const char* bodyTypeStrings[3] = { "Static", "Dynamic", "Kinematic" };
+			const char* currentTypeString = bodyTypeStrings[(int)component.Type];
 
+			if (ImGui::BeginCombo("Body Type", currentTypeString))
+			{
+				for (int i = 0; i < 3; ++i)
+				{
+					bool isSelected = currentTypeString == bodyTypeStrings[i];
+					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+					{
+						component.Type = (Rigidbody2DComponent::BodyType)i;
+					}
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGui::EndCombo();
+			}
+
+			ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+		});
+		
+		DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
+		{
+			ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
+			ImGui::DragFloat2("Size", glm::value_ptr(component.Size));
+
+			ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("RestitutionThreshold", &component.RestitutionThreshold, 0.01f, 0.0f, std::numeric_limits<float>::infinity());
 		});
 	}
 }

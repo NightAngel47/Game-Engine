@@ -167,8 +167,6 @@
     <ClInclude Include="src\Engine\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\Engine\Math\Math.h" />
     <ClInclude Include="src\Engine\OrthographicCameraController.h" />
-    <ClInclude Include="src\Engine\Physics\Collider.h" />
-    <ClInclude Include="src\Engine\Physics\Rigidbody.h" />
     <ClInclude Include="src\Engine\Renderer\Buffer.h" />
     <ClInclude Include="src\Engine\Renderer\Camera.h" />
     <ClInclude Include="src\Engine\Renderer\EditorCamera.h" />
@@ -627,8 +625,6 @@
     <ClCompile Include="src\Engine\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Engine\Math\Math.cpp" />
     <ClCompile Include="src\Engine\OrthographicCameraController.cpp" />
-    <ClCompile Include="src\Engine\Physics\Collider.cpp" />
-    <ClCompile Include="src\Engine\Physics\Rigidbody.cpp" />
     <ClCompile Include="src\Engine\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Engine\Renderer\EditorCamera.cpp" />
     <ClCompile Include="src\Engine\Renderer\Framebuffer.cpp" />

@@ -1,0 +1,62 @@
+Scene: PhysicsScene.scene
+Entities:
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: Orthographic
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Dynamic Box
+    TransformComponent:
+      Position: [-0.531140506, 2.43881917, 0]
+      Rotation: [0, 0, 2.82922459]
+      Scale: [0.999987602, 0.999987602, 1]
+    SpriteRendererComponent:
+      Color: [0, 0.481012583, 1, 1]
+      Path: ""
+      Tiling: 1
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.327499986
+      RestitutionThreshold: 0.5
+  - Entity: 1894728905743
+    TagComponent:
+      Tag: Floor
+    TransformComponent:
+      Position: [0, -2.0999999, 0]
+      Rotation: [0, 0, 0]
+      Scale: [9.5, 0.300000012, 1]
+    SpriteRendererComponent:
+      Color: [0, 0.316455722, 0.144207641, 1]
+      Path: ""
+      Tiling: 1
+    Rigidbody2DComponent:
+      Type: Static
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5

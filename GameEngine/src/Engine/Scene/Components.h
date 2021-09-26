@@ -5,12 +5,9 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-
 #include "Engine/Renderer/Texture.h"
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Scene/ScriptableEntity.h"
-#include "Engine/Physics/Rigidbody.h"
-#include "Engine/Physics/Collider.h"
 #include "Engine/Utils/PlatformUtils.h"
 
 namespace Engine
@@ -73,7 +70,7 @@ namespace Engine
 
 	struct CameraComponent
 	{
-		Engine::SceneCamera Camera;
+		SceneCamera Camera;
 		bool Primary = true; // TODO: think about moving to scene
 		bool FixedAspectRatio = false;
 		
@@ -81,45 +78,53 @@ namespace Engine
 		CameraComponent(const CameraComponent&) = default;
 	};
 
-	struct RigidbodyComponent
-	{
-		const char* BodyTypeStr = "Static";
-		Engine::Rigidbody Rigidbody;
-
-		RigidbodyComponent() = default;
-		RigidbodyComponent(const RigidbodyComponent&) = default;
-		RigidbodyComponent(Engine::PhysicsBodyType& bodyType)
-		{
-			Rigidbody.SetBodyType(bodyType);
-		}
-	};
-
-	struct BoxColliderComponent
-	{
-		glm::vec2 Extents{ 0.5f };
-		Engine::BoxCollider BoxCollider;
-
-		BoxColliderComponent() = default;
-		BoxColliderComponent(const BoxColliderComponent&) = default;
-		BoxColliderComponent(const glm::vec2& extents)
-			:Extents(extents)
-		{
-			BoxCollider.SetExtents(Extents);
-		}
-	};
-
 	struct NativeScriptComponent
 	{
 		ScriptableEntity* Instance = nullptr;
-		
-		ScriptableEntity*(*InstantiateScript)();
+
+		ScriptableEntity* (*InstantiateScript)();
 		void (*DestroyScript)(NativeScriptComponent*);
-		
+
 		template<typename T>
 		void Bind()
 		{
 			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
 			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
 		}
+	};
+
+	// Physics
+
+	struct Rigidbody2DComponent
+	{
+		enum class BodyType {
+			Static = 0, Dynamic, Kinematic
+		};
+		BodyType Type = BodyType::Static;
+		bool FixedRotation = false;
+
+		// Storage for runtime
+		void* RuntimeBody = nullptr;
+
+		Rigidbody2DComponent() = default;
+		Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
+	};
+
+	struct BoxCollider2DComponent
+	{
+		glm::vec2 Offset{ 0.0f };
+		glm::vec2 Size{ 0.5f };
+
+		// TODO maybe make physics material
+		float Density = 1.0f;
+		float Friction = 0.5f;
+		float Restitution = 0.0f;
+		float RestitutionThreshold = 0.5f;
+
+		// Storage for runtime
+		void* RuntimeFixture = nullptr;
+
+		BoxCollider2DComponent() = default;
+		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
 	};
 }
