@@ -1,24 +1,32 @@
 #pragma once
+#include "Engine/Renderer/Texture.h"
+#include "Engine/Scene/SceneCamera.h"
+#include "Engine/Utils/PlatformUtils.h"
+#include "Engine/Core/UUID.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "Engine/Renderer/Texture.h"
-#include "Engine/Scene/SceneCamera.h"
-#include "Engine/Scene/ScriptableEntity.h"
-#include "Engine/Utils/PlatformUtils.h"
-
 namespace Engine
 {
 	// TODO REMOVE CAUSE TEMP
 	extern const std::filesystem::path g_AssetsPath;
 
+	struct IDComponent 
+	{
+		UUID ID;
+
+		IDComponent() = default;
+		IDComponent(const IDComponent&) = default;
+	};
+
 	struct TagComponent
 	{
 		std::string Tag;
-	
+
 		TagComponent() = default;
 		TagComponent(const TagComponent&) = default;
 		TagComponent(const std::string& tag)
@@ -77,6 +85,9 @@ namespace Engine
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
 	};
+
+	// Forward declaration
+	class ScriptableEntity;
 
 	struct NativeScriptComponent
 	{
