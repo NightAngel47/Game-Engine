@@ -1,25 +1,32 @@
 #pragma once
+#include "Engine/Renderer/Texture.h"
+#include "Engine/Scene/SceneCamera.h"
+#include "Engine/Utils/PlatformUtils.h"
+#include "Engine/Core/UUID.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-
-#include "Engine/Renderer/Texture.h"
-#include "Engine/Scene/SceneCamera.h"
-#include "Engine/Scene/ScriptableEntity.h"
-#include "Engine/Utils/PlatformUtils.h"
-
 namespace Engine
 {
 	// TODO REMOVE CAUSE TEMP
 	extern const std::filesystem::path g_AssetsPath;
 
+	struct IDComponent 
+	{
+		UUID ID;
+
+		IDComponent() = default;
+		IDComponent(const IDComponent&) = default;
+	};
+
 	struct TagComponent
 	{
 		std::string Tag;
-	
+
 		TagComponent() = default;
 		TagComponent(const TagComponent&) = default;
 		TagComponent(const std::string& tag)
@@ -49,7 +56,7 @@ namespace Engine
 	
 	struct SpriteRendererComponent
 	{
-		glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
 		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
 		std::string Path;
@@ -71,7 +78,7 @@ namespace Engine
 
 	struct CameraComponent
 	{
-		Engine::SceneCamera Camera;
+		SceneCamera Camera;
 		bool Primary = true; // TODO: think about moving to scene
 		bool FixedAspectRatio = false;
 		
@@ -79,18 +86,56 @@ namespace Engine
 		CameraComponent(const CameraComponent&) = default;
 	};
 
+	// Forward declaration
+	class ScriptableEntity;
+
 	struct NativeScriptComponent
 	{
 		ScriptableEntity* Instance = nullptr;
-		
-		ScriptableEntity*(*InstantiateScript)();
+
+		ScriptableEntity* (*InstantiateScript)();
 		void (*DestroyScript)(NativeScriptComponent*);
-		
+
 		template<typename T>
 		void Bind()
 		{
 			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
 			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
 		}
+	};
+
+	// Physics
+
+	struct Rigidbody2DComponent
+	{
+		enum class BodyType {
+			Static = 0, Dynamic, Kinematic
+		};
+		BodyType Type = BodyType::Static;
+		bool FixedRotation = false;
+
+		// Storage for runtime
+		void* RuntimeBody = nullptr;
+
+		Rigidbody2DComponent() = default;
+		Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
+	};
+
+	struct BoxCollider2DComponent
+	{
+		glm::vec2 Offset{ 0.0f };
+		glm::vec2 Size{ 0.5f };
+
+		// TODO maybe make physics material
+		float Density = 1.0f;
+		float Friction = 0.5f;
+		float Restitution = 0.0f;
+		float RestitutionThreshold = 0.5f;
+
+		// Storage for runtime
+		void* RuntimeFixture = nullptr;
+
+		BoxCollider2DComponent() = default;
+		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
 	};
 }

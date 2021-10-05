@@ -21,3 +21,6 @@
 	path = GameEngine/vendor/yaml-cpp
 	url = https://github.com/NightAngel47/yaml-cpp
 	branch = master
+[submodule "box2d"]
+	path = GameEngine\\vendor\\box2d
+	url = https://github.com/NightAngel47/box2d

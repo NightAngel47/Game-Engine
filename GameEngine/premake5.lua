@@ -41,7 +41,8 @@ project "GameEngine"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ImGuizmo}",
-		"%{IncludeDir.VulkanSDK}"
+		"%{IncludeDir.VulkanSDK}",
+		"%{IncludeDir.box2d}"
 	}
 
 	links
@@ -50,6 +51,7 @@ project "GameEngine"
 		"Glad",
 		"ImGui",
 		"yaml-cpp",
+		"box2d",
 		"opengl32.lib"
 	}
 
