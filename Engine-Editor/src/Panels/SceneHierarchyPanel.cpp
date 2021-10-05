@@ -26,32 +26,36 @@ namespace Engine
 	{
 		ImGui::Begin("Scene Hierarchy");
 
-		m_Context->m_Registry.each([&](auto entityID)
+		if (m_Context)
 		{
-			Entity entity{ entityID, m_Context.get() };
-			DrawEntityNode(entity);
-		});
 
-		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-			m_SelectionContext = {};
+			m_Context->m_Registry.each([&](auto entityID)
+			{
+				Entity entity{ entityID, m_Context.get() };
+				DrawEntityNode(entity);
+			});
 
-		// Right-click on blank space
-		if (ImGui::BeginPopupContextWindow(0, 1, false))
-		{
-			if (ImGui::MenuItem("Create Empty Entity"))
-			{
-				m_Context->CreateEntity("Empty Entity");
-			}
-			else if (ImGui::MenuItem("Create Sprite"))
-			{
-				m_Context->CreateEntity("Sprite").AddComponent<SpriteRendererComponent>();
-			}
-			else if (ImGui::MenuItem("Create Camera"))
-			{
-				m_Context->CreateEntity("Camera").AddComponent<CameraComponent>();
-			}
+			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+				m_SelectionContext = {};
 
-			ImGui::EndPopup();
+			// Right-click on blank space
+			if (ImGui::BeginPopupContextWindow(0, 1, false))
+			{
+				if (ImGui::MenuItem("Create Empty Entity"))
+				{
+					m_Context->CreateEntity("Empty Entity");
+				}
+				else if (ImGui::MenuItem("Create Sprite"))
+				{
+					m_Context->CreateEntity("Sprite").AddComponent<SpriteRendererComponent>();
+				}
+				else if (ImGui::MenuItem("Create Camera"))
+				{
+					m_Context->CreateEntity("Camera").AddComponent<CameraComponent>();
+				}
+
+				ImGui::EndPopup();
+			}
 		}
 		
 		ImGui::End();

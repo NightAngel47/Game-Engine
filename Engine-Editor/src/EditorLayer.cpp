@@ -23,6 +23,7 @@ namespace Engine
 
 	void EditorLayer::OnAttach()
 	{
+
 		ENGINE_PROFILE_FUNCTION();
 
 		m_PlayButtonTexture = Texture2D::Create("Resources/Icons/PlayButton.png");
@@ -439,6 +440,7 @@ namespace Engine
 		bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
 		switch (e.GetKeyCode())
 		{
+			// Scenes
 			case Key::N:
 			{
 				if(control)
@@ -488,6 +490,15 @@ namespace Engine
 					m_GizmoType = ImGuizmo::OPERATION::SCALE;
 				break;
 			}
+
+			// Other
+			case Key::D:
+			{
+				if (control)
+					OnDuplicateEntity();
+
+				break;
+			}
 		}
 	}
 
@@ -508,11 +519,11 @@ namespace Engine
 	{
 		std::string filenameString = path.empty() ? "Untitled" : path.filename().string();
 
-		m_ActiveScene = CreateRef<Scene>(filenameString);
-        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-
-		m_SceneFilePath = {};
+		m_EditorScene = CreateRef<Scene>(filenameString);
+        m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_EditorScene);
+		m_EditorScenePath = path;
+		m_ActiveScene = m_EditorScene;
 	}
 
 	void EditorLayer::OpenScene()
@@ -526,9 +537,11 @@ namespace Engine
 
 	void EditorLayer::OpenScene(const std::filesystem::path& path)
 	{
+		if (m_SceneState != SceneState::Edit) OnSceneStop();
+
 		NewScene(path);
 			
-		m_SceneFilePath = path.string();
+		m_EditorScenePath = path.string();
 		SceneSerializer serializer(m_ActiveScene);
 		serializer.Deserialize(path.string());
 	}
@@ -537,31 +550,45 @@ namespace Engine
 	{
 		std::filesystem::path filepath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
 		
-		m_SceneFilePath = filepath.string();
+		m_EditorScenePath = filepath;
 		m_ActiveScene->SetSceneName(filepath.filename().string());
 
 		SceneSerializer serializer(m_ActiveScene);
-		serializer.Serialize(m_SceneFilePath);
+		serializer.Serialize(m_EditorScenePath.string());
 	}
 
 	void EditorLayer::SaveScene()
 	{
-		if (m_SceneFilePath.empty())
+		if (m_EditorScenePath.empty())
 		{
 			SaveSceneAs();
 		}
 		else
 		{
 			SceneSerializer serializer(m_ActiveScene);
-			serializer.Serialize(m_SceneFilePath);
 		}
+	}
+
+	void EditorLayer::OnDuplicateEntity()
+	{
+		if (m_SceneState != SceneState::Edit) return;
+
+		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+		if (selectedEntity)
+		{
+			m_ActiveScene->DuplicateEntity(selectedEntity);
+		}
+
 	}
 
 	void EditorLayer::OnScenePlay()
 	{
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
 		m_SceneState = SceneState::Play;
+
+		m_ActiveScene = Scene::Copy(m_EditorScene);
 		m_ActiveScene->OnRuntimeStart();
+		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 
 	void EditorLayer::OnSceneStop()
@@ -569,5 +596,7 @@ namespace Engine
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
 		m_SceneState = SceneState::Edit;
 		m_ActiveScene->OnRuntimeStop();
+		m_ActiveScene = m_EditorScene;
+		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 }

@@ -32,6 +32,8 @@ namespace Engine
 		void OnScenePlay();
 		void OnSceneStop();
 
+		void OnDuplicateEntity();
+
 		// UI Panels
 		void UI_Toolbar();
 	private:
@@ -40,6 +42,8 @@ namespace Engine
 		Ref<Framebuffer> m_Framebuffer;
 
 		Ref<Scene> m_ActiveScene;
+		Ref<Scene> m_EditorScene;
+		std::filesystem::path m_EditorScenePath;
 		Entity m_SquareEntity;
 		Entity m_CameraEntity;
 		Entity m_SecondCamera;
@@ -71,9 +75,6 @@ namespace Engine
 
 		// Editor Resources
 		Ref<Texture2D> m_PlayButtonTexture, m_StopButtonTexture;
-
-		// Scene Filepath
-		std::string m_SceneFilePath;
 	};
 
 }
