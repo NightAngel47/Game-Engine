@@ -7,7 +7,8 @@
 class Sandbox : public Engine::Application
 {
 public:
-	Sandbox()
+	Sandbox(Engine::ApplicationCommandLineArgs args)
+		: Engine::Application("Sandbox", args)
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
@@ -21,7 +22,7 @@ public:
 	}
 };
 
-Engine::Application* Engine::CreateApplication()
+Engine::Application* CreateApplication(Engine::ApplicationCommandLineArgs args)
 {
-	return new Sandbox();
+	return new Sandbox(args);
 }
