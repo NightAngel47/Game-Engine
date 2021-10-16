@@ -35,7 +35,8 @@ namespace Engine
 		fbSpec.Height = 720;
 		m_Framebuffer = Framebuffer::Create(fbSpec);
 
-		m_ActiveScene = CreateRef<Scene>();
+		m_EditorScene = CreateRef<Scene>();
+		m_ActiveScene = m_EditorScene;
 
 		auto commandLineArgs = Application::Get().GetCommandLineArgs();
 		if (commandLineArgs.Count > 1)
