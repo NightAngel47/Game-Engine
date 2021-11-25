@@ -35,6 +35,8 @@ namespace Engine
 		static void DrawQuad(const glm::mat4 transform = glm::mat4(1.0f), const Ref<Texture2D>& texture = nullptr, const float& tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int entityID = -1);
 		static void DrawQuad(const glm::mat4 transform = glm::mat4(1.0f), const Ref<SubTexture2D>& subtexture = nullptr, const float& tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int entityID = -1);
 		
+		static void DrawCircle(const glm::mat4 transform = glm::mat4(1.0f), const glm::vec4& color = glm::vec4(1.0f), const float& thickness = 1.0f, const float& fade = 0.005f, int entityID = -1);
+
 		static void DrawSprite(const glm::mat4 transform, SpriteRendererComponent& src, int entityID);
 		
 		// Stats
@@ -54,6 +56,7 @@ namespace Engine
 		static void NextBatch();
 		static glm::mat4 GenTransform(const glm::vec3& position, const float& rotation, const glm::vec2& size);
 		static void SetQuadVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color, const glm::vec2* textureCoords, const float& textureIndex, const float& tiling, int entityID);
+		static void SetCircleVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color, const float& thickness, const float& fade, int entityID);
 	};
 	
 }

@@ -49,6 +49,10 @@ namespace Engine
 				{
 					m_Context->CreateEntity("Sprite").AddComponent<SpriteRendererComponent>();
 				}
+				else if (ImGui::MenuItem("Create Circle"))
+				{
+					m_Context->CreateEntity("Circle").AddComponent<CircleRendererComponent>();
+				}
 				else if (ImGui::MenuItem("Create Camera"))
 				{
 					m_Context->CreateEntity("Camera").AddComponent<CameraComponent>();
@@ -258,6 +262,15 @@ namespace Engine
 				}
 			}
 
+			if (!m_SelectionContext.HasComponent<CircleRendererComponent>())
+			{
+				if (ImGui::MenuItem("Circle Renderer"))
+				{
+					m_SelectionContext.AddComponent<CircleRendererComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
 			if (!m_SelectionContext.HasComponent<Rigidbody2DComponent>())
 			{
 				if (ImGui::MenuItem("Rigidbody 2D"))
@@ -381,6 +394,14 @@ namespace Engine
 			}
 			
 			ImGui::DragFloat("Tiling", &component.Tiling, 0.1f);
+		});
+		
+		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
+		{
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+
+			ImGui::DragFloat("Thickness", &component.Thickness, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Fade", &component.Fade, 0.0001f, 0.0f, 1.0f);
 		});
 		
 		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
