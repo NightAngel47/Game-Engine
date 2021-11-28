@@ -268,6 +268,22 @@ namespace Engine
 			out << YAML::EndMap; // BoxCollider2DComponent
 		}
 		
+		if (entity.HasComponent<CircleCollider2DComponent>())
+		{
+			out << YAML::Key << "CircleCollider2DComponent";
+			out << YAML::BeginMap; // CircleCollider2DComponent
+
+			auto& circleCollider2DComponent = entity.GetComponent<CircleCollider2DComponent>();
+			out << YAML::Key << "Offset" << YAML::Value << circleCollider2DComponent.Offset;
+			out << YAML::Key << "Radius" << YAML::Value << circleCollider2DComponent.Radius;
+			out << YAML::Key << "Density" << YAML::Value << circleCollider2DComponent.Density;
+			out << YAML::Key << "Friction" << YAML::Value << circleCollider2DComponent.Friction;
+			out << YAML::Key << "Restitution" << YAML::Value << circleCollider2DComponent.Restitution;
+			out << YAML::Key << "RestitutionThreshold" << YAML::Value << circleCollider2DComponent.RestitutionThreshold;
+
+			out << YAML::EndMap; // CircleCollider2DComponent
+		}
+		
 		out << YAML::EndMap; // Entity
 	}
 
@@ -402,6 +418,19 @@ namespace Engine
 					boxCollider2D.Friction = boxCollider2DComponent["Friction"].as<float>();
 					boxCollider2D.Restitution = boxCollider2DComponent["Restitution"].as<float>();
 					boxCollider2D.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<float>();
+				}
+
+				auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
+				if (circleCollider2DComponent)
+				{
+					auto& circleCollider2D = deserializedEntity.AddComponent<CircleCollider2DComponent>();
+					circleCollider2D.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
+					circleCollider2D.Radius = circleCollider2DComponent["Radius"].as<float>();
+
+					circleCollider2D.Density = circleCollider2DComponent["Density"].as<float>();
+					circleCollider2D.Friction = circleCollider2DComponent["Friction"].as<float>();
+					circleCollider2D.Restitution = circleCollider2DComponent["Restitution"].as<float>();
+					circleCollider2D.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
 				}
 			}
 		}
