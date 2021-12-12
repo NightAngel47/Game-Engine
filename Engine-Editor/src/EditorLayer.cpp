@@ -4,6 +4,7 @@
 #include <ImGuizmo/ImGuizmo.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include "Engine/Debug/Instrumentor.h"
 #include "Engine/Scene/SceneSerializer.h"
@@ -23,7 +24,6 @@ namespace Engine
 
 	void EditorLayer::OnAttach()
 	{
-
 		ENGINE_PROFILE_FUNCTION();
 
 		m_PlayButtonTexture = Texture2D::Create("Resources/Icons/PlayButton.png");
@@ -106,7 +106,6 @@ namespace Engine
 	void EditorLayer::OnDetach()
 	{
 		ENGINE_PROFILE_FUNCTION();
-		
 	}
 
 	void EditorLayer::OnUpdate(Timestep ts)
@@ -156,6 +155,7 @@ namespace Engine
 				break;
 		}
 
+		// Mouse picking
 		auto[mx, my] = ImGui::GetMousePos();
 		mx -= m_ViewportBounds[0].x;
 		my -= m_ViewportBounds[0].y;
@@ -170,6 +170,9 @@ namespace Engine
 			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
 			m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
 		}
+
+		// Overlay Rendering
+		OnOverlayRender();
 
 		m_Framebuffer->Unbind();
 	}
@@ -273,6 +276,12 @@ namespace Engine
 		ImGui::Text("Quad Count: %d", stats.QuadCount);
 		ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
 		ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
+
+		ImGui::End();
+
+		ImGui::Begin("Settings");
+
+		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
 
 		ImGui::End();
 
@@ -514,6 +523,56 @@ namespace Engine
 		}
 		
 		return false;
+	}
+
+	void EditorLayer::OnOverlayRender()
+	{
+		if (m_SceneState == SceneState::Play)
+		{
+			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
+			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+		}
+		else
+		{
+			Renderer2D::BeginScene(m_EditorCamera);
+		}
+
+		if (m_ShowPhysicsColliders)
+		{
+			{ // Visualize Box Collider 2D
+				auto view = m_ActiveScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+
+				for (auto entity : view)
+				{
+					auto [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
+
+					glm::vec3 position = tc.Position + glm::vec3(glm::rotate(bc2d.Offset, tc.Rotation.z), 0.001f);
+					glm::vec3 scale = tc.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
+
+					glm::mat4 transform = Math::GenTransform(position, tc.Rotation.z, scale);
+
+					Renderer2D::DrawRect(transform, glm::vec4(0, 1, 0, 1));
+				}
+			}
+
+			{ // Visualize Circle Collider 2D
+				auto view = m_ActiveScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+
+				for (auto entity : view)
+				{
+					auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
+
+					glm::vec3 position = tc.Position + glm::vec3(glm::rotate(cc2d.Offset, tc.Rotation.z), 0.001f);
+					glm::vec3 scale = tc.Scale * glm::vec3(cc2d.Radius * 2.0f);
+
+					glm::mat4 transform = Math::GenTransform(position, 0, scale);
+
+					Renderer2D::DrawCircle(transform, glm::vec4(0, 1, 0, 1), 0.025f);
+				}
+			}
+		}
+
+		Renderer2D::EndScene();
 	}
 
 	void EditorLayer::NewScene(const std::filesystem::path& path)

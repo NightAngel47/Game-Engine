@@ -1,5 +1,5 @@
 #include "enginepch.h"
-#include "Math.h"
+#include "Engine/Math/Math.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
@@ -8,6 +8,7 @@ namespace Engine::Math
 {
 	bool DecomposeTransform(const glm::mat4& transform, glm::vec3& outPosition, glm::vec3& outRotation, glm::vec3& outScale)
 	{
+		ENGINE_PROFILE_FUNCTION();
 		// From glm::decompose in matrix_decompose.inl
 
 		using namespace glm;
@@ -75,5 +76,26 @@ namespace Engine::Math
 			outRotation.x = atan2(Row[2][0], Row[1][1]);
 			outRotation.z = 0;
 		}
+	}
+
+	glm::mat4 GenTransform(const glm::vec3& position, const float rotation, const glm::vec2& size)
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		glm::mat4 transform;
+
+		if (rotation)
+		{
+			transform = glm::translate(glm::mat4(1.0f), position) *
+				glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f }) *
+				glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+		}
+		else
+		{
+			transform = glm::translate(glm::mat4(1.0f), position) *
+				glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+		}
+
+		return transform;
 	}
 }

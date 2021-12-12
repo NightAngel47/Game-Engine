@@ -37,6 +37,12 @@ namespace Engine
 		void DuplicateEntity(Entity entity);
 
 		void SetSceneName(const std::string& name) { if (!name.empty()) m_Name = name; }
+
+		template<typename... Components>
+		auto GetAllEntitiesWith()
+		{
+			return m_Registry.view<Components...>();
+		}
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
