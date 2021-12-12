@@ -23,6 +23,8 @@ namespace Engine
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
+		void OnOverlayRender();
+
 		void NewScene(const std::filesystem::path& path = std::string());
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
@@ -68,6 +70,8 @@ namespace Engine
 		// Gizmos
 		int m_GizmoType = -1;
 		bool m_IsGizmoInUse = false;
+
+		bool m_ShowPhysicsColliders = true;
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
