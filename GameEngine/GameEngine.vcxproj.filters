@@ -207,7 +207,10 @@
     <ClInclude Include="src\Engine\Scene\ScriptableEntity.h">
       <Filter>src\Engine\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Scripting\CsBind.h">
+    <ClInclude Include="src\Engine\Scripting\ScriptEngine.h">
+      <Filter>src\Engine\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Scripting\ScriptGlue.h">
       <Filter>src\Engine\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Utils\PlatformUtils.h">
@@ -1574,7 +1577,10 @@
     <ClCompile Include="src\Engine\Scene\SceneSerializer.cpp">
       <Filter>src\Engine\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Scripting\CsBind.cpp">
+    <ClCompile Include="src\Engine\Scripting\ScriptEngine.cpp">
+      <Filter>src\Engine\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Scripting\ScriptGlue.cpp">
       <Filter>src\Engine\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">

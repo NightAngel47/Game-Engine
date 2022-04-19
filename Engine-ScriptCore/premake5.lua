@@ -3,6 +3,7 @@ project "Engine-ScriptCore"
 	language "C#"
 	dotnetframework "4.8"
 	csversion "10.0"
+	namespace "Engine"
 
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")

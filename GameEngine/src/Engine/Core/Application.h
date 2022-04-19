@@ -4,14 +4,13 @@
 
 #include "Engine/Core/Window.h"
 #include "Engine/Core/LayerStack.h"
+
 #include "Engine/Events/Event.h"
 #include "Engine/Events/ApplicationEvent.h"
 
 #include "Engine/ImGui/ImGuiLayer.h"
 
-#include <mono/jit/jit.h>
-#include <mono/metadata/assembly.h>
-#include <mono/metadata/debug-helpers.h>
+#include "Engine/Scripting/ScriptEngine.h"
 
 int main(int argc, char** argv);
 
@@ -61,18 +60,7 @@ namespace Engine
 		bool m_Minimized = false;
 		LayerStack m_LayerStack;
 		float m_LastFrameTime = 0.0f;
-
-		// Mono App
-		MonoDomain* m_MonoDomain;
-		MonoAssembly* m_MonoAssembly;
-		MonoImage* m_MonoAssemblyImage;
-
-		// Mono Methods
-		MonoMethod* m_PtrTickMethod;
-
-		// Mono Objects
-		MonoObject* m_PtrGameObject;
-		uint32_t m_GameObjectGCHandle = 0;
+		ScriptEngine m_ScriptEngine;
 	private:
 		static Application* s_Instance;
 		friend int ::main(int argc, char** argv);

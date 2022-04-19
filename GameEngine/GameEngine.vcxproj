@@ -189,7 +189,8 @@
     <ClInclude Include="src\Engine\Scene\SceneCamera.h" />
     <ClInclude Include="src\Engine\Scene\SceneSerializer.h" />
     <ClInclude Include="src\Engine\Scene\ScriptableEntity.h" />
-    <ClInclude Include="src\Engine\Scripting\CsBind.h" />
+    <ClInclude Include="src\Engine\Scripting\ScriptEngine.h" />
+    <ClInclude Include="src\Engine\Scripting\ScriptGlue.h" />
     <ClInclude Include="src\Engine\Utils\PlatformUtils.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
@@ -646,7 +647,8 @@
     <ClCompile Include="src\Engine\Scene\Scene.cpp" />
     <ClCompile Include="src\Engine\Scene\SceneCamera.cpp" />
     <ClCompile Include="src\Engine\Scene\SceneSerializer.cpp" />
-    <ClCompile Include="src\Engine\Scripting\CsBind.cpp" />
+    <ClCompile Include="src\Engine\Scripting\ScriptEngine.cpp" />
+    <ClCompile Include="src\Engine\Scripting\ScriptGlue.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLFramebuffer.cpp" />

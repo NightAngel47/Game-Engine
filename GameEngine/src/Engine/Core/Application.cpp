@@ -2,11 +2,8 @@
 #include "Engine/Core/Application.h"
 
 #include "Engine/Renderer/Renderer.h"
-#include "Engine/Scripting/CsBind.h"
 
 #include <GLFW/glfw3.h>
-
-#include <mono/metadata/mono-config.h>
 
 namespace Engine
 {
@@ -27,100 +24,6 @@ namespace Engine
 
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
-
-
-		// Mono
-		mono_set_dirs(R"(C:\GitHub\Game-Engine\GameEngine\vendor\Mono\lib)", R"(C:\GitHub\Game-Engine\GameEngine\vendor\Mono\etc)"); 
-
-		m_MonoDomain = mono_jit_init("Engine-ScriptCore");
-		if (!m_MonoDomain)
-		{
-			ENGINE_CORE_CRITICAL("Mono Domain could not be initialized!");
-		}
-		else
-		{
-			ENGINE_CORE_TRACE("Mono Doman initialized!");
-		}
-		
-		MonoImageOpenStatus status = MONO_IMAGE_OK;
-		m_MonoAssembly = mono_assembly_open(R"(..\bin\Debug-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)", &status);
-		switch (status)
-		{
-		case MONO_IMAGE_OK:
-			ENGINE_CORE_TRACE("Mono Assembly opened!");
-			break;
-		case MONO_IMAGE_ERROR_ERRNO:
-			ENGINE_CORE_CRITICAL("Mono Assembly: MONO_IMAGE_ERROR_ERRNO!");
-			break;
-		case MONO_IMAGE_MISSING_ASSEMBLYREF:
-			ENGINE_CORE_CRITICAL("Mono Assembly: MONO_IMAGE_MISSING_ASSEMBLYREF!");
-			break;
-		case MONO_IMAGE_IMAGE_INVALID:
-			ENGINE_CORE_CRITICAL("Mono Assembly: MONO_IMAGE_IMAGE_INVALID!");
-			break;
-		}
-
-		m_MonoAssemblyImage = mono_assembly_get_image(m_MonoAssembly);
-		if (!m_MonoAssemblyImage)
-		{
-			ENGINE_CORE_CRITICAL("Mono Image could not be set!");
-		}
-		else
-		{
-			ENGINE_CORE_TRACE("Mono Image set!");
-		}
-
-		// Add internal calls
-		mono_add_internal_call("GEL.Log::Trace(string)", &CsBind::CS_Log_Trace);
-
-		// Find IGame
-		MonoClass* ptrIGameClass = mono_class_from_name(m_MonoAssemblyImage, "GES", "IGame");
-		MonoClass* ptrMainClass = mono_class_from_name(m_MonoAssemblyImage, "GES", "GameMain");
-		if (ptrIGameClass && ptrMainClass)
-		{
-			MonoMethodDesc* ptrMainMethodDesc = mono_method_desc_new(".GameMain:main()", false);
-			if (ptrMainMethodDesc)
-			{
-				MonoMethod* ptrMainMethod = mono_method_desc_search_in_class(ptrMainMethodDesc, ptrMainClass);
-				if (ptrMainMethod)
-				{
-					// Call main method
-					MonoObject* ptrExObject = nullptr;
-					m_PtrGameObject = mono_runtime_invoke(ptrMainMethod, nullptr, nullptr, &ptrExObject);
-					if (m_PtrGameObject)
-					{
-						// Ref count on c++ side
-						m_GameObjectGCHandle = mono_gchandle_new(m_PtrGameObject, false);
-
-						// Get tick function
-						MonoMethodDesc* ptrTickMethodDesc = mono_method_desc_new(".IGame:tick()", false);
-						if (ptrTickMethodDesc)
-						{
-							// Get real function
-							MonoMethod* virtualMethod = mono_method_desc_search_in_class(ptrTickMethodDesc, ptrIGameClass);
-							if (virtualMethod)
-							{
-								m_PtrTickMethod = mono_object_get_virtual_method(m_PtrGameObject, virtualMethod);
-							}
-
-							// Free
-							mono_method_desc_free(ptrTickMethodDesc);
-						}
-					}
-
-					// Report Exception
-					if (ptrExObject)
-					{
-						MonoString* exString = mono_object_to_string(ptrExObject, nullptr);
-						const char* exCString = mono_string_to_utf8(exString);
-						ENGINE_CORE_ERROR(exCString);
-					}
-				}
-
-				// Free desc
-				mono_method_desc_free(ptrMainMethodDesc);
-			}
-		}
 	}
 
 	Application::~Application()
@@ -128,19 +31,6 @@ namespace Engine
 		ENGINE_PROFILE_FUNCTION();
 		
 		Renderer::Shutdown();
-
-		// Mono
-		// Release mono handles
-		if (m_GameObjectGCHandle)
-		{
-			mono_gchandle_free(m_GameObjectGCHandle);
-		}
-
-		// Release Domain
-		if (m_MonoDomain)
-		{
-			mono_jit_cleanup(m_MonoDomain);
-		}
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -191,21 +81,6 @@ namespace Engine
 			float time = (float)glfwGetTime(); // Platform::GetTime
 			Timestep timestep = time - m_LastFrameTime;
 			m_LastFrameTime = time;
-
-			// Run Mono Tick function
-			if (m_PtrTickMethod)
-			{
-				MonoObject* ptrExObject = nullptr;
-				mono_runtime_invoke(m_PtrTickMethod, m_PtrGameObject, nullptr, &ptrExObject);
-
-				// Report Exception
-				if (ptrExObject)
-				{
-					MonoString* exString = mono_object_to_string(ptrExObject, nullptr);
-					const char* exCString = mono_string_to_utf8(exString);
-					ENGINE_CORE_ERROR(exCString);
-				}
-			}
 
 			if (!m_Minimized)
 			{
