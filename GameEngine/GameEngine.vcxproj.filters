@@ -28,6 +28,9 @@
     <Filter Include="src\Engine\Scene">
       <UniqueIdentifier>{AF1338A9-9B0C-57FB-C43E-3C80B0963607}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Engine\Scripting">
+      <UniqueIdentifier>{94147CC7-80A3-0591-29C2-198C15301637}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Engine\Utils">
       <UniqueIdentifier>{F2A765A9-DEA0-84FB-07D3-6980F32A6407}</UniqueIdentifier>
     </Filter>
@@ -203,6 +206,9 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Scene\ScriptableEntity.h">
       <Filter>src\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Scripting\CsBind.h">
+      <Filter>src\Engine\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Utils\PlatformUtils.h">
       <Filter>src\Engine\Utils</Filter>
@@ -1482,7 +1488,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Scripting\CsBind.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine\Core\Application.cpp">
@@ -1569,6 +1574,9 @@
     <ClCompile Include="src\Engine\Scene\SceneSerializer.cpp">
       <Filter>src\Engine\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Scripting\CsBind.cpp">
+      <Filter>src\Engine\Scripting</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
@@ -1611,6 +1619,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Scripting\CsBind.cpp" />
   </ItemGroup>
 </Project>

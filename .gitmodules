@@ -6,9 +6,6 @@
 	path = GameEngine/vendor/glm
 	url = https://github.com/g-truc/glm
 	branch = master
-[submodule "GameEngine/vendor/ImGuizmo"]
-	path = GameEngine/vendor/ImGuizmo
-	url = https://github.com/NightAngel47/imguizmo
 [submodule "GameEngine/vendor/GLFW"]
 	path = GameEngine/vendor/GLFW
 	url = https://github.com/NightAngel47/GLFW
@@ -21,6 +18,9 @@
 	path = GameEngine/vendor/yaml-cpp
 	url = https://github.com/NightAngel47/yaml-cpp
 	branch = master
-[submodule "box2d"]
-	path = GameEngine\\vendor\\box2d
+[submodule "GameEngine/vendor/ImGuizmo"]
+	path = GameEngine/vendor/ImGuizmo
+	url = https://github.com/NightAngel47/ImGuizmo
+[submodule "GameEngine/vendor/box2d"]
+	path = GameEngine/vendor/box2d
 	url = https://github.com/NightAngel47/box2d

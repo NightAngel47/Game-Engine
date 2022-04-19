@@ -42,7 +42,8 @@ project "GameEngine"
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.VulkanSDK}",
-		"%{IncludeDir.box2d}"
+		"%{IncludeDir.box2d}",
+		"%{IncludeDir.Mono}"
 	}
 
 	links
@@ -52,7 +53,8 @@ project "GameEngine"
 		"ImGui",
 		"yaml-cpp",
 		"box2d",
-		"opengl32.lib"
+		"opengl32.lib",
+		"%{Library.Mono_Lib_sgen}"
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"

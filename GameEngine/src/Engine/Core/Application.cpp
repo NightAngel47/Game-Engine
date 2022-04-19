@@ -30,10 +30,9 @@ namespace Engine
 
 
 		// Mono
-		// TODO move Mono to vendor directory and copy necessary items to bin dir
-		mono_set_dirs(R"(..\bin\Debug-windows-x86_64\Engine-Editor\Mono\lib)", R"(..\bin\Debug-windows-x86_64\Engine-Editor\Mono\etc)"); 
+		mono_set_dirs(R"(C:\GitHub\Game-Engine\GameEngine\vendor\Mono\lib)", R"(C:\GitHub\Game-Engine\GameEngine\vendor\Mono\etc)"); 
 
-		m_MonoDomain = mono_jit_init("GameEngineScripting");
+		m_MonoDomain = mono_jit_init("Engine-ScriptCore");
 		if (!m_MonoDomain)
 		{
 			ENGINE_CORE_CRITICAL("Mono Domain could not be initialized!");
@@ -44,7 +43,7 @@ namespace Engine
 		}
 		
 		MonoImageOpenStatus status = MONO_IMAGE_OK;
-		m_MonoAssembly = mono_assembly_open(R"(..\bin\Debug-windows-x86_64\GameEngineScripting\GameEngineScripting.dll)", &status);
+		m_MonoAssembly = mono_assembly_open(R"(..\bin\Debug-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)", &status);
 		switch (status)
 		{
 		case MONO_IMAGE_OK:
