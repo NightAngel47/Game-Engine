@@ -15,12 +15,12 @@ namespace Engine
 		s_Instance = this;
 
 		// Mono
-		mono_set_dirs(R"(C:\GitHub\Game-Engine\GameEngine\vendor\Mono\lib)", R"(C:\GitHub\Game-Engine\GameEngine\vendor\Mono\etc)");
+		mono_set_dirs(R"(..\GameEngine\vendor\Mono\lib)", R"(..\GameEngine\vendor\Mono\etc)");
 
 		m_MonoDomain = mono_jit_init("Engine-ScriptCore");
 		ENGINE_CORE_ASSERT(m_MonoDomain, "Mono Domain could not be initialized!")
 
-			MonoImageOpenStatus status = MONO_IMAGE_OK;
+		MonoImageOpenStatus status = MONO_IMAGE_OK;
 
 #ifdef ENGINE_DEBUG
 		m_MonoAssembly = mono_assembly_open(R"(..\bin\Debug-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)", &status);
@@ -33,7 +33,7 @@ namespace Engine
 		switch (status)
 		{
 		case MONO_IMAGE_OK:
-			ENGINE_CORE_TRACE("Mono Assembly: ScriptCore opened!");
+			ENGINE_CORE_TRACE("Mono Assembly: MONO_IMAGE_OK!");
 			break;
 		case MONO_IMAGE_ERROR_ERRNO:
 			ENGINE_CORE_CRITICAL("Mono Assembly: MONO_IMAGE_ERROR_ERRNO!");
@@ -56,12 +56,21 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		// Mono
-
 		// Release Domain
 		if (m_MonoDomain)
 		{
 			mono_jit_cleanup(m_MonoDomain);
+		}
+	}
+
+	void ScriptEngine::HandleMonoException(MonoObject* ptrExObject)
+	{
+		// Report Exception
+		if (ptrExObject)
+		{
+			MonoString* exString = mono_object_to_string(ptrExObject, nullptr);
+			const char* exCString = mono_string_to_utf8(exString);
+			ENGINE_CORE_ERROR(exCString);
 		}
 	}
 

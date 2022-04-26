@@ -297,6 +297,15 @@ namespace Engine
 					ImGui::CloseCurrentPopup();
 				}
 			}
+
+			if (!m_SelectionContext.HasComponent<ScriptComponent>())
+			{
+				if (ImGui::MenuItem("Script Component"))
+				{
+					m_SelectionContext.AddComponent<ScriptComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
 			
 			ImGui::EndPopup();
 		}
@@ -459,6 +468,28 @@ namespace Engine
 			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("RestitutionThreshold", &component.RestitutionThreshold, 0.01f, 0.0f, std::numeric_limits<float>::infinity());
+		});
+
+		DrawComponent<ScriptComponent>("Script Component", entity, [](auto& component)
+		{
+			auto& namespaceName = component.namespaceName;
+
+			char buffer[256];
+			memset(buffer, 0, sizeof(buffer));
+			strcpy_s(buffer, sizeof(buffer), namespaceName.c_str());
+			if (ImGui::InputText("##Namespace", buffer, sizeof(buffer)))
+			{
+				namespaceName = std::string(buffer);
+			}
+
+			auto& className = component.className;
+
+			memset(buffer, 0, sizeof(buffer));
+			strcpy_s(buffer, sizeof(buffer), className.c_str());
+			if (ImGui::InputText("##Class", buffer, sizeof(buffer)))
+			{
+				className = std::string(buffer);
+			}
 		});
 	}
 }

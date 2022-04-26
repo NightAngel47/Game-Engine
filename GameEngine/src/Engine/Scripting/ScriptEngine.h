@@ -12,7 +12,8 @@ namespace Engine
 		ScriptEngine();
 		~ScriptEngine();
 
-		
+	private:
+		void HandleMonoException(MonoObject* ptrExObject);
 
 	private:
 		static ScriptEngine* s_Instance;
@@ -21,5 +22,7 @@ namespace Engine
 		MonoDomain* m_MonoDomain;
 		MonoAssembly* m_MonoAssembly;
 		MonoImage* m_MonoAssemblyImage;
+
+		friend class MonoScript;
 	};
 }

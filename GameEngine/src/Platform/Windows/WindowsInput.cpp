@@ -28,7 +28,7 @@ namespace Engine
 		auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
-		return glm::vec2(xpos, ypos);
+		return {xpos, ypos};
 	}
 
 	float Input::GetMouseX()

@@ -92,6 +92,7 @@ namespace Engine
 		CopyComponent<CircleRendererComponent>(dstceneRegistry, srcSceneRegistry, enttMap);
 		CopyComponent<CameraComponent>(dstceneRegistry, srcSceneRegistry, enttMap);
 		CopyComponent<NativeScriptComponent>(dstceneRegistry, srcSceneRegistry, enttMap);
+		CopyComponent<ScriptComponent>(dstceneRegistry, srcSceneRegistry, enttMap);
 		CopyComponent<Rigidbody2DComponent>(dstceneRegistry, srcSceneRegistry, enttMap);
 		CopyComponent<BoxCollider2DComponent>(dstceneRegistry, srcSceneRegistry, enttMap);
 		CopyComponent<CircleCollider2DComponent>(dstceneRegistry, srcSceneRegistry, enttMap);
@@ -191,6 +192,15 @@ namespace Engine
 					nsc.Instance->OnCreate();
 				}
 			});
+
+			m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
+			{
+				if (!sc.Instance)
+				{
+					sc.InstantiateScript();
+					sc.Instance->OnCreate();
+				}
+			});
 		}
 	}
 
@@ -217,6 +227,17 @@ namespace Engine
 				}
 				
 				nsc.Instance->OnUpdate(ts);
+			});
+
+			m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
+			{
+				if (!sc.Instance)
+				{
+					sc.InstantiateScript();
+					sc.Instance->OnCreate();
+				}
+
+				sc.Instance->OnUpdate(ts);
 			});
 		}
 
@@ -351,6 +372,7 @@ namespace Engine
 		CopyComponentIfExists<CircleRendererComponent>(newEntity, entity);
 		CopyComponentIfExists<CameraComponent>(newEntity, entity);
 		CopyComponentIfExists<NativeScriptComponent>(newEntity, entity);
+		CopyComponentIfExists<ScriptComponent>(newEntity, entity);
 		CopyComponentIfExists<Rigidbody2DComponent>(newEntity, entity);
 		CopyComponentIfExists<BoxCollider2DComponent>(newEntity, entity);
 		CopyComponentIfExists<CircleCollider2DComponent>(newEntity, entity);
@@ -418,5 +440,11 @@ namespace Engine
 	void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
 	{
 		
+	}
+
+	template<>
+	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
+	{
+
 	}
 }
