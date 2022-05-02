@@ -124,15 +124,24 @@ namespace Engine
 	struct ScriptComponent
 	{
 		MonoScript* Instance = nullptr;
-		std::string namespaceName;
-		std::string className;
+		std::string scriptName;
+		bool scriptInstatiated;
 
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;
 
+		void ValidateScript()
+		{
+			Instance = new MonoScript(scriptName);
+		}
+
 		void InstantiateScript()
 		{
-			Instance = new MonoScript(namespaceName, className);
+			if (!scriptInstatiated)
+			{
+				Instance->InstantiateScript(scriptName);
+				scriptInstatiated = true;
+			}
 		}
 	};
 

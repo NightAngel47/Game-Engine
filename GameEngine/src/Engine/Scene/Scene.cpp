@@ -195,7 +195,7 @@ namespace Engine
 
 			m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
 			{
-				if (!sc.Instance)
+				if (!sc.scriptInstatiated)
 				{
 					sc.InstantiateScript();
 					sc.Instance->OnCreate();
@@ -206,6 +206,17 @@ namespace Engine
 
 	void Scene::OnRuntimeStop()
 	{
+		{
+			// Scripts On Destroy
+			m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
+			{
+				if (sc.scriptInstatiated)
+				{
+					sc.Instance->OnDestroy();
+				}
+			});
+		}
+
 		// Destroy Physics Objects
 		{
 			delete m_PhysicsWorld;
@@ -231,13 +242,16 @@ namespace Engine
 
 			m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
 			{
-				if (!sc.Instance)
+				if (!sc.scriptInstatiated)
 				{
 					sc.InstantiateScript();
 					sc.Instance->OnCreate();
 				}
+				else
+				{
+					sc.Instance->OnUpdate(ts);
+				}
 
-				sc.Instance->OnUpdate(ts);
 			});
 		}
 

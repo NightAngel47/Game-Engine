@@ -472,23 +472,15 @@ namespace Engine
 
 		DrawComponent<ScriptComponent>("Script Component", entity, [](auto& component)
 		{
-			auto& namespaceName = component.namespaceName;
+			auto& scriptName = component.scriptName;
 
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
-			strcpy_s(buffer, sizeof(buffer), namespaceName.c_str());
-			if (ImGui::InputText("##Namespace", buffer, sizeof(buffer)))
+			strcpy_s(buffer, sizeof(buffer), scriptName.c_str());
+			if (ImGui::InputText("ScriptName", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 			{
-				namespaceName = std::string(buffer);
-			}
-
-			auto& className = component.className;
-
-			memset(buffer, 0, sizeof(buffer));
-			strcpy_s(buffer, sizeof(buffer), className.c_str());
-			if (ImGui::InputText("##Class", buffer, sizeof(buffer)))
-			{
-				className = std::string(buffer);
+				scriptName = std::string(buffer);
+				component.ValidateScript();
 			}
 		});
 	}

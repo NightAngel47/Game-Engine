@@ -574,6 +574,7 @@ namespace Engine
 		else
 		{
 			SceneSerializer serializer(m_ActiveScene);
+			serializer.Serialize(m_EditorScenePath.string());
 		}
 	}
 

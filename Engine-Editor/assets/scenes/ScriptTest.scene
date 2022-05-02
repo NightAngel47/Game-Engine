@@ -1,6 +1,6 @@
-Scene: SpriteTest.scene
+Scene: ScriptTest.scene
 Entities:
-  - Entity: 7229248983842263394
+  - Entity: 1520648573979934835
     TagComponent:
       Tag: Camera
     TransformComponent:
@@ -18,14 +18,16 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 16903845291704769955
+  - Entity: 12421991672043757769
     TagComponent:
       Tag: Sprite
     TransformComponent:
-      Position: [-0.848204017, 0.132784203, 0.570435226]
-      Rotation: [0.352500468, 0.583248734, 0.194645107]
-      Scale: [4.40939188, 1.82272553, 1.13919973]
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
-      Path: textures\temple.png
+      Path: ""
       Tiling: 1
+    ScriptComponent:
+      ScriptName: Source.ExampleEntity

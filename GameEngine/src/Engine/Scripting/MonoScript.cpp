@@ -6,15 +6,74 @@
 
 namespace Engine
 {
-	MonoScript::MonoScript(const std::string& namespaceName, const std::string& className)
+	MonoScript::MonoScript(const std::string& scriptName)
 	{
-		ENGINE_CORE_ASSERT(namespaceName.c_str(), "Namespace is not set for mono script!");
-		ENGINE_CORE_ASSERT(className.c_str(), "Class is not set for mono script!");
+		std::string scriptNamespace, scriptClass;
 
-		MonoClass* ptrClass = mono_class_from_name(ScriptEngine::s_Instance->m_MonoAssemblyImage, namespaceName.c_str(), className.c_str());
-		ENGINE_CORE_ASSERT(ptrClass, "Could not find class in mono assembly image!");
+		std::size_t scriptNameSplit = scriptName.find_last_of(".");
+		if (scriptNameSplit == std::string::npos)
+		{
+			scriptNamespace = "null";
+			scriptClass = scriptName;
+		}
+		else
+		{
+			scriptNamespace = scriptName.substr(0, scriptNameSplit);
+			scriptClass = scriptName.substr(scriptNameSplit + 1);
+			if (scriptClass.empty())
+			{
+				scriptClass = "null";
+			}
+		}
 
-		m_PtrGameObject = mono_object_new(ScriptEngine::s_Instance->m_MonoDomain, ptrClass);
+		MonoClass* ptrClass = mono_class_from_name(ScriptEngine::s_Instance->m_MonoAssemblyImage, scriptNamespace.c_str(), scriptClass.c_str());
+		if (!ptrClass)
+		{
+			ENGINE_CORE_ERROR("Could not find: " + scriptName + " in mono assembly image!");
+		}
+	}
+
+	MonoScript::MonoScript(const std::string& scriptNamespace, const std::string& scriptClass)
+	{
+		MonoClass* ptrClass = mono_class_from_name(ScriptEngine::s_Instance->m_MonoAssemblyImage, scriptNamespace.c_str(), scriptClass.c_str());
+		if (!ptrClass)
+		{
+			ENGINE_CORE_ERROR("Could not find: " + scriptNamespace + "." + scriptClass + " in mono assembly image!");
+		}
+	}
+
+	void MonoScript::InstantiateScript(const std::string& scriptName)
+	{
+		std::string scriptNamespace, scriptClass;
+
+		std::size_t scriptNameSplit = scriptName.find_last_of(".");
+		if (scriptNameSplit == std::string::npos)
+		{
+			scriptNamespace = "null";
+			scriptClass = scriptName;
+		}
+		else
+		{
+			scriptNamespace = scriptName.substr(0, scriptNameSplit);
+			scriptClass = scriptName.substr(scriptNameSplit + 1);
+			if (scriptClass.empty())
+			{
+				scriptClass = "null";
+			}
+		}
+
+		InstantiateScript(scriptNamespace, scriptClass);
+	}
+
+	void MonoScript::InstantiateScript(const std::string& namespaceName, const std::string& className)
+	{
+		ENGINE_CORE_ASSERT(&namespaceName, "Script namespace is not set!");
+		ENGINE_CORE_ASSERT(&className, "Script class is not set!");
+
+		MonoClass* prtClass = mono_class_from_name(ScriptEngine::s_Instance->m_MonoAssemblyImage, namespaceName.c_str(), className.c_str());
+		ENGINE_CORE_ASSERT(prtClass, "Could not find class in mono assembly image!");
+
+		m_PtrGameObject = mono_object_new(ScriptEngine::s_Instance->m_MonoDomain, prtClass);
 		ENGINE_CORE_ASSERT(m_PtrGameObject, "Could not create new MonoObject!");
 		m_GameObjectGCHandle = mono_gchandle_new(m_PtrGameObject, false);
 
@@ -22,7 +81,7 @@ namespace Engine
 		MonoMethodDesc* ptrCreateMethodDesc = mono_method_desc_new(("." + className + ":OnCreate()").c_str(), false);
 		ENGINE_CORE_ASSERT(ptrCreateMethodDesc, "Could create mono method desc!");
 
-		m_OnCreateMethodPtr = mono_method_desc_search_in_class(ptrCreateMethodDesc, ptrClass);
+		m_OnCreateMethodPtr = mono_method_desc_search_in_class(ptrCreateMethodDesc, prtClass);
 		ENGINE_CORE_ASSERT(m_OnCreateMethodPtr, "Could not find create method desc in class!");
 
 		mono_method_desc_free(ptrCreateMethodDesc);
@@ -31,7 +90,7 @@ namespace Engine
 		MonoMethodDesc* ptrDestroyMethodDesc = mono_method_desc_new(("." + className + ":OnDestroy()").c_str(), false);
 		ENGINE_CORE_ASSERT(ptrDestroyMethodDesc, "Could create mono method desc!");
 
-		m_OnDestroyMethodPtr = mono_method_desc_search_in_class(ptrDestroyMethodDesc, ptrClass);
+		m_OnDestroyMethodPtr = mono_method_desc_search_in_class(ptrDestroyMethodDesc, prtClass);
 		ENGINE_CORE_ASSERT(m_OnDestroyMethodPtr, "Could not find destroy method desc in class!");
 
 		mono_method_desc_free(ptrDestroyMethodDesc);
@@ -40,7 +99,7 @@ namespace Engine
 		MonoMethodDesc* ptrUpdateMethodDesc = mono_method_desc_new(("." + className + ":OnUpdate(single)").c_str(), false);
 		ENGINE_CORE_ASSERT(ptrUpdateMethodDesc, "Could create mono method desc!");
 
-		m_OnUpdateMethodPtr = mono_method_desc_search_in_class(ptrUpdateMethodDesc, ptrClass);
+		m_OnUpdateMethodPtr = mono_method_desc_search_in_class(ptrUpdateMethodDesc, prtClass);
 		ENGINE_CORE_ASSERT(m_OnUpdateMethodPtr, "Could not find update method desc in class!");
 
 		mono_method_desc_free(ptrUpdateMethodDesc);
