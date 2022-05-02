@@ -28,6 +28,9 @@
     <Filter Include="src\Engine\Scene">
       <UniqueIdentifier>{AF1338A9-9B0C-57FB-C43E-3C80B0963607}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Engine\Scripting">
+      <UniqueIdentifier>{94147CC7-80A3-0591-29C2-198C15301637}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Engine\Utils">
       <UniqueIdentifier>{F2A765A9-DEA0-84FB-07D3-6980F32A6407}</UniqueIdentifier>
     </Filter>
@@ -203,6 +206,15 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Scene\ScriptableEntity.h">
       <Filter>src\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Scripting\MonoScript.h">
+      <Filter>src\Engine\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Scripting\ScriptEngine.h">
+      <Filter>src\Engine\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Scripting\ScriptGlue.h">
+      <Filter>src\Engine\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Utils\PlatformUtils.h">
       <Filter>src\Engine\Utils</Filter>
@@ -1567,6 +1579,15 @@
     </ClCompile>
     <ClCompile Include="src\Engine\Scene\SceneSerializer.cpp">
       <Filter>src\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Scripting\MonoScript.cpp">
+      <Filter>src\Engine\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Scripting\ScriptEngine.cpp">
+      <Filter>src\Engine\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Scripting\ScriptGlue.cpp">
+      <Filter>src\Engine\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
       <Filter>src\Platform\OpenGL</Filter>

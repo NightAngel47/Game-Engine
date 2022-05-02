@@ -47,58 +47,6 @@ namespace Engine
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
-
-#if 0
-		// Entity
-		Entity square = m_ActiveScene->CreateEntity("Square");
-		square.AddComponent<SpriteRendererComponent>(glm::vec4{0.0f, 1.0f, 0.0f, 1.0f});
-		
-		Entity anotherSquare = m_ActiveScene->CreateEntity("Another Square");
-		anotherSquare.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 0.0f, 0.0f, 1.0f});
-
-		m_SquareEntity = square;
-
-		m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity");
-		m_CameraEntity.AddComponent<CameraComponent>();
-
-		m_SecondCamera = m_ActiveScene->CreateEntity("Second Camera");
-		auto& cc = m_SecondCamera.AddComponent<CameraComponent>();
-		cc.Primary = false;
-
-		class CameraController : public ScriptableEntity
-		{	
-		public:
-			void OnCreate()
-			{
-				auto& position = GetComponent<TransformComponent>().Position;
-				position.x = rand() % 10 - 5.0f;
-			}
-
-			void OnDestroy()
-			{
-				
-			}
-
-			void OnUpdate(Timestep ts)
-			{
-				auto& position = GetComponent<TransformComponent>().Position;
-				float speed = 5.0f;
-				
-				if (Input::IsKeyPressed(Key::A))
-					position.x -= speed * ts;
-				if (Input::IsKeyPressed(Key::D))
-					position.x += speed * ts;
-				if (Input::IsKeyPressed(Key::W))
-					position.y += speed * ts;
-				if (Input::IsKeyPressed(Key::S))
-					position.y -= speed * ts;
-			}
-		};
-
-		m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
-		m_SecondCamera.AddComponent<NativeScriptComponent>().Bind<CameraController>();
-
-#endif
 		
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
@@ -626,6 +574,7 @@ namespace Engine
 		else
 		{
 			SceneSerializer serializer(m_ActiveScene);
+			serializer.Serialize(m_EditorScenePath.string());
 		}
 	}
 

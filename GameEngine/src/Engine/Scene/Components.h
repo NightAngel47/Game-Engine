@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Renderer/Texture.h"
 #include "Engine/Scene/SceneCamera.h"
+#include "Engine/Scripting/MonoScript.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Core/UUID.h"
 
@@ -114,6 +115,33 @@ namespace Engine
 		{
 			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
 			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
+		}
+	};
+
+	// Forward declaration
+	//class MonoScript;
+
+	struct ScriptComponent
+	{
+		MonoScript* Instance = nullptr;
+		std::string scriptName;
+		bool scriptInstatiated;
+
+		ScriptComponent() = default;
+		ScriptComponent(const ScriptComponent&) = default;
+
+		void ValidateScript()
+		{
+			Instance = new MonoScript(scriptName);
+		}
+
+		void InstantiateScript()
+		{
+			if (!scriptInstatiated)
+			{
+				Instance->InstantiateScript(scriptName);
+				scriptInstatiated = true;
+			}
 		}
 	};
 

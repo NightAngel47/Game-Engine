@@ -167,6 +167,7 @@ namespace Engine
 			out << YAML::BeginMap; // TagComponent
 
 			out << YAML::Key << "Tag" << YAML::Value << entity.GetComponent<TagComponent>().Tag;
+			ENGINE_CORE_TRACE("Serializing entity with ID = {0}, name {1}", entity.GetUUID(), entity.GetComponent<TagComponent>().Tag);
 
 			out << YAML::EndMap; // TagComponent
 		}
@@ -240,6 +241,17 @@ namespace Engine
 			out << YAML::EndMap; // CircleRendererComponent
 		}
 		
+		if (entity.HasComponent<ScriptComponent>())
+		{
+			out << YAML::Key << "ScriptComponent";
+			out << YAML::BeginMap; // ScriptComponent
+
+			auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+			out << YAML::Key << "ScriptName" << YAML::Value << scriptComponent.scriptName;
+
+			out << YAML::EndMap; // ScriptComponent
+		}
+		
 		if (entity.HasComponent<Rigidbody2DComponent>())
 		{
 			out << YAML::Key << "Rigidbody2DComponent";
@@ -292,6 +304,7 @@ namespace Engine
 		YAML::Emitter out;
 		out << YAML::BeginMap; // Scene
 		out << YAML::Key << "Scene" << YAML::Value << m_Scene->m_Name;
+		ENGINE_CORE_TRACE("Serializing scene '{0}'", m_Scene->m_Name);
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 		m_Scene->m_Registry.each([&](auto entityID)
 		{
@@ -397,6 +410,15 @@ namespace Engine
 					circleRenderer.Radius = circleRendererComponent["Radius"].as<float>();
 					circleRenderer.Thickness = circleRendererComponent["Thickness"].as<float>();
 					circleRenderer.Fade = circleRendererComponent["Fade"].as<float>();
+				}
+
+				auto scriptComponent = entity["ScriptComponent"];
+				if (scriptComponent)
+				{
+					auto& script = deserializedEntity.AddComponent<ScriptComponent>();
+					script.scriptName = scriptComponent["ScriptName"].as<std::string>();
+
+					if (!script.scriptName.empty()) script.ValidateScript();
 				}
 
 				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

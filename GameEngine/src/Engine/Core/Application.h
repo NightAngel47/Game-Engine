@@ -4,10 +4,13 @@
 
 #include "Engine/Core/Window.h"
 #include "Engine/Core/LayerStack.h"
+
 #include "Engine/Events/Event.h"
 #include "Engine/Events/ApplicationEvent.h"
 
 #include "Engine/ImGui/ImGuiLayer.h"
+
+#include "Engine/Scripting/ScriptEngine.h"
 
 int main(int argc, char** argv);
 
@@ -57,6 +60,7 @@ namespace Engine
 		bool m_Minimized = false;
 		LayerStack m_LayerStack;
 		float m_LastFrameTime = 0.0f;
+		ScriptEngine m_ScriptEngine;
 	private:
 		static Application* s_Instance;
 		friend int ::main(int argc, char** argv);

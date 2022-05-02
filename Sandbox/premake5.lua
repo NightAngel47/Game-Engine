@@ -19,13 +19,22 @@ project "Sandbox"
 		"%{wks.location}/GameEngine/src",
 		"%{wks.location}/GameEngine/vendor",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.Mono}"
 	}
 
 	links
 	{
 		"GameEngine"
 	}
+
+	postbuildcommands
+	{
+		"{COPY} %{LibraryDir.VulkanSDK_DLL} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}",
+		"{COPY} %{LibraryDir.Mono_Lib}/mono/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/lib/mono",
+		"{COPY} %{LibraryDir.Mono_Bin}/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/bin",
+		"{COPY} %{LibraryDir.Mono_Etc}/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/etc"
+	}	
 
 	filter "system:windows"
 		systemversion "latest"
