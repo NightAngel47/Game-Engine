@@ -10,7 +10,7 @@ namespace Source
 
 		protected override void OnCreate()
 		{
-			Log.Info("Example Entity Created.");
+			Log.Info($"Example Entity Created with ID: {ID}.");
 		}
 
 		protected override void OnDestroy()

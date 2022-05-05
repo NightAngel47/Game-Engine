@@ -5,6 +5,9 @@
 
 namespace Engine
 {
+	// forward dec
+	class Entity;
+
 	class MonoScript
 	{
 	public:
@@ -13,8 +16,8 @@ namespace Engine
 		MonoScript(const std::string& scriptNamespace, const std::string& scriptClass);
 		~MonoScript();
 
-		void InstantiateScript(const std::string& scriptName);
-		void InstantiateScript(const std::string& namespaceName, const std::string& className);
+		void InstantiateScript(const std::string& scriptName, Entity& entity);
+		void InstantiateScript(const std::string& namespaceName, const std::string& className, Entity& entity);
 
 		void OnCreate();
 		void OnDestroy();
