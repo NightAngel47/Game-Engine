@@ -7,5 +7,7 @@
 		protected abstract void OnCreate();
 		protected abstract void OnDestroy();
 		protected abstract void OnUpdate(float ts);
+
+		public abstract T GetComponent<T>(); // TODO fix
 	}
 }

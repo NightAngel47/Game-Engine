@@ -11,6 +11,10 @@ namespace Source
 		protected override void OnCreate()
 		{
 			Log.Info($"Example Entity Created with ID: {ID}.");
+
+			TransformComponent transformComponent = GetComponent<TransformComponent>();
+			Vector3 pos = transformComponent.Position;
+			Log.Info($"Position: ({pos.x}, {pos.y}, {pos.z})");
 		}
 
 		protected override void OnDestroy()
