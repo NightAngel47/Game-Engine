@@ -17,5 +17,12 @@ namespace Engine.Math
 			this.y = y;
 			this.z = z;
 		}
+
+		public Vector3(float[] xyz)
+		{
+			this.x = xyz[0];
+			this.y = xyz[1];
+			this.z = xyz[2];
+		}
 	}
 }

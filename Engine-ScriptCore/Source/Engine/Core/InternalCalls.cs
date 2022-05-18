@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Engine.Scene;
+using System.Runtime.CompilerServices;
 
 namespace Engine.Core
 {
@@ -40,6 +41,15 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern float Input_GetMouseX();
 
+		#endregion
+
+		#region Entity
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_GetComponent(ulong entityID, out TagComponent.TagData data);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_GetComponent(ulong entityID, out TransformComponent.TransformData data);
+		
 		#endregion
 	}
 }

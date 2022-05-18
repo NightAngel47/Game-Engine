@@ -1,3 +1,4 @@
+
 #include "enginepch.h"
 #include "Engine/Scripting/MonoScript.h"
 #include "Engine/Scripting/ScriptEngine.h"
@@ -7,7 +8,6 @@
 
 namespace Engine
 {
-
 	MonoScript::MonoScript(const std::string& scriptName)
 	{
 		std::string scriptNamespace, scriptClass;
@@ -28,7 +28,9 @@ namespace Engine
 			}
 		}
 
-		MonoClass* ptrClass = mono_class_from_name(ScriptEngine::s_Instance->m_MonoAssemblyImage, scriptNamespace.c_str(), scriptClass.c_str());
+		auto image = ScriptEngine::s_Instance->GetMonoImage();
+		ENGINE_CORE_ASSERT(image, "Mono Image not set!");
+		MonoClass* ptrClass = mono_class_from_name(image, scriptNamespace.c_str(), scriptClass.c_str());
 		if (!ptrClass)
 		{
 			ENGINE_CORE_ERROR("Could not find: " + scriptName + " in mono assembly image!");
@@ -37,7 +39,9 @@ namespace Engine
 
 	MonoScript::MonoScript(const std::string& scriptNamespace, const std::string& scriptClass)
 	{
-		MonoClass* ptrClass = mono_class_from_name(ScriptEngine::s_Instance->m_MonoAssemblyImage, scriptNamespace.c_str(), scriptClass.c_str());
+		auto image = ScriptEngine::s_Instance->GetMonoImage();
+		ENGINE_CORE_ASSERT(image, "Mono Image not set!");
+		MonoClass* ptrClass = mono_class_from_name(image, scriptNamespace.c_str(), scriptClass.c_str());
 		if (!ptrClass)
 		{
 			ENGINE_CORE_ERROR("Could not find: " + scriptNamespace + "." + scriptClass + " in mono assembly image!");
@@ -72,22 +76,28 @@ namespace Engine
 		ENGINE_CORE_ASSERT(&namespaceName, "Script namespace is not set!");
 		ENGINE_CORE_ASSERT(&className, "Script class is not set!");
 
-		MonoClass* ptrClass = mono_class_from_name(ScriptEngine::s_Instance->m_MonoAssemblyImage, namespaceName.c_str(), className.c_str());
+		auto image = ScriptEngine::s_Instance->GetMonoImage();
+		ENGINE_CORE_ASSERT(image, "Mono Image not set!");
+		MonoClass* ptrClass = mono_class_from_name(image, namespaceName.c_str(), className.c_str());
 		ENGINE_CORE_ASSERT(ptrClass, "Could not find class in mono assembly image!");
 
-		m_PtrGameObject = mono_object_new(ScriptEngine::s_Instance->m_MonoDomain, ptrClass);
+		auto domain = ScriptEngine::s_Instance->GetMonoDomain();
+		ENGINE_CORE_ASSERT(domain, "Mono Domain not set!");
+		m_PtrGameObject = mono_object_new(domain, ptrClass);
 		ENGINE_CORE_ASSERT(m_PtrGameObject, "Could not create new MonoObject!");
 		m_GameObjectGCHandle = mono_gchandle_new(m_PtrGameObject, false);
 
-		// set entity ID property
-		MonoProperty* ptrIDProperty = mono_class_get_property_from_name(ptrClass, "ID");		
-		ENGINE_CORE_ASSERT(ptrIDProperty, "Could not find mono property!");
+		// set EntityID property
+		{
+			MonoProperty* ptrIDProperty = mono_class_get_property_from_name(ptrClass, "ID");
+			ENGINE_CORE_ASSERT(ptrIDProperty, "Could not find mono property!");
 
-		MonoObject* ptrExObject = nullptr;
-		void* params = nullptr;
-		params = &entity.GetUUID();
-		mono_property_set_value(ptrIDProperty, m_PtrGameObject, &params, &ptrExObject);
-		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
+			MonoObject* ptrExObject = nullptr;
+			void* params = nullptr;
+			params = &entity.GetUUID();
+			mono_property_set_value(ptrIDProperty, m_PtrGameObject, &params, &ptrExObject);
+			ScriptEngine::HandleMonoException(ptrExObject);
+		}
 
 		// setup onCreate method
 		MonoMethodDesc* ptrCreateMethodDesc = mono_method_desc_new(("." + className + ":OnCreate()").c_str(), false);
@@ -125,14 +135,14 @@ namespace Engine
 		}
 	}
 
-	void MonoScript::OnCreate()
+	void MonoScript::OnCreate() // todo create wrapper for mono_rumtime_invoke that handles exceptions
 	{
 		ENGINE_CORE_ASSERT(m_OnCreateMethodPtr, "On Create Method has not been set!");
 
 		MonoObject* ptrExObject = nullptr;
 		mono_runtime_invoke(m_OnCreateMethodPtr, m_PtrGameObject, nullptr, &ptrExObject);
 
-		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void MonoScript::OnDestroy()
@@ -142,7 +152,7 @@ namespace Engine
 		MonoObject* ptrExObject = nullptr;
 		mono_runtime_invoke(m_OnDestroyMethodPtr, m_PtrGameObject, nullptr, &ptrExObject);
 
-		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void MonoScript::OnUpdate(Timestep ts)
@@ -155,6 +165,6 @@ namespace Engine
 		MonoObject* ptrExObject = nullptr;
 		mono_runtime_invoke(m_OnUpdateMethodPtr, m_PtrGameObject, args, &ptrExObject);
 
-		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 }

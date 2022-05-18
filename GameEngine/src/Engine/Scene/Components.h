@@ -118,9 +118,6 @@ namespace Engine
 		}
 	};
 
-	// Forward declaration
-	//class MonoScript;
-
 	struct ScriptComponent
 	{
 		MonoScript* Instance = nullptr;
