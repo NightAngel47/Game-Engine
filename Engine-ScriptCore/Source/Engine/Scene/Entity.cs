@@ -33,10 +33,10 @@ namespace Engine.Scene
 			{
 				case RegisterComponentTypes.TagComponent:
 					InternalCalls.Entity_GetComponent(ID, out TagComponent.TagData tagComponentData);
-					return new TagComponent(tagComponentData) as T;
+					return new TagComponent(this, tagComponentData) as T;
 				case RegisterComponentTypes.TransformComponent:
 					InternalCalls.Entity_GetComponent(ID, out TransformComponent.TransformData transformComponentData);
-					return new TransformComponent(transformComponentData) as T;
+					return new TransformComponent(this, transformComponentData) as T;
 				case RegisterComponentTypes.Invalid:
 				default:
 					return null;

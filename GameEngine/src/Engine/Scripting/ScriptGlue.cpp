@@ -46,6 +46,12 @@ namespace InternalCalls
 
 #pragma endregion
 
+#pragma region Transform Component
+
+		mono_add_internal_call("Engine.Core.InternalCalls::TransformComponent_SetPosition(ulong,single&,single&,single&)", &TransformComponent_SetPosition);
+
+#pragma endregion
+
 	}
 
 	void ScriptGlue::InitRuntime(Engine::Ref<Engine::Scene> activeScene)
@@ -179,6 +185,26 @@ namespace InternalCalls
 				td.scaleZ = tc.Scale.z;
 
 				*data = td;
+				return;
+			}
+		}
+	}
+
+#pragma endregion
+
+#pragma region Transform Component
+
+	void ScriptGlue::TransformComponent_SetPosition(uint64_t entityID, float& x, float& y, float& z)
+	{
+		auto view = s_Data.m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+
+		for (auto entity : view)
+		{
+			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
+			if (uuid.ID == entityID)
+			{
+				tc.Position = { x, y, z };
+
 				return;
 			}
 		}

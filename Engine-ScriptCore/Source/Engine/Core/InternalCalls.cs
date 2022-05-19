@@ -49,7 +49,14 @@ namespace Engine.Core
 		internal static extern void Entity_GetComponent(ulong entityID, out TagComponent.TagData data);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Entity_GetComponent(ulong entityID, out TransformComponent.TransformData data);
-		
+
+		#endregion
+
+		#region Transform Component
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_SetPosition(ulong entityID, out float x, out float y, out float z);
+
 		#endregion
 	}
 }
