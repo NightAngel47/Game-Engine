@@ -32,15 +32,15 @@ namespace Engine
 		void SaveScene();
 
 		void OnScenePlay();
+		void OnSceneSimulate();
 		void OnSceneStop();
+
 
 		void OnDuplicateEntity();
 
 		// UI Panels
 		void UI_Toolbar();
 	private:
-		OrthographicCameraController m_CameraController;
-
 		Ref<Framebuffer> m_Framebuffer;
 
 		Ref<Scene> m_ActiveScene;
@@ -57,7 +57,7 @@ namespace Engine
 
 		enum class SceneState
 		{
-			Edit = 0, Play = 1
+			Edit = 0, Play = 1, Simulate = 2
 		};
 
 		SceneState m_SceneState = SceneState::Edit;
@@ -78,7 +78,7 @@ namespace Engine
 		ContentBrowserPanel m_ContentBrowserPanel;
 
 		// Editor Resources
-		Ref<Texture2D> m_PlayButtonTexture, m_StopButtonTexture;
+		Ref<Texture2D> m_IconPlay, m_IconSimulate, m_IconStop;
 	};
 
 }

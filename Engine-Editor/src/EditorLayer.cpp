@@ -19,7 +19,7 @@ namespace Engine
 	extern const std::filesystem::path g_AssetsPath;
 	
 	EditorLayer::EditorLayer()
-		: Layer("EditorLayer"), m_CameraController(1280.0f / 720.0f, false)
+		: Layer("EditorLayer")
 	{
 		ENGINE_PROFILE_FUNCTION();
 	}
@@ -28,8 +28,9 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		m_PlayButtonTexture = Texture2D::Create("Resources/Icons/PlayButton.png");
-		m_StopButtonTexture = Texture2D::Create("Resources/Icons/StopButton.png");
+		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
+		m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
+		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
 
 		FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
@@ -68,7 +69,6 @@ namespace Engine
 			(spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
 		{
 			m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-			m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
 			m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 		}
@@ -88,9 +88,6 @@ namespace Engine
 			case SceneState::Edit:
 			{
 				// Update
-				if (m_ViewportFocused)
-					m_CameraController.OnUpdate(ts);
-
 				m_EditorCamera.OnUpdate(ts);
 
 				m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
@@ -101,6 +98,11 @@ namespace Engine
 				m_ActiveScene->OnUpdateRuntime(ts);
 				break;
 			}
+			case SceneState::Simulate:
+				m_EditorCamera.OnUpdate(ts);
+
+				m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
+				break;
 			default:
 				break;
 		}
@@ -353,24 +355,35 @@ namespace Engine
 		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 		float size = ImGui::GetWindowHeight() - 8.0f;
-		Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_PlayButtonTexture : m_StopButtonTexture;
-		ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
-		if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 		{
-			switch (m_SceneState)
+			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate) ? m_IconPlay : m_IconStop;
+			ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 			{
-				case SceneState::Edit:
-				{
-					OnScenePlay();
-					break; 
-				}
-				case SceneState::Play:
+				if (m_SceneState == SceneState::Play)
 				{
 					OnSceneStop();
-					break;
 				}
-				default:
-					break;
+				else
+				{
+					OnScenePlay();
+				}
+			}
+		}
+		ImGui::SameLine();
+		{
+			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play) ? m_IconSimulate : m_IconStop;
+			//ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+			{
+				if (m_SceneState == SceneState::Simulate)
+				{
+					OnSceneStop();
+				}
+				else
+				{
+					OnSceneSimulate();
+				}
 			}
 		}
 
@@ -383,7 +396,6 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
-		m_CameraController.OnEvent(e);
 		m_EditorCamera.OnEvent(e);
 
 		EventDispatcher dispatcher(e);
@@ -480,6 +492,8 @@ namespace Engine
 		if (m_SceneState == SceneState::Play)
 		{
 			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
+			if (!camera) return;
+
 			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
 		}
 		else
@@ -594,22 +608,55 @@ namespace Engine
 
 	void EditorLayer::OnScenePlay()
 	{
+		if (m_SceneState == SceneState::Simulate)
+		{
+			OnSceneStop();
+		}
+
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
 		m_SceneState = SceneState::Play;
 
 		m_ActiveScene = Scene::Copy(m_EditorScene);
 		InternalCalls::ScriptGlue::InitRuntime(m_ActiveScene);
 		m_ActiveScene->OnRuntimeStart();
+
+		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+	}
+
+	void EditorLayer::OnSceneSimulate()
+	{
+		if (m_SceneState == SceneState::Play)
+		{
+			OnSceneStop();
+		}
+
+		ENGINE_CORE_TRACE("SceneState changed to Simulate.");
+		m_SceneState = SceneState::Simulate;
+
+		m_ActiveScene = Scene::Copy(m_EditorScene);
+		m_ActiveScene->OnSimulationStart();
+
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 
 	void EditorLayer::OnSceneStop()
 	{
+		ENGINE_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
+
+		if (m_SceneState == SceneState::Play)
+		{
+			m_ActiveScene->OnRuntimeStop();
+			InternalCalls::ScriptGlue::ShutdownRuntime();
+		}
+		else if (m_SceneState == SceneState::Simulate)
+		{
+			m_ActiveScene->OnSimulationStop();
+		}
+
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
 		m_SceneState = SceneState::Edit;
-		m_ActiveScene->OnRuntimeStop();
 		m_ActiveScene = m_EditorScene;
-		InternalCalls::ScriptGlue::ShutdownRuntime();
+
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 }

@@ -26,9 +26,13 @@ namespace Engine
 		void DestroyEntity(Entity entity);
 		
 		void OnRuntimeStart();
+		void OnSimulationStart();
+
 		void OnRuntimeStop();
+		void OnSimulationStop();
 
 		void OnUpdateRuntime(Timestep ts);
+		void OnUpdateSimulation(Timestep ts, EditorCamera& camera);
 		void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 
 		void OnViewportResize(uint32_t width, uint32_t height);
@@ -47,6 +51,16 @@ namespace Engine
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
+
+		void OnPhysics2DStart();
+		void OnScriptsStart();
+
+		void OnPhysics2DStop();
+		void OnScriptsStop();
+
+		void OnPhysics2DUpdate(Timestep ts);
+		void OnScriptsUpdate(Timestep ts);
+		void OnRender2DUpdate();
 	private:
 		entt::registry m_Registry;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
