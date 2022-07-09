@@ -118,9 +118,6 @@ namespace Engine
 		}
 	};
 
-	// Forward declaration
-	//class MonoScript;
-
 	struct ScriptComponent
 	{
 		MonoScript* Instance = nullptr;
@@ -135,11 +132,11 @@ namespace Engine
 			Instance = new MonoScript(scriptName);
 		}
 
-		void InstantiateScript()
+		void InstantiateScript(Entity& entity)
 		{
 			if (!scriptInstatiated)
 			{
-				Instance->InstantiateScript(scriptName);
+				Instance->InstantiateScript(scriptName, entity);
 				scriptInstatiated = true;
 			}
 		}

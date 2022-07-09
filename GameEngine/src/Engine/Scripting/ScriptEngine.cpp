@@ -11,7 +11,6 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		ENGINE_ASSERT(!s_Instance, "ScriptEngine already exists!");
 		s_Instance = this;
 
 		// Mono
@@ -46,8 +45,8 @@ namespace Engine
 			break;
 		}
 
-		m_MonoAssemblyImage = mono_assembly_get_image(m_MonoAssembly);
-		ENGINE_CORE_ASSERT(m_MonoAssemblyImage, "Mono Image could not be set!")
+		m_MonoImage = mono_assembly_get_image(m_MonoAssembly);
+		ENGINE_CORE_ASSERT(m_MonoImage, "Mono Image could not be set!")
 
 		InternalCalls::ScriptGlue::RegisterInternalCalls();
 	}
@@ -57,10 +56,12 @@ namespace Engine
 		ENGINE_PROFILE_FUNCTION();
 
 		// Release Domain
-		if (m_MonoDomain)
+		if (s_Instance && m_MonoDomain)
 		{
 			mono_jit_cleanup(m_MonoDomain);
 		}
+
+		s_Instance = nullptr;
 	}
 
 	void ScriptEngine::HandleMonoException(MonoObject* ptrExObject)

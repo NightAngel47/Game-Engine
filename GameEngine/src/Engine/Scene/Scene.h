@@ -34,6 +34,7 @@ namespace Engine
 		void OnViewportResize(uint32_t width, uint32_t height);
 		Entity GetPrimaryCameraEntity();
 
+
 		void DuplicateEntity(Entity entity);
 
 		void SetSceneName(const std::string& name) { if (!name.empty()) m_Name = name; }

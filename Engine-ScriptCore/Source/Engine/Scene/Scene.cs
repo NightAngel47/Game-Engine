@@ -1,6 +1,6 @@
 ﻿namespace Engine.Scene
 {
-	internal class Scene
-	{
+	public class Scene
+	{ 
 	}
 }

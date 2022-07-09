@@ -12,17 +12,17 @@ namespace Engine
 		ScriptEngine();
 		~ScriptEngine();
 
-	private:
-		void HandleMonoException(MonoObject* ptrExObject);
-
-	private:
 		static ScriptEngine* s_Instance;
 
-		// Mono App
+		MonoDomain* GetMonoDomain() { return m_MonoDomain; }
+		MonoAssembly* GetMonoAssembly() { return m_MonoAssembly; }
+		MonoImage* GetMonoImage() { return m_MonoImage; }
+
+		static void HandleMonoException(MonoObject* ptrExObject);
+
+	private:
 		MonoDomain* m_MonoDomain;
 		MonoAssembly* m_MonoAssembly;
-		MonoImage* m_MonoAssemblyImage;
-
-		friend class MonoScript;
+		MonoImage* m_MonoImage;
 	};
 }

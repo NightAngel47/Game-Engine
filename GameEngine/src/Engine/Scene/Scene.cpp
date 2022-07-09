@@ -197,7 +197,7 @@ namespace Engine
 			{
 				if (!sc.scriptInstatiated)
 				{
-					sc.InstantiateScript();
+					sc.InstantiateScript(Entity{ entity, this });
 					sc.Instance->OnCreate();
 				}
 			});
@@ -244,14 +244,11 @@ namespace Engine
 			{
 				if (!sc.scriptInstatiated)
 				{
-					sc.InstantiateScript();
+					sc.InstantiateScript(Entity{ entity, this });
 					sc.Instance->OnCreate();
 				}
-				else
-				{
-					sc.Instance->OnUpdate(ts);
-				}
 
+				sc.Instance->OnUpdate(ts);
 			});
 		}
 

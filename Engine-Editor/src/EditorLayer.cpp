@@ -11,6 +11,8 @@
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Math/Math.h"
 
+#include "Engine/Scripting/ScriptGlue.h"
+
 namespace Engine
 {
 	// TODO REMOVE CAUSE TEMP
@@ -596,6 +598,7 @@ namespace Engine
 		m_SceneState = SceneState::Play;
 
 		m_ActiveScene = Scene::Copy(m_EditorScene);
+		InternalCalls::ScriptGlue::InitRuntime(m_ActiveScene);
 		m_ActiveScene->OnRuntimeStart();
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
@@ -606,6 +609,7 @@ namespace Engine
 		m_SceneState = SceneState::Edit;
 		m_ActiveScene->OnRuntimeStop();
 		m_ActiveScene = m_EditorScene;
+		InternalCalls::ScriptGlue::ShutdownRuntime();
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 }
