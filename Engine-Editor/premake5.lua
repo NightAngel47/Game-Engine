@@ -31,10 +31,9 @@ project "Engine-Editor"
 
 	postbuildcommands
 	{
-		"{COPY} %{LibraryDir.VulkanSDK_DLL} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}",
 		"{COPY} %{LibraryDir.Mono_Lib}/mono/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/lib/mono",
 		"{COPY} %{LibraryDir.Mono_Etc}/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/etc",
-		"{COPY} %{LibraryDir.Mono_DLL} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}"
+		"{COPY} %{Library.Mono_SGen_DLL} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}"
 	}	
 
 	filter "system:windows"

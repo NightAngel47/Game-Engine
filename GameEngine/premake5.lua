@@ -54,7 +54,7 @@ project "GameEngine"
 		"yaml-cpp",
 		"box2d",
 		"opengl32.lib",
-		"%{Library.Mono_Lib_sgen}"
+		"%{Library.Mono_SGen_Lib}"
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"

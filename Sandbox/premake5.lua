@@ -30,10 +30,9 @@ project "Sandbox"
 
 	postbuildcommands
 	{
-		"{COPY} %{LibraryDir.VulkanSDK_DLL} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}",
 		"{COPY} %{LibraryDir.Mono_Lib}/mono/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/lib/mono",
-		"{COPY} %{LibraryDir.Mono_Bin}/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/bin",
-		"{COPY} %{LibraryDir.Mono_Etc}/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/etc"
+		"{COPY} %{LibraryDir.Mono_Etc}/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/etc",
+		"{COPY} %{Library.Mono_SGen_DLL} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}"
 	}	
 
 	filter "system:windows"

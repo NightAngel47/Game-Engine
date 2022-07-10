@@ -1,5 +1,18 @@
 Scene: ScriptTest.scene
 Entities:
+  - Entity: 12421991672043757769
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [0.696364522, 1.15051591, 0]
+      Rotation: [0, 0, -0.162245795]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Path: ""
+      Tiling: 1
+    ScriptComponent:
+      ScriptName: Source.ExampleEntity
   - Entity: 1520648573979934835
     TagComponent:
       Tag: Camera
@@ -18,16 +31,3 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 12421991672043757769
-    TagComponent:
-      Tag: Sprite
-    TransformComponent:
-      Position: [0.696364522, 1.15051591, 0]
-      Rotation: [0, 0, 0.68947196]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      Path: ""
-      Tiling: 1
-    ScriptComponent:
-      ScriptName: Source.ExampleEntity

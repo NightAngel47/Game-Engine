@@ -94,7 +94,9 @@ namespace Engine
 
 			MonoObject* ptrExObject = nullptr;
 			void* params = nullptr;
-			params = &entity.GetUUID();
+			auto uuid = entity.GetUUID();
+			ENGINE_CORE_TRACE("Instatiating " + namespaceName + "." + className + " for EntityID: " + std::to_string((uint64_t)uuid));
+			params = &uuid;
 			mono_property_set_value(ptrIDProperty, m_PtrGameObject, &params, &ptrExObject);
 			ScriptEngine::HandleMonoException(ptrExObject);
 		}
