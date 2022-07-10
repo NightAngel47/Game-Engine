@@ -263,14 +263,22 @@ namespace Engine
 				const wchar_t* path = (const wchar_t*)payload->Data;
 				const wchar_t* fileExtension = std::wcsrchr(path, '.');
 				
-				if (std::wcscmp(fileExtension, L".scene") == 0)
+				if (fileExtension)
 				{
-					OpenScene(std::filesystem::path(g_AssetsPath / path));
+					if (std::wcscmp(fileExtension, L".scene") == 0)
+					{
+						OpenScene(std::filesystem::path(g_AssetsPath / path));
+					}
+					else
+					{
+						std::wstring ws(fileExtension);
+						ENGINE_CORE_WARN("File type is not supported by drag and drop in the Viewport: " + std::string(ws.begin(), ws.end()));
+					}
 				}
 				else
 				{
-					std::wstring ws(fileExtension);
-					ENGINE_CORE_WARN("File type is not supported by drag and drop in the Viewport: " + std::string(ws.begin(), ws.end()));
+					std::wstring ws(path);
+					ENGINE_CORE_WARN("Dragged item is either not a file or not supported by drag and drop in the Viewport: " + std::string(ws.begin(), ws.end()));
 				}
 			}
 			
@@ -561,6 +569,12 @@ namespace Engine
 
 	void EditorLayer::OpenScene(const std::filesystem::path& path)
 	{
+		if (path.extension().string() != ".scene")
+		{
+			ENGINE_CORE_WARN("Could not load {0} - not a scene file", path.filename().string());
+			return;
+		}
+
 		if (m_SceneState != SceneState::Edit) OnSceneStop();
 
 		NewScene(path);
