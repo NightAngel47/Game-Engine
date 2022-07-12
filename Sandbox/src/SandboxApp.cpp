@@ -7,8 +7,8 @@
 class Sandbox : public Engine::Application
 {
 public:
-	Sandbox(Engine::ApplicationCommandLineArgs args)
-		: Engine::Application("Sandbox", args)
+	Sandbox(const Engine::ApplicationSpecification& specification)
+		: Engine::Application(specification)
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
@@ -22,7 +22,12 @@ public:
 	}
 };
 
-Engine::Application* CreateApplication(Engine::ApplicationCommandLineArgs args)
+Engine::Application* Engine::CreateApplication(Engine::ApplicationCommandLineArgs args)
 {
-	return new Sandbox(args);
+	ApplicationSpecification spec;
+	spec.Name = "Sandbox";
+	spec.WorkingDirectory = "../Engine-Editor";
+	spec.CommandLineArgs = args;
+
+	return new Sandbox(spec);
 }
