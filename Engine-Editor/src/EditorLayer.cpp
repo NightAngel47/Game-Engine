@@ -107,6 +107,8 @@ namespace Engine
 				break;
 		}
 
+		MousePicking();
+
 		// Overlay Rendering
 		OnOverlayRender();
 
@@ -204,7 +206,7 @@ namespace Engine
 		std::string name = "None";
 		if (m_HoveredEntity)
 			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
-		ImGui::Text("Selected Entity: %s", name.c_str());
+		ImGui::Text("Hovered Entity: %s", name.c_str());
 		
 		auto stats = Renderer2D::GetStats();
 		ImGui::Text("Renderer2D Stats:");
@@ -523,17 +525,21 @@ namespace Engine
 
 					glm::mat4 transform = Math::GenTransform(position, 0, scale);
 
-					Renderer2D::DrawCircle(transform, glm::vec4(0, 1, 0, 1), 0.025f);
+					Renderer2D::DrawCircle(transform, glm::vec4(0, 1, 0, 1), 0.05f);
 				}
 			}
 		}
 
 		// Draw selected entity outline 
 		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity()) {
-			TransformComponent transform = selectedEntity.GetComponent<TransformComponent>();
+			const TransformComponent& transform = selectedEntity.GetComponent<TransformComponent>();
 
-			//Red
-			Renderer2D::DrawRect(transform.GetTransform(), glm::vec4(1, 0, 0, 1));
+			Renderer2D::SetLineWidth(4.0f);
+			Renderer2D::DrawRect(transform.GetTransform(), glm::vec4(1, 0, 0.5f, 1));
+		}
+		else
+		{
+			Renderer2D::SetLineWidth(2.0f);
 		}
 
 		Renderer2D::EndScene();
