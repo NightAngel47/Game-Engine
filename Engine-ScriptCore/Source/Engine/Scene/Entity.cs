@@ -1,11 +1,15 @@
 ﻿using Engine.Core;
-using System;
 
 namespace Engine.Scene
 {
 	public abstract class Entity
 	{
 		public ulong ID { get; private set; }
+
+		public Entity()
+		{
+			//Log.Info($"Entity Created with ID: {ID}");
+		}
 
 		protected abstract void OnCreate();
 		protected abstract void OnDestroy();

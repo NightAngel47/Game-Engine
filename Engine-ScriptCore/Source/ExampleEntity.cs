@@ -6,14 +6,10 @@ namespace Source
 {
 	public class ExampleEntity : Entity
 	{
-		private float num;
 		private TransformComponent transformComponent;
-		//private float speed = 5.0f;
-
+		private float speed = 5.0f;
 		protected override void OnCreate()
 		{
-			Log.Info($"Entity Created with ID: {ID}");
-
 			TagComponent tagComponent = GetComponent<TagComponent>();
 			string name = tagComponent.Tag;
 			Log.Info($"Name: {name}");
@@ -25,6 +21,8 @@ namespace Source
 			Log.Info($"Position: ({pos.X}, {pos.Y}, {pos.Z})");
 			Log.Info($"Rotation: ({rot.X}, {rot.Y}, {rot.Z})");
 			Log.Info($"Scale: ({scale.X}, {scale.Y}, {scale.Z})");
+
+			Log.Warn($"Speed: {speed}");
 		}
 
 		protected override void OnDestroy()
@@ -36,25 +34,7 @@ namespace Source
 		{
 			if (Input.IsKeyPressed(KeyCode.Space))
 			{
-				num += ts;
-
-				Log.Trace($"Example Entity num: {num}");
-			}
-
-			if (Input.IsMouseButtonPressed(MouseCode.ButtonLeft))
-			{
-				transformComponent.Position += new Vector3(-5.0f * ts, 0, 0);
-
-				Vector3 pos = transformComponent.Position;
-				Log.Info($"Position: ({pos.X}, {pos.Y}, {pos.Z})");
-			}
-
-			if (Input.IsMouseButtonPressed(MouseCode.ButtonRight))
-			{
-				transformComponent.Position += new Vector3(5.0f * ts, 0, 0);
-
-				Vector3 pos = transformComponent.Position;
-				Log.Info($"Position: ({pos.X}, {pos.Y}, {pos.Z})");
+				Log.Trace($"Timestep: {ts}");
 			}
 
 			if (Input.IsMouseButtonPressed(MouseCode.ButtonMiddle))
@@ -63,6 +43,36 @@ namespace Source
 
 				Log.Trace($"Current Mouse Pos: ({curMousePos.X}, {curMousePos.Y})");
 			}
+
+			Vector2 movement = new Vector2(0.0f, 0.0f);
+
+			if (Input.IsKeyPressed(KeyCode.A))
+			{
+				movement.X += -1.0f * speed * ts;
+				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
+			}
+
+			if (Input.IsKeyPressed(KeyCode.D))
+			{
+				movement.X += 1.0f * speed * ts;
+				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
+			}
+
+			if (Input.IsKeyPressed(KeyCode.S))
+			{
+				movement.Y += -1.0f * speed * ts;
+				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
+			}
+
+			if (Input.IsKeyPressed(KeyCode.W))
+			{
+				movement.Y += 1.0f * speed * ts;
+				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
+			}
+
+			transformComponent.Position += new Vector3(movement.X, movement.Y, 0.0f);
+			//Vector3 pos = transformComponent.Position;
+			//Log.Info($"Position: ({pos.X}, {pos.Y}, {pos.Z})");
 		}
 	}
 }

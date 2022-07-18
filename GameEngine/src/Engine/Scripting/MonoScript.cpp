@@ -101,6 +101,22 @@ namespace Engine
 			ScriptEngine::HandleMonoException(ptrExObject);
 		}
 
+		// run Entity Constructor
+		{
+			MonoMethodDesc* ptrConstructorMethodDesc = mono_method_desc_new(":.ctor()", false);
+			ENGINE_CORE_ASSERT(ptrConstructorMethodDesc, "Could create mono method desc!");
+
+			MonoMethod* m_OnConstructorMethodPtr = mono_method_desc_search_in_class(ptrConstructorMethodDesc, ptrClass);
+			ENGINE_CORE_ASSERT(m_OnConstructorMethodPtr, "Could not find create method desc in class!");
+
+			mono_method_desc_free(ptrConstructorMethodDesc);
+
+			MonoObject* ptrExObject = nullptr;
+			mono_runtime_invoke(m_OnConstructorMethodPtr, m_PtrGameObject, nullptr, &ptrExObject);
+
+			ScriptEngine::HandleMonoException(ptrExObject);
+		}
+
 		// setup onCreate method
 		MonoMethodDesc* ptrCreateMethodDesc = mono_method_desc_new(("." + className + ":OnCreate()").c_str(), false);
 		ENGINE_CORE_ASSERT(ptrCreateMethodDesc, "Could create mono method desc!");
