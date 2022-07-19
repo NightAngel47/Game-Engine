@@ -64,6 +64,7 @@
     <Compile Include="Source\Engine\Core\KeyCode.cs" />
     <Compile Include="Source\Engine\Core\Log.cs" />
     <Compile Include="Source\Engine\Core\MouseCode.cs" />
+    <Compile Include="Source\Engine\Core\Timestep.cs" />
     <Compile Include="Source\Engine\Math\Vector2.cs" />
     <Compile Include="Source\Engine\Math\Vector3.cs" />
     <Compile Include="Source\Engine\Scene\Components.cs" />

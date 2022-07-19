@@ -44,29 +44,17 @@ namespace Engine
 	{
 		ScriptName script = SplitScriptName(scriptName);
 
-		MonoClass* ptrClass = ScriptEngine::s_Instance->GetClassInAssembly(ScriptEngine::s_Instance->GetMonoAssembly(), script.scriptNamespace.c_str(), script.scriptClass.c_str());
+		m_ScriptClass = ScriptEngine::s_Instance->GetClassInAssembly(ScriptEngine::s_Instance->GetMonoAssembly(), script.scriptNamespace.c_str(), script.scriptClass.c_str());
 	}
 
 	MonoScript::MonoScript(const std::string& scriptNamespace, const std::string& scriptClass)
 	{
-		MonoClass* ptrClass = ScriptEngine::s_Instance->GetClassInAssembly(ScriptEngine::s_Instance->GetMonoAssembly(), scriptNamespace.c_str(), scriptClass.c_str());
+		m_ScriptClass = ScriptEngine::s_Instance->GetClassInAssembly(ScriptEngine::s_Instance->GetMonoAssembly(), scriptNamespace.c_str(), scriptClass.c_str());
 	}
 
-	void MonoScript::InstantiateScript(const std::string& scriptName, Entity& entity)
+	void MonoScript::InstantiateScript(Entity& entity)
 	{
-		ScriptName script = SplitScriptName(scriptName);
-
-		InstantiateScript(script.scriptNamespace, script.scriptClass, entity);
-	}
-
-	void MonoScript::InstantiateScript(const std::string& namespaceName, const std::string& className, Entity& entity)
-	{
-		ENGINE_CORE_ASSERT(&namespaceName, "Script namespace is not set!");
-		ENGINE_CORE_ASSERT(&className, "Script class is not set!");
-
-		MonoClass* ptrClass = ScriptEngine::s_Instance->GetClassInAssembly(ScriptEngine::s_Instance->GetMonoAssembly(), namespaceName.c_str(), className.c_str());
-
-		m_ScriptInstance = mono_object_new(ScriptEngine::s_Instance->GetAppDomain(), ptrClass);
+		m_ScriptInstance = mono_object_new(ScriptEngine::s_Instance->GetAppDomain(), m_ScriptClass);
 		ENGINE_CORE_ASSERT(m_ScriptInstance, "Could not create new MonoObject!");
 
 		// run Entity parameterless (default) constructor
@@ -74,29 +62,33 @@ namespace Engine
 
 		// set EntityID property
 		{
-			MonoProperty* ptrIDProperty = mono_class_get_property_from_name(ptrClass, "ID");
+			MonoProperty* ptrIDProperty = mono_class_get_property_from_name(m_ScriptClass, "ID");
 			ENGINE_CORE_ASSERT(ptrIDProperty, "Could not find mono property!");
 		
 			MonoObject* ptrExObject = nullptr;
 			void* params = nullptr;
 			auto uuid = entity.GetUUID();
-			ENGINE_CORE_TRACE("Instatiating " + namespaceName + "." + className + " for EntityID: " + std::to_string((uint64_t)uuid));
 			params = &uuid;
 			mono_property_set_value(ptrIDProperty, m_ScriptInstance, &params, &ptrExObject);
 			ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
 		}
 
 		// setup onCreate method
-		m_OnCreateMethodPtr = mono_class_get_method_from_name(ptrClass, "OnCreate", 0);
-		ENGINE_CORE_ASSERT(m_OnCreateMethodPtr, "Could not find create method desc in class!");
+		MonoMethod* OnCreateMethodPtr = mono_class_get_method_from_name(m_ScriptClass, "OnCreate", 0);
+		ENGINE_CORE_ASSERT(OnCreateMethodPtr, "Could not find create method desc in class!");
+		OnCreateThunk = (OnCreate)mono_method_get_unmanaged_thunk(OnCreateMethodPtr);
 
 		// setup onDestroy method
-		m_OnDestroyMethodPtr = mono_class_get_method_from_name(ptrClass, "OnDestroy", 0);
-		ENGINE_CORE_ASSERT(m_OnDestroyMethodPtr, "Could not find destroy method desc in class!");
+		MonoMethod* OnDestroyMethodPtr = mono_class_get_method_from_name(m_ScriptClass, "OnDestroy", 0);
+		ENGINE_CORE_ASSERT(OnDestroyMethodPtr, "Could not find destroy method desc in class!");
+		OnDestroyThunk = (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr);
 
 		// setup onUpdate method
-		m_OnUpdateMethodPtr = mono_class_get_method_from_name(ptrClass, "OnUpdate", 1);
-		ENGINE_CORE_ASSERT(m_OnUpdateMethodPtr, "Could not find update method desc in class!");
+		MonoMethod* OnUpdateMethodPtr = mono_class_get_method_from_name(m_ScriptClass, "OnUpdate", 1);
+		ENGINE_CORE_ASSERT(OnUpdateMethodPtr, "Could not find update method desc in class!");
+		OnUpdateThunk = (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr);
+
+		m_Timestep = ScriptEngine::s_Instance->GetClassInAssembly(ScriptEngine::s_Instance->GetMonoAssembly(), "Engine.Core", "Timestep");
 	}
 
 	MonoScript::~MonoScript()
@@ -104,34 +96,31 @@ namespace Engine
 
 	}
 
-	void MonoScript::OnCreate() // todo create wrapper for mono_rumtime_invoke that handles exceptions
+	void MonoScript::OnCreateMethod()
 	{
-		ENGINE_CORE_ASSERT(m_OnCreateMethodPtr, "On Create Method has not been set!");
-
 		MonoObject* ptrExObject = nullptr;
-		mono_runtime_invoke(m_OnCreateMethodPtr, m_ScriptInstance, nullptr, &ptrExObject);
+
+		OnCreateThunk(m_ScriptInstance, &ptrExObject);
 
 		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
 	}
 
-	void MonoScript::OnDestroy()
+	void MonoScript::OnDestroyMethod()
 	{
-		ENGINE_CORE_ASSERT(m_OnDestroyMethodPtr, "On Destroy Method has not been set!");
-
 		MonoObject* ptrExObject = nullptr;
-		mono_runtime_invoke(m_OnDestroyMethodPtr, m_ScriptInstance, nullptr, &ptrExObject);
+
+		OnDestroyThunk(m_ScriptInstance, &ptrExObject);
 
 		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
 	}
 
-	void MonoScript::OnUpdate(Timestep ts)
+	void MonoScript::OnUpdateMethod(Timestep ts)
 	{
-		ENGINE_CORE_ASSERT(m_OnUpdateMethodPtr, "On Update Method has not been set!");
-
-		void* param = &ts;
+		MonoObject* paramBox = mono_value_box(ScriptEngine::s_Instance->GetAppDomain(), m_Timestep, &ts);
 
 		MonoObject* ptrExObject = nullptr;
-		mono_runtime_invoke(m_OnUpdateMethodPtr, m_ScriptInstance, &param, &ptrExObject);
+
+		OnUpdateThunk(m_ScriptInstance, paramBox, &ptrExObject);
 
 		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
 	}

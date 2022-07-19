@@ -136,7 +136,7 @@ namespace Engine
 		{
 			if (!scriptInstatiated)
 			{
-				Instance->InstantiateScript(scriptName, entity);
+				Instance->InstantiateScript(entity);
 				scriptInstatiated = true;
 			}
 		}

@@ -13,7 +13,7 @@ namespace Engine.Scene
 
 		protected abstract void OnCreate();
 		protected abstract void OnDestroy();
-		protected abstract void OnUpdate(float ts);
+		protected abstract void OnUpdate(Timestep ts);
 
 		public T GetComponent<T>() where T : Component
 		{

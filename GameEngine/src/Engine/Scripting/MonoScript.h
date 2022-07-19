@@ -3,10 +3,15 @@
 
 #include <mono/metadata/object-forward.h>
 
+
 namespace Engine
 {
 	// forward dec
 	class Entity;
+
+	typedef void(*OnCreate) (MonoObject* obj, MonoObject** exp);
+	typedef void(*OnDestroy) (MonoObject* obj, MonoObject** exp);
+	typedef void(*OnUpdate) (MonoObject* obj, MonoObject* timestep, MonoObject** exp);
 
 	class MonoScript
 	{
@@ -16,17 +21,18 @@ namespace Engine
 		MonoScript(const std::string& scriptNamespace, const std::string& scriptClass);
 		~MonoScript();
 
-		void InstantiateScript(const std::string& scriptName, Entity& entity);
-		void InstantiateScript(const std::string& namespaceName, const std::string& className, Entity& entity);
+		void InstantiateScript(Entity& entity);
 
-		void OnCreate();
-		void OnDestroy();
-		void OnUpdate(Timestep ts);
+		void OnCreateMethod();
+		void OnDestroyMethod();
+		void OnUpdateMethod(Timestep ts);
 	private:
-		MonoMethod* m_OnCreateMethodPtr = nullptr;
-		MonoMethod* m_OnDestroyMethodPtr = nullptr;
-		MonoMethod* m_OnUpdateMethodPtr = nullptr;
-
 		MonoObject* m_ScriptInstance = nullptr;
+		MonoClass* m_ScriptClass = nullptr;
+		MonoClass* m_Timestep = nullptr;
+
+		OnCreate OnCreateThunk = nullptr;
+		OnDestroy OnDestroyThunk = nullptr;
+		OnUpdate OnUpdateThunk = nullptr;
 	};
 }

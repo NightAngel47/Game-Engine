@@ -8,6 +8,10 @@ namespace Source
 	{
 		private TransformComponent transformComponent;
 		private float speed = 5.0f;
+
+		private float timeProgress;
+		private int iterations;
+
 		protected override void OnCreate()
 		{
 			TagComponent tagComponent = GetComponent<TagComponent>();
@@ -30,11 +34,20 @@ namespace Source
 			Log.Warn("Example Entity Destroyed.");
 		}
 
-		protected override void OnUpdate(float ts)
+		protected override void OnUpdate(Timestep ts)
 		{
 			if (Input.IsKeyPressed(KeyCode.Space))
 			{
-				Log.Trace($"Timestep: {ts}");
+				Log.Trace($"{ts}");
+			}
+
+			timeProgress += ts;
+			++iterations;
+			if (timeProgress >= 1.0f)
+			{
+				Log.Trace($"Script Calls per second: {iterations}");
+				timeProgress = 0.0f;
+				iterations = 0;
 			}
 
 			if (Input.IsMouseButtonPressed(MouseCode.ButtonMiddle))

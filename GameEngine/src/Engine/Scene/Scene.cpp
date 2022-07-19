@@ -322,7 +322,7 @@ namespace Engine
 			if (!sc.scriptInstatiated)
 			{
 				sc.InstantiateScript(Entity{ entity, this });
-				sc.Instance->OnCreate();
+				sc.Instance->OnCreateMethod();
 			}
 		});
 	}
@@ -339,7 +339,7 @@ namespace Engine
 		{
 			if (sc.scriptInstatiated)
 			{
-				sc.Instance->OnDestroy();
+				sc.Instance->OnDestroyMethod();
 			}
 		});
 	}
@@ -383,10 +383,10 @@ namespace Engine
 			if (!sc.scriptInstatiated)
 			{
 				sc.InstantiateScript(Entity{ entity, this });
-				sc.Instance->OnCreate();
+				sc.Instance->OnCreateMethod();
 			}
 
-			sc.Instance->OnUpdate(ts);
+			sc.Instance->OnUpdateMethod(ts);
 		});
 	}
 
