@@ -1,34 +1,12 @@
 Scene: ScriptTest.scene
 Entities:
-  - Entity: 2565522765225516536
+  - Entity: 9377337236379376033
     TagComponent:
-      Tag: Rings
+      Tag: Wall - Right
     TransformComponent:
-      Position: [-2.31425047, 5.31806469, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CircleRendererComponent:
-      Color: [0, 0.50632906, 1, 1]
-      Radius: 0.5
-      Thickness: 0.25
-      Fade: 0.245000005
-    Rigidbody2DComponent:
-      Type: Dynamic
-      FixedRotation: false
-    CircleCollider2DComponent:
-      Offset: [0, 0]
-      Radius: 0.449999988
-      Density: 1
-      Friction: 0
-      Restitution: 1
-      RestitutionThreshold: 0.5
-  - Entity: 5197280751231720716
-    TagComponent:
-      Tag: Wall - Top
-    TransformComponent:
-      Position: [0, 10, 0]
-      Rotation: [0, 0, 0]
-      Scale: [11, 1, 1]
+      Position: [5.00000048, 4.99999952, 0]
+      Rotation: [0, 0, 1.57079637]
+      Scale: [10.9989681, 0.999935508, 1]
     SpriteRendererComponent:
       Color: [0.227450982, 0.121568628, 0.294117659, 1]
       Path: textures\Checkerboard.png
@@ -36,65 +14,6 @@ Entities:
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 9806610467337392000
-    TagComponent:
-      Tag: Wall - Bot
-    TransformComponent:
-      Position: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [11, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.227450982, 0.121568628, 0.294117659, 1]
-      Path: textures\Checkerboard.png
-      Tiling: 11
-    Rigidbody2DComponent:
-      Type: Static
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 1520648573979934835
-    TagComponent:
-      Tag: Camera
-    TransformComponent:
-      Position: [0, 5, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: Orthographic
-        PerspectiveFOV: 0.785398185
-        PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
-        OrthographicSize: 10
-        OrthographicNear: -1
-        OrthographicFar: 1
-      Primary: true
-      FixedAspectRatio: false
-  - Entity: 12421991672043757769
-    TagComponent:
-      Tag: Example Entity
-    TransformComponent:
-      Position: [0, 5, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.999990523, 1, 0.999989986, 1]
-      Path: textures\shipGreen_manned.png
-      Tiling: 1
-    ScriptComponent:
-      ScriptName: Source.ExampleEntity
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -123,13 +42,54 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 9377337236379376033
+  - Entity: 12421991672043757769
     TagComponent:
-      Tag: Wall - Right
+      Tag: Example Entity
     TransformComponent:
-      Position: [5.00000048, 4.99999952, 0]
-      Rotation: [0, 0, 1.57079637]
-      Scale: [10.9989681, 0.999935508, 1]
+      Position: [0, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.999990523, 1, 0.999989986, 1]
+      Path: textures\shipGreen_manned.png
+      Tiling: 1
+    ScriptComponent:
+      ScriptName: Source.ExampleEntity
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 1520648573979934835
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Position: [0, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: Orthographic
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 9806610467337392000
+    TagComponent:
+      Tag: Wall - Bot
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [11, 1, 1]
     SpriteRendererComponent:
       Color: [0.227450982, 0.121568628, 0.294117659, 1]
       Path: textures\Checkerboard.png
@@ -143,4 +103,47 @@ Entities:
       Density: 1
       Friction: 0.5
       Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 5197280751231720716
+    TagComponent:
+      Tag: Wall - Top
+    TransformComponent:
+      Position: [0, 10, 0]
+      Rotation: [0, 0, 0]
+      Scale: [11, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.227450982, 0.121568628, 0.294117659, 1]
+      Path: textures\Checkerboard.png
+      Tiling: 11
+    Rigidbody2DComponent:
+      Type: Static
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 2565522765225516536
+    TagComponent:
+      Tag: Rings
+    TransformComponent:
+      Position: [-2.31425047, 5.31806469, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CircleRendererComponent:
+      Color: [0, 0.50632906, 1, 1]
+      Radius: 0.5
+      Thickness: 0.25
+      Fade: 0.245000005
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.449999988
+      Density: 1
+      Friction: 0
+      Restitution: 1
       RestitutionThreshold: 0.5

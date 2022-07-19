@@ -14,6 +14,7 @@
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_polygon_shape.h>
 #include "box2d/b2_circle_shape.h"
+#include <box2d/b2_types.h>
 
 namespace Engine
 {
@@ -346,21 +347,37 @@ namespace Engine
 
 	void Scene::OnPhysics2DUpdate(Timestep ts)
 	{
+		// update transform
+		{
+			auto view = m_Registry.view<Rigidbody2DComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				auto& transform = entity.GetComponent<TransformComponent>();
+				auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+
+				b2Body* body = (b2Body*)rb2d.RuntimeBody;
+				body->SetTransform({ transform.Position.x, transform.Position.y }, transform.Rotation.z);
+			}
+		}
+
 		m_PhysicsWorld->Step(ts, m_VelocityIteractions, m_PositionIteractions);
 
 		// Retrieve transform from box2d
-		auto view = m_Registry.view<Rigidbody2DComponent>();
-		for (auto e : view)
 		{
-			Entity entity = { e, this };
-			auto& transform = entity.GetComponent<TransformComponent>();
-			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+			auto view = m_Registry.view<Rigidbody2DComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				auto& transform = entity.GetComponent<TransformComponent>();
+				auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
-			b2Body* body = (b2Body*)rb2d.RuntimeBody;
-			auto& position = body->GetPosition();
-			transform.Position.x = position.x;
-			transform.Position.y = position.y;
-			transform.Rotation.z = body->GetAngle();
+				b2Body* body = (b2Body*)rb2d.RuntimeBody;
+				auto& position = body->GetPosition();
+				transform.Position.x = position.x;
+				transform.Position.y = position.y;
+				transform.Rotation.z = body->GetAngle();
+			}
 		}
 	}
 
