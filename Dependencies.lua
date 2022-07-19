@@ -25,7 +25,6 @@ LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
 
 LibraryDir["Mono_Lib"] = "%{wks.location}/GameEngine/vendor/Mono/lib"
 LibraryDir["Mono_Bin"] = "%{wks.location}/GameEngine/vendor/Mono/bin"
-LibraryDir["Mono_Etc"] = "%{wks.location}/GameEngine/vendor/Mono/etc"
 
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"

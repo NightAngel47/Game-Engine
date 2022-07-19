@@ -27,7 +27,6 @@ namespace Engine
 		MonoMethod* m_OnDestroyMethodPtr = nullptr;
 		MonoMethod* m_OnUpdateMethodPtr = nullptr;
 
-		MonoObject* m_PtrGameObject = nullptr;
-		uint32_t m_GameObjectGCHandle = 0;
+		MonoObject* m_ScriptInstance = nullptr;
 	};
 }

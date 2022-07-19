@@ -192,6 +192,7 @@
     <ClInclude Include="src\Engine\Scripting\MonoScript.h" />
     <ClInclude Include="src\Engine\Scripting\ScriptEngine.h" />
     <ClInclude Include="src\Engine\Scripting\ScriptGlue.h" />
+    <ClInclude Include="src\Engine\Utils\FileUtils.h" />
     <ClInclude Include="src\Engine\Utils\PlatformUtils.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />

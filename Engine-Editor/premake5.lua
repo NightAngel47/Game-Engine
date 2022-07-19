@@ -32,7 +32,6 @@ project "Engine-Editor"
 	postbuildcommands
 	{
 		"{COPY} %{LibraryDir.Mono_Lib}/mono/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/lib/mono",
-		"{COPY} %{LibraryDir.Mono_Etc}/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/etc",
 		"{COPY} %{Library.Mono_SGen_DLL} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}"
 	}	
 
