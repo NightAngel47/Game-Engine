@@ -160,6 +160,7 @@ namespace Engine
 
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
+
 		// Update scripts
 		OnScriptsUpdate(ts);
 
@@ -347,37 +348,43 @@ namespace Engine
 
 	void Scene::OnPhysics2DUpdate(Timestep ts)
 	{
-		// update transform
+		m_Accumulator += ts;
+		while (m_Accumulator >= m_PhysicsTimestep)
 		{
-			auto view = m_Registry.view<Rigidbody2DComponent>();
-			for (auto e : view)
+			// update transform
 			{
-				Entity entity = { e, this };
-				auto& transform = entity.GetComponent<TransformComponent>();
-				auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+				auto view = m_Registry.view<Rigidbody2DComponent>();
+				for (auto e : view)
+				{
+					Entity entity = { e, this };
+					auto& transform = entity.GetComponent<TransformComponent>();
+					auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
-				b2Body* body = (b2Body*)rb2d.RuntimeBody;
-				body->SetTransform({ transform.Position.x, transform.Position.y }, transform.Rotation.z);
+					b2Body* body = (b2Body*)rb2d.RuntimeBody;
+					body->SetTransform({ transform.Position.x, transform.Position.y }, transform.Rotation.z);
+				}
 			}
-		}
 
-		m_PhysicsWorld->Step(ts, m_VelocityIteractions, m_PositionIteractions);
+			m_PhysicsWorld->Step(m_PhysicsTimestep, m_VelocityIteractions, m_PositionIteractions);
 
-		// Retrieve transform from box2d
-		{
-			auto view = m_Registry.view<Rigidbody2DComponent>();
-			for (auto e : view)
+			// Retrieve transform from box2d
 			{
-				Entity entity = { e, this };
-				auto& transform = entity.GetComponent<TransformComponent>();
-				auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+				auto view = m_Registry.view<Rigidbody2DComponent>();
+				for (auto e : view)
+				{
+					Entity entity = { e, this };
+					auto& transform = entity.GetComponent<TransformComponent>();
+					auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
-				b2Body* body = (b2Body*)rb2d.RuntimeBody;
-				auto& position = body->GetPosition();
-				transform.Position.x = position.x;
-				transform.Position.y = position.y;
-				transform.Rotation.z = body->GetAngle();
+					b2Body* body = (b2Body*)rb2d.RuntimeBody;
+					auto& position = body->GetPosition();
+					transform.Position.x = position.x;
+					transform.Position.y = position.y;
+					transform.Rotation.z = body->GetAngle();
+				}
 			}
+
+			m_Accumulator -= m_PhysicsTimestep;
 		}
 	}
 

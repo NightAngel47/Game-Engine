@@ -56,7 +56,7 @@ Entities:
     ScriptComponent:
       ScriptName: Source.ExampleEntity
     Rigidbody2DComponent:
-      Type: Dynamic
+      Type: Kinematic
       FixedRotation: false
     BoxCollider2DComponent:
       Offset: [0, 0]
@@ -146,4 +146,4 @@ Entities:
       Density: 1
       Friction: 0
       Restitution: 1
-      RestitutionThreshold: 0.5
+      RestitutionThreshold: 0
