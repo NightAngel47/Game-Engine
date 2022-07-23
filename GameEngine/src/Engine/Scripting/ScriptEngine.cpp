@@ -118,12 +118,17 @@ namespace Engine
 
 	void ScriptEngine::ShutdownMono()
 	{
+		// TODO fix shutdown crashing
 
-		mono_domain_unload(s_Data->AppDomain);
+		//mono_assembly_close(s_Data->CoreAssembly);
+		s_Data->CoreAssembly = nullptr;
+
+		//mono_domain_unload(s_Data->AppDomain);
 		s_Data->AppDomain = nullptr;
 
-		mono_jit_cleanup(s_Data->RootDomain);
+		//mono_jit_cleanup(s_Data->RootDomain);
 		s_Data->RootDomain = nullptr;
+
 	}
 
 	MonoDomain* ScriptEngine::GetRootDomain()

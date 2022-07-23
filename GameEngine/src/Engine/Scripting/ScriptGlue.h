@@ -46,7 +46,6 @@ namespace InternalCalls
 			MonoString* tag;
 		};
 
-
 		struct TransformData
 		{
 			//float position[3];
