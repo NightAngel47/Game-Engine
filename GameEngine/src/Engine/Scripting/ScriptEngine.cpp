@@ -5,6 +5,7 @@
 
 #include "Engine/Utils/FileUtils.h"
 
+#include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
 
 namespace Engine
@@ -18,48 +19,129 @@ namespace Engine
 		Public = (1 << 3)
 	};
 
-	ScriptEngine* ScriptEngine::s_Instance = nullptr;
+	struct ScriptEngineData
+	{
+		MonoDomain* RootDomain = nullptr;
+		MonoDomain* AppDomain = nullptr;
 
-	ScriptEngine::ScriptEngine()
+		MonoAssembly* CoreAssembly = nullptr;
+	};
+
+	static ScriptEngineData* s_Data = nullptr;
+
+	void ScriptEngine::Init()
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		s_Instance = this;
+		s_Data = new ScriptEngineData();
 
+		InitMono();
+	}
+
+	void ScriptEngine::Shutdown()
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		ShutdownMono();
+
+		delete s_Data;
+	}
+
+	MonoAssembly* LoadCSharpAssembly(const std::string& assemblyPath)
+	{
+		uint32_t fileSize = 0;
+		char* fileData = FileUtils::ReadBytes(assemblyPath, &fileSize);
+
+		// NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
+		MonoImageOpenStatus status;
+		MonoImage* image = mono_image_open_from_data_full(fileData, fileSize, 1, &status, 0);
+
+		if (status != MONO_IMAGE_OK)
+		{
+			const char* errorMessage = mono_image_strerror(status);
+			// Log some error message using the errorMessage data
+			ENGINE_CORE_ERROR("Error Loading Mono Assembly: " + std::string(errorMessage));
+			return nullptr;
+		}
+
+		MonoAssembly* assembly = mono_assembly_load_from_full(image, assemblyPath.c_str(), &status, 0);
+		mono_image_close(image);
+
+		// Don't forget to free the file data
+		delete[] fileData;
+
+		return assembly;
+	}
+
+	void PrintAssemblyTypes(MonoAssembly* assembly)
+	{
+		MonoImage* image = mono_assembly_get_image(assembly);
+		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
+		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
+
+		for (int32_t i = 0; i < numTypes; i++)
+		{
+			uint32_t cols[MONO_TYPEDEF_SIZE];
+			mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
+
+			const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
+			const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
+
+			printf("%s.%s\n", nameSpace, name);
+		}
+	}
+
+	void ScriptEngine::InitMono()
+	{
 		// Mono
 		mono_set_assemblies_path("../GameEngine/vendor/Mono/lib");
 
-		m_MonoDomain = mono_jit_init("Engine-ScriptCore");
-		ENGINE_CORE_ASSERT(m_MonoDomain, "Mono Domain could not be initialized!");
+		s_Data->RootDomain = mono_jit_init("Engine-ScriptCore");
+		ENGINE_CORE_ASSERT(s_Data->RootDomain, "Root Domain could not be initialized!");
 
-		m_AppDomain = mono_domain_create_appdomain("Engine-ScriptCore-AppDomain", nullptr);
-		ENGINE_CORE_ASSERT(m_AppDomain, "App Domain could not be initialized!");
-		mono_domain_set(m_AppDomain, true);
+		s_Data->AppDomain = mono_domain_create_appdomain("Engine-ScriptCore-AppDomain", nullptr);
+		ENGINE_CORE_ASSERT(s_Data->AppDomain, "App Domain could not be initialized!");
+		mono_domain_set(s_Data->AppDomain, true);
 
 #ifdef ENGINE_DEBUG
-		m_MonoAssembly = LoadCSharpAssembly(R"(..\bin\Debug-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)");
+		s_Data->CoreAssembly = LoadCSharpAssembly(R"(..\bin\Debug-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)");
 #elif ENGINE_RELEASE
-		m_MonoAssembly = LoadCSharpAssembly(R"(..\bin\Release-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)");
+		s_Data->CoreAssembly = LoadCSharpAssembly(R"(..\bin\Release-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)");
 #elif ENGINE_DIST
-		m_MonoAssembly = LoadCSharpAssembly(R"(..\bin\Dist-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)");
+		s_Data->CoreAssembly = LoadCSharpAssembly(R"(..\bin\Dist-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)");
 #endif
 
-		PrintAssemblyTypes(m_MonoAssembly);
+		PrintAssemblyTypes(s_Data->CoreAssembly);
 
 		InternalCalls::ScriptGlue::RegisterInternalCalls();
 	}
 
-	ScriptEngine::~ScriptEngine()
+	void ScriptEngine::ShutdownMono()
 	{
-		ENGINE_PROFILE_FUNCTION();
 
-		// Release Domain
-		if (s_Instance && m_MonoDomain)
-		{
-			mono_jit_cleanup(m_MonoDomain);
-		}
+		mono_domain_unload(s_Data->AppDomain);
+		s_Data->AppDomain = nullptr;
 
-		s_Instance = nullptr;
+		mono_jit_cleanup(s_Data->RootDomain);
+		s_Data->RootDomain = nullptr;
+	}
+
+	MonoDomain* ScriptEngine::GetRootDomain()
+	{
+		ENGINE_CORE_ASSERT(s_Data->RootDomain, "Root Domain not set.");
+		return s_Data->RootDomain;
+	}
+
+	MonoDomain* ScriptEngine::GetAppDomain()
+	{
+		ENGINE_CORE_ASSERT(s_Data->AppDomain, "App Domain not set.");
+		return s_Data->AppDomain;
+	}
+
+	MonoAssembly* ScriptEngine::GetCoreAssembly()
+	{
+		ENGINE_CORE_ASSERT(s_Data->CoreAssembly, "Core Assembly not set.");
+		return s_Data->CoreAssembly;
 	}
 
 	MonoClass* ScriptEngine::GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className)
@@ -196,7 +278,7 @@ namespace Engine
 		ENGINE_CORE_ERROR(exCString);
 	}
 
-	bool ScriptEngine::CheckMonoError(MonoError& error)
+	bool CheckMonoError(MonoError& error)
 	{
 		bool hasError = !mono_error_ok(&error);
 		if (hasError)
@@ -224,49 +306,4 @@ namespace Engine
 		mono_free(utf8);
 		return result;
 	}
-
-	MonoAssembly* ScriptEngine::LoadCSharpAssembly(const std::string& assemblyPath)
-	{
-		uint32_t fileSize = 0;
-		char* fileData = FileUtils::ReadBytes(assemblyPath, &fileSize);
-
-		// NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
-		MonoImageOpenStatus status;
-		MonoImage* image = mono_image_open_from_data_full(fileData, fileSize, 1, &status, 0);
-
-		if (status != MONO_IMAGE_OK)
-		{
-			const char* errorMessage = mono_image_strerror(status);
-			// Log some error message using the errorMessage data
-			ENGINE_CORE_ERROR("Error Loading Mono Assembly: " + std::string(errorMessage));
-			return nullptr;
-		}
-
-		MonoAssembly* assembly = mono_assembly_load_from_full(image, assemblyPath.c_str(), &status, 0);
-		mono_image_close(image);
-
-		// Don't forget to free the file data
-		delete[] fileData;
-
-		return assembly;
-	}
-
-	void ScriptEngine::PrintAssemblyTypes(MonoAssembly* assembly)
-	{
-		MonoImage* image = mono_assembly_get_image(assembly);
-		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
-		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
-
-		for (int32_t i = 0; i < numTypes; i++)
-		{
-			uint32_t cols[MONO_TYPEDEF_SIZE];
-			mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
-
-			const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
-			const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
-
-			printf("%s.%s\n", nameSpace, name);
-		}
-	}
-
 }

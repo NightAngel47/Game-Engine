@@ -1,6 +1,15 @@
 #pragma once
 
-#include <mono/jit/jit.h>
+extern "C"
+{
+	typedef struct _MonoClass MonoClass;
+	typedef struct _MonoObject MonoObject;
+	typedef struct _MonoDomain MonoDomain;
+	typedef struct _MonoAssembly MonoAssembly;
+	typedef struct _MonoClassField MonoClassField;
+	typedef struct _MonoProperty MonoProperty;
+	typedef struct _MonoString MonoString;
+}
 
 // Created with help from this guide (Mono Embedding for Game Engines): https://peter1745.github.io/introduction.html
 
@@ -10,31 +19,25 @@ namespace Engine
 	class ScriptEngine
 	{
 	public:
-		ScriptEngine();
-		~ScriptEngine();
+		ScriptEngine() = delete;
 
-		static ScriptEngine* s_Instance;
+		static void Init();
+		static void Shutdown();
 
-		MonoDomain* GetMonoDomain() { return m_MonoDomain; }
-		MonoDomain* GetAppDomain() { return m_AppDomain; }
-		MonoAssembly* GetMonoAssembly() { return m_MonoAssembly; }
+		static MonoDomain* GetRootDomain();
+		static MonoDomain* GetAppDomain();
+		static MonoAssembly* GetCoreAssembly();
 
-		MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className);
-		uint8_t GetFieldAccessibility(MonoClassField* field);
-		uint8_t GetPropertyAccessbility(MonoProperty* property);
+		static MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className);
+		static uint8_t GetFieldAccessibility(MonoClassField* field);
+		static uint8_t GetPropertyAccessbility(MonoProperty* property);
 
-		void HandleMonoException(MonoObject* ptrExObject);
-		bool CheckMonoError(MonoError& error);
+		static void HandleMonoException(MonoObject* ptrExObject);
 
-		std::string MonoStringToUTF8(MonoString* monoString);
-
-	private:
-		MonoAssembly* LoadCSharpAssembly(const std::string& assemblyPath);
-		void PrintAssemblyTypes(MonoAssembly* assembly);
+		static std::string MonoStringToUTF8(MonoString* monoString);
 
 	private:
-		MonoDomain* m_MonoDomain;
-		MonoDomain* m_AppDomain;
-		MonoAssembly* m_MonoAssembly;
+		static void InitMono();
+		static void ShutdownMono();
 	};
 }

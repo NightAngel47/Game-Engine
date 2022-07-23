@@ -43,7 +43,7 @@ project "GameEngine"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.box2d}",
-		"%{IncludeDir.Mono}"
+		"%{IncludeDir.mono}"
 	}
 
 	links
@@ -54,7 +54,7 @@ project "GameEngine"
 		"yaml-cpp",
 		"box2d",
 		"opengl32.lib",
-		"%{Library.Mono_SGen_Lib}"
+		"%{Library.mono}"
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
@@ -65,6 +65,14 @@ project "GameEngine"
 
 		defines
 		{
+		}
+		
+		links
+		{
+			"%{Library.WinSock}",
+			"%{Library.WinMM}",
+			"%{Library.WinVersion}",
+			"%{Library.BCrypt}",
 		}
 
 	filter "configurations:Debug"

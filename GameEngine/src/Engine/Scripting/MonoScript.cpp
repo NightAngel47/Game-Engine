@@ -44,17 +44,17 @@ namespace Engine
 	{
 		ScriptName script = SplitScriptName(scriptName);
 
-		m_ScriptClass = ScriptEngine::s_Instance->GetClassInAssembly(ScriptEngine::s_Instance->GetMonoAssembly(), script.scriptNamespace.c_str(), script.scriptClass.c_str());
+		m_ScriptClass = ScriptEngine::GetClassInAssembly(ScriptEngine::GetCoreAssembly(), script.scriptNamespace.c_str(), script.scriptClass.c_str());
 	}
 
 	MonoScript::MonoScript(const std::string& scriptNamespace, const std::string& scriptClass)
 	{
-		m_ScriptClass = ScriptEngine::s_Instance->GetClassInAssembly(ScriptEngine::s_Instance->GetMonoAssembly(), scriptNamespace.c_str(), scriptClass.c_str());
+		m_ScriptClass = ScriptEngine::GetClassInAssembly(ScriptEngine::GetCoreAssembly(), scriptNamespace.c_str(), scriptClass.c_str());
 	}
 
 	void MonoScript::InstantiateScript(Entity& entity)
 	{
-		m_ScriptInstance = mono_object_new(ScriptEngine::s_Instance->GetAppDomain(), m_ScriptClass);
+		m_ScriptInstance = mono_object_new(ScriptEngine::GetAppDomain(), m_ScriptClass);
 		ENGINE_CORE_ASSERT(m_ScriptInstance, "Could not create new MonoObject!");
 
 		// run Entity parameterless (default) constructor
@@ -70,7 +70,7 @@ namespace Engine
 			auto uuid = entity.GetUUID();
 			params = &uuid;
 			mono_property_set_value(ptrIDProperty, m_ScriptInstance, &params, &ptrExObject);
-			ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
+			ScriptEngine::HandleMonoException(ptrExObject);
 		}
 
 		// setup onCreate method
@@ -88,7 +88,7 @@ namespace Engine
 		ENGINE_CORE_ASSERT(OnUpdateMethodPtr, "Could not find update method desc in class!");
 		OnUpdateThunk = (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr);
 
-		m_Timestep = ScriptEngine::s_Instance->GetClassInAssembly(ScriptEngine::s_Instance->GetMonoAssembly(), "Engine.Core", "Timestep");
+		m_Timestep = ScriptEngine::GetClassInAssembly(ScriptEngine::GetCoreAssembly(), "Engine.Core", "Timestep");
 	}
 
 	MonoScript::~MonoScript()
@@ -102,7 +102,7 @@ namespace Engine
 
 		OnCreateThunk(m_ScriptInstance, &ptrExObject);
 
-		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void MonoScript::OnDestroyMethod()
@@ -111,17 +111,17 @@ namespace Engine
 
 		OnDestroyThunk(m_ScriptInstance, &ptrExObject);
 
-		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void MonoScript::OnUpdateMethod(Timestep ts)
 	{
-		MonoObject* paramBox = mono_value_box(ScriptEngine::s_Instance->GetAppDomain(), m_Timestep, &ts);
+		MonoObject* paramBox = mono_value_box(ScriptEngine::GetAppDomain(), m_Timestep, &ts);
 
 		MonoObject* ptrExObject = nullptr;
 
 		OnUpdateThunk(m_ScriptInstance, paramBox, &ptrExObject);
 
-		ScriptEngine::s_Instance->HandleMonoException(ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 }

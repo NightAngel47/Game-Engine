@@ -19,6 +19,5 @@
 
 # Directories
 GameEngine/vendor/VulkanSDK
-GameEngine/vendor/Mono
 Engine-Editor/assets/cache
 scripts/__pycache__

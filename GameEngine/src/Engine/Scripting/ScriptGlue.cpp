@@ -8,10 +8,10 @@ namespace InternalCalls
 {
 	struct RuntimeData
 	{
-		Engine::Ref<Engine::Scene> m_ActiveScene;
+		Engine::Scene* m_ActiveScene;
 	};
 
-	static RuntimeData s_Data;
+	static RuntimeData* s_Data;
 
 	void ScriptGlue::RegisterInternalCalls()
 	{
@@ -54,14 +54,18 @@ namespace InternalCalls
 
 	}
 
-	void ScriptGlue::InitRuntime(Engine::Ref<Engine::Scene> activeScene)
+	void ScriptGlue::InitRuntime(Engine::Scene* activeScene)
 	{
-		s_Data.m_ActiveScene = activeScene;
+		s_Data = new RuntimeData();
+
+		s_Data->m_ActiveScene = activeScene;
 	}
 
 	void ScriptGlue::ShutdownRuntime()
 	{
-		s_Data.m_ActiveScene = nullptr;
+		s_Data->m_ActiveScene = nullptr;
+
+		delete s_Data;
 	}
 
 #pragma region Log
@@ -129,7 +133,7 @@ namespace InternalCalls
 
 	void ScriptGlue::Entity_GetComponent_Tag(uint64_t entityID, TagData* data)
 	{
-		auto view = s_Data.m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TagComponent>();
+		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TagComponent>();
 
 		for (auto entity : view)
 		{
@@ -138,9 +142,7 @@ namespace InternalCalls
 			{
 				TagData componentData{};
 
-				auto domain = Engine::ScriptEngine::s_Instance->GetMonoDomain();
-				ENGINE_CORE_ASSERT(domain, "Mono Domain not set!");
-				componentData.tag = mono_string_new(domain, tag.Tag.c_str());
+				componentData.tag = mono_string_new(Engine::ScriptEngine::GetAppDomain(), tag.Tag.c_str());
 
 				*data = componentData;
 
@@ -151,7 +153,7 @@ namespace InternalCalls
 
 	void ScriptGlue::Entity_GetComponent_Transform(uint64_t entityID, TransformData* data)
 	{
-		auto view = s_Data.m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
 
 		for (auto entity : view)
 		{
@@ -196,7 +198,7 @@ namespace InternalCalls
 
 	void ScriptGlue::TransformComponent_SetPosition(uint64_t entityID, float& x, float& y, float& z)
 	{
-		auto view = s_Data.m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
 
 		for (auto entity : view)
 		{

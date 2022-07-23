@@ -11,7 +11,7 @@
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Math/Math.h"
 
-#include "Engine/Scripting/ScriptGlue.h"
+//#include "Engine/Scripting/ScriptGlue.h"
 
 namespace Engine
 {
@@ -652,7 +652,6 @@ namespace Engine
 		m_SceneState = SceneState::Play;
 
 		m_ActiveScene = Scene::Copy(m_EditorScene);
-		InternalCalls::ScriptGlue::InitRuntime(m_ActiveScene);
 		m_ActiveScene->OnRuntimeStart();
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
@@ -681,7 +680,6 @@ namespace Engine
 		if (m_SceneState == SceneState::Play)
 		{
 			m_ActiveScene->OnRuntimeStop();
-			InternalCalls::ScriptGlue::ShutdownRuntime();
 		}
 		else if (m_SceneState == SceneState::Simulate)
 		{

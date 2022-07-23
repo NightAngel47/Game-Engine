@@ -6,6 +6,8 @@
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Renderer/Renderer2D.h"
 
+#include "Engine/Scripting/ScriptGlue.h"
+
 #include <glm/glm.hpp>
 
 // box2d
@@ -309,6 +311,8 @@ namespace Engine
 
 	void Scene::OnScriptsStart()
 	{
+		InternalCalls::ScriptGlue::InitRuntime(this);
+
 		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
 		{
 			if (!nsc.Instance)
@@ -344,6 +348,8 @@ namespace Engine
 				sc.Instance->OnDestroyMethod();
 			}
 		});
+
+		InternalCalls::ScriptGlue::ShutdownRuntime();
 	}
 
 	void Scene::OnPhysics2DUpdate(Timestep ts)

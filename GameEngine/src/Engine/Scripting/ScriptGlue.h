@@ -16,7 +16,7 @@ namespace InternalCalls
 	{
 	public:
 		static void RegisterInternalCalls();
-		static void InitRuntime(Engine::Ref<Engine::Scene> activeScene);
+		static void InitRuntime(Engine::Scene* activeScene);
 		static void ShutdownRuntime();
 	private:
 #pragma region Log

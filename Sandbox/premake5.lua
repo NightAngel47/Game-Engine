@@ -19,8 +19,7 @@ project "Sandbox"
 		"%{wks.location}/GameEngine/src",
 		"%{wks.location}/GameEngine/vendor",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.entt}",
-		"%{IncludeDir.Mono}"
+		"%{IncludeDir.entt}"
 	}
 
 	links
@@ -30,8 +29,7 @@ project "Sandbox"
 
 	postbuildcommands
 	{
-		"{COPY} %{LibraryDir.Mono_Lib}/mono/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/lib/mono",
-		"{COPY} %{Library.Mono_SGen_DLL} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}"
+		"{COPY} %{LibraryDir.mono}/mono %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/mono/lib/mono"
 	}	
 
 	filter "system:windows"
