@@ -79,6 +79,8 @@ namespace Engine
 		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
 		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
 
+		ENGINE_CORE_TRACE("Mono Class Types:");
+
 		for (int32_t i = 0; i < numTypes; i++)
 		{
 			uint32_t cols[MONO_TYPEDEF_SIZE];
@@ -87,7 +89,7 @@ namespace Engine
 			const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
 			const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
 
-			printf("%s.%s\n", nameSpace, name);
+			ENGINE_CORE_TRACE("\t{}.{}", nameSpace, name);
 		}
 	}
 
