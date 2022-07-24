@@ -103,13 +103,7 @@ namespace Engine
 		ENGINE_CORE_ASSERT(s_Data->AppDomain, "App Domain could not be initialized!");
 		mono_domain_set(s_Data->AppDomain, true);
 
-#ifdef ENGINE_DEBUG
-		s_Data->CoreAssembly = LoadCSharpAssembly(R"(..\bin\Debug-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)");
-#elif ENGINE_RELEASE
-		s_Data->CoreAssembly = LoadCSharpAssembly(R"(..\bin\Release-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)");
-#elif ENGINE_DIST
-		s_Data->CoreAssembly = LoadCSharpAssembly(R"(..\bin\Dist-windows-x86_64\Engine-ScriptCore\Engine-ScriptCore.dll)");
-#endif
+		s_Data->CoreAssembly = LoadCSharpAssembly("Resources/Scripts/Engine-ScriptCore.dll");
 
 		PrintAssemblyTypes(s_Data->CoreAssembly);
 

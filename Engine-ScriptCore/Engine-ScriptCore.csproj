@@ -19,8 +19,8 @@
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\Debug-windows-x86_64\Engine-ScriptCore\</OutputPath>
-    <BaseIntermediateOutputPath>..\bin-int\Debug-windows-x86_64\Engine-ScriptCore\</BaseIntermediateOutputPath>
+    <OutputPath>..\Engine-Editor\Resources\Scripts\</OutputPath>
+    <BaseIntermediateOutputPath>..\Engine-Editor\Resources\Scripts\Intermediates\Debug\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
     <DefineConstants>ENGINE_DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -31,8 +31,8 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\Release-windows-x86_64\Engine-ScriptCore\</OutputPath>
-    <BaseIntermediateOutputPath>..\bin-int\Release-windows-x86_64\Engine-ScriptCore\</BaseIntermediateOutputPath>
+    <OutputPath>..\Engine-Editor\Resources\Scripts\</OutputPath>
+    <BaseIntermediateOutputPath>..\Engine-Editor\Resources\Scripts\Intermediates\Release\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
     <DefineConstants>ENGINE_RELEASE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -43,8 +43,8 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\Dist-windows-x86_64\Engine-ScriptCore\</OutputPath>
-    <BaseIntermediateOutputPath>..\bin-int\Dist-windows-x86_64\Engine-ScriptCore\</BaseIntermediateOutputPath>
+    <OutputPath>..\Engine-Editor\Resources\Scripts\</OutputPath>
+    <BaseIntermediateOutputPath>..\Engine-Editor\Resources\Scripts\Intermediates\Dist\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
     <DefineConstants>ENGINE_DIST</DefineConstants>
     <ErrorReport>prompt</ErrorReport>

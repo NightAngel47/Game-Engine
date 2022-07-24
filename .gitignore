@@ -2,6 +2,7 @@
 **/bin/
 !vendor/premake/bin/
 **/bin-int/
+Intermediates/
 
 # Engine files
 *.log

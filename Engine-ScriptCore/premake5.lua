@@ -4,12 +4,13 @@ project "Engine-ScriptCore"
 	dotnetframework "4.8"
 	csversion "10.0"
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("%{wks.location}/Engine-Editor/Resources/Scripts")
+	objdir ("%{wks.location}/Engine-Editor/Resources/Scripts/Intermediates")
 
 	files
 	{
-		"**.cs"
+		"Source/**.cs",
+		"Properties/**.cs",
 	}
 
 	filter "system:windows"
