@@ -29,25 +29,7 @@ namespace Engine
 
 	static ScriptEngineData* s_Data = nullptr;
 
-	void ScriptEngine::Init()
-	{
-		ENGINE_PROFILE_FUNCTION();
-
-		s_Data = new ScriptEngineData();
-
-		InitMono();
-	}
-
-	void ScriptEngine::Shutdown()
-	{
-		ENGINE_PROFILE_FUNCTION();
-
-		ShutdownMono();
-
-		delete s_Data;
-	}
-
-	MonoAssembly* LoadCSharpAssembly(const std::string& assemblyPath)
+	MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath)
 	{
 		uint32_t fileSize = 0;
 		char* fileData = FileUtils::ReadBytes(assemblyPath, &fileSize);
@@ -64,7 +46,8 @@ namespace Engine
 			return nullptr;
 		}
 
-		MonoAssembly* assembly = mono_assembly_load_from_full(image, assemblyPath.c_str(), &status, 0);
+		std::string pathString = assemblyPath.string();
+		MonoAssembly* assembly = mono_assembly_load_from_full(image, pathString.c_str(), &status, 0);
 		mono_image_close(image);
 
 		// Don't forget to free the file data
@@ -93,6 +76,26 @@ namespace Engine
 		}
 	}
 
+	void ScriptEngine::Init()
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		s_Data = new ScriptEngineData();
+
+		InitMono();
+		LoadAssembly("Resources/Scripts/Engine-ScriptCore.dll");
+		InternalCalls::ScriptGlue::RegisterInternalCalls();
+	}
+
+	void ScriptEngine::Shutdown()
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		ShutdownMono();
+
+		delete s_Data;
+	}
+
 	void ScriptEngine::InitMono()
 	{
 		// Mono
@@ -100,16 +103,16 @@ namespace Engine
 
 		s_Data->RootDomain = mono_jit_init("Engine-ScriptCore");
 		ENGINE_CORE_ASSERT(s_Data->RootDomain, "Root Domain could not be initialized!");
+	}
 
+	void ScriptEngine::LoadAssembly(const std::filesystem::path& assemblyPath)
+	{
 		s_Data->AppDomain = mono_domain_create_appdomain("Engine-ScriptCore-AppDomain", nullptr);
 		ENGINE_CORE_ASSERT(s_Data->AppDomain, "App Domain could not be initialized!");
 		mono_domain_set(s_Data->AppDomain, true);
 
-		s_Data->CoreAssembly = LoadCSharpAssembly("Resources/Scripts/Engine-ScriptCore.dll");
-
-		PrintAssemblyTypes(s_Data->CoreAssembly);
-
-		InternalCalls::ScriptGlue::RegisterInternalCalls();
+		s_Data->CoreAssembly = LoadMonoAssembly(assemblyPath);
+		//PrintAssemblyTypes(s_Data->CoreAssembly);
 	}
 
 	void ScriptEngine::ShutdownMono()

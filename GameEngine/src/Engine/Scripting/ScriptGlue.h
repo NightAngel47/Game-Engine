@@ -57,8 +57,8 @@ namespace InternalCalls
 
 #pragma region Entity
 
-		static void Entity_GetComponent_Tag(uint64_t entityID, TagData* data);
-		static void Entity_GetComponent_Transform(uint64_t entityID, TransformData* data);
+		static void Entity_GetComponent_Tag(uint64_t entityID, TagData* outTag);
+		static void Entity_GetComponent_Transform(uint64_t entityID, TransformData* outTransform);
 
 #pragma endregion
 

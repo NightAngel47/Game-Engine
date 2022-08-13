@@ -6,6 +6,9 @@
 
 namespace InternalCalls
 {
+
+#define ENGINE_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Engine.Core.InternalCalls::" #Name, Name)
+
 	struct RuntimeData
 	{
 		Engine::Scene* m_ActiveScene;
@@ -21,34 +24,36 @@ namespace InternalCalls
 
 #pragma region Log
 
-		mono_add_internal_call("Engine.Core.InternalCalls::Log_Trace(string)", &Log_Trace);
-		mono_add_internal_call("Engine.Core.InternalCalls::Log_Info(string)", &Log_Info);
-		mono_add_internal_call("Engine.Core.InternalCalls::Log_Warn(string)", &Log_Warn);
-		mono_add_internal_call("Engine.Core.InternalCalls::Log_Error(string)", &Log_Error);
-		mono_add_internal_call("Engine.Core.InternalCalls::Log_Critical(string)", &Log_Critical);
+		ENGINE_ADD_INTERNAL_CALL(Log_Trace);
+		ENGINE_ADD_INTERNAL_CALL(Log_Info);
+		ENGINE_ADD_INTERNAL_CALL(Log_Warn);
+		ENGINE_ADD_INTERNAL_CALL(Log_Error);
+		ENGINE_ADD_INTERNAL_CALL(Log_Critical);
 
 #pragma endregion
 
 #pragma region Input
 
-		mono_add_internal_call("Engine.Core.InternalCalls::Input_IsKeyPressed(int)", &Input_IsKeyPressed);
-		mono_add_internal_call("Engine.Core.InternalCalls::Input_IsMouseButtonPressed(int)", &Input_IsMouseButtonPressed);
-		mono_add_internal_call("Engine.Core.InternalCalls::Input_GetMousePosition()", &Input_GetMousePosition);
-		mono_add_internal_call("Engine.Core.InternalCalls::Input_GetMouseY()", &Input_GetMouseY);
-		mono_add_internal_call("Engine.Core.InternalCalls::Input_GetMouseX()", &Input_GetMouseX);
+		ENGINE_ADD_INTERNAL_CALL(Input_IsKeyPressed);
+		ENGINE_ADD_INTERNAL_CALL(Input_IsMouseButtonPressed);
+		ENGINE_ADD_INTERNAL_CALL(Input_GetMousePosition);
+		ENGINE_ADD_INTERNAL_CALL(Input_GetMouseY);
+		ENGINE_ADD_INTERNAL_CALL(Input_GetMouseX);
 
 #pragma endregion
 
 #pragma region Entity
 
-		mono_add_internal_call("Engine.Core.InternalCalls::Entity_GetComponent(ulong,Engine.Scene.TagComponent/TagData&)", &Entity_GetComponent_Tag);
-		mono_add_internal_call("Engine.Core.InternalCalls::Entity_GetComponent(ulong,Engine.Scene.TransformComponent/TransformData&)", &Entity_GetComponent_Transform);
+		ENGINE_ADD_INTERNAL_CALL(Entity_GetComponent_Tag);
+		ENGINE_ADD_INTERNAL_CALL(Entity_GetComponent_Transform);
 
 #pragma endregion
 
 #pragma region Transform Component
 
-		mono_add_internal_call("Engine.Core.InternalCalls::TransformComponent_SetPosition(ulong,Engine.Math.Vector3&)", &TransformComponent_SetPosition);
+		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetPosition);
+		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetRotation);
+		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetScale);
 
 #pragma endregion
 
@@ -128,7 +133,7 @@ namespace InternalCalls
 
 #pragma region Entity
 
-	void ScriptGlue::Entity_GetComponent_Tag(uint64_t entityID, TagData* data)
+	void ScriptGlue::Entity_GetComponent_Tag(uint64_t entityID, TagData* outTag)
 	{
 		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TagComponent>();
 
@@ -137,14 +142,14 @@ namespace InternalCalls
 			auto [uuid, tag] = view.get<Engine::IDComponent, Engine::TagComponent>(entity);
 			if (uuid.ID == entityID)
 			{
-				data->tag = mono_string_new(Engine::ScriptEngine::GetAppDomain(), tag.Tag.c_str());
+				outTag->tag = mono_string_new(Engine::ScriptEngine::GetAppDomain(), tag.Tag.c_str());
 
 				return;
 			}
 		}
 	}
 
-	void ScriptGlue::Entity_GetComponent_Transform(uint64_t entityID, TransformData* data)
+	void ScriptGlue::Entity_GetComponent_Transform(uint64_t entityID, TransformData* outTransform)
 	{
 		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
 
@@ -153,9 +158,9 @@ namespace InternalCalls
 			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
 			if (uuid.ID == entityID)
 			{
-				data->position = tc.Position;
-				data->rotation = tc.Rotation;
-				data->scale = tc.Scale;
+				outTransform->position = tc.Position;
+				outTransform->rotation = tc.Rotation;
+				outTransform->scale = tc.Scale;
 
 				return;
 			}

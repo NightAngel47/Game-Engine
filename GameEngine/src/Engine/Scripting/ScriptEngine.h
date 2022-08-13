@@ -38,6 +38,7 @@ namespace Engine
 
 	private:
 		static void InitMono();
+		static void LoadAssembly(const std::filesystem::path& assemblyPath);
 		static void ShutdownMono();
 	};
 }

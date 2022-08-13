@@ -47,10 +47,10 @@ namespace Engine.Core
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void Entity_GetComponent(ulong entityID, out TagComponent.TagData data);
+		internal static extern void Entity_GetComponent_Tag(ulong entityID, out TagComponent.TagData data);
 		
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void Entity_GetComponent(ulong entityID, out TransformComponent.TransformData data);
+		internal static extern void Entity_GetComponent_Transform(ulong entityID, out TransformComponent.TransformData data);
 
 		#endregion
 

@@ -6,7 +6,7 @@ namespace Engine
 	class FileUtils
 	{
 	public:
-		static char* ReadBytes(const std::string& filepath, uint32_t* outSize)
+		static char* ReadBytes(const std::filesystem::path& filepath, uint32_t* outSize)
 		{
 			std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
 
