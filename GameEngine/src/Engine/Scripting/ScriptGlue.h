@@ -33,7 +33,7 @@ namespace InternalCalls
 
 		static bool Input_IsKeyPressed(Engine::KeyCode key);
 		static bool Input_IsMouseButtonPressed(Engine::MouseCode key);
-		static void Input_GetMousePosition(float& x, float& y);
+		static glm::vec2& Input_GetMousePosition();
 		static float Input_GetMouseY();
 		static float Input_GetMouseX();
 
@@ -48,13 +48,9 @@ namespace InternalCalls
 
 		struct TransformData
 		{
-			//float position[3];
-			//float rotation[3];
-			//float scale[3];
-
-			float posX, posY, posZ;
-			float rotX, rotY, rotZ;
-			float scaleX, scaleY, scaleZ;
+			glm::vec3 position;
+			glm::vec3 rotation;
+			glm::vec3 scale;
 		};
 
 #pragma endregion
@@ -68,7 +64,9 @@ namespace InternalCalls
 
 #pragma region Transform Component
 
-		static void TransformComponent_SetPosition(uint64_t entityID, float& x, float& y, float& z);
+		static void TransformComponent_SetPosition(uint64_t entityID, glm::vec3& position);
+		static void TransformComponent_SetRotation(uint64_t entityID, glm::vec3& rotation);
+		static void TransformComponent_SetScale(uint64_t entityID, glm::vec3& scale);
 
 #pragma endregion
 	};

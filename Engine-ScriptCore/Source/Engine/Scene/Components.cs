@@ -41,36 +41,45 @@ namespace Engine.Scene
 		[StructLayout(LayoutKind.Sequential)]
 		public struct TransformData
 		{
-			//public float[] position;
-			//public float[] rotation;
-			//public float[] scale;
-
-			public float posX, posY, posZ;
-			public float rotX, rotY, rotZ;
-			public float scaleX, scaleY, scaleZ;
+			public Vector3 position;
+			public Vector3 rotation;
+			public Vector3 scale;
 		}
 
 		private TransformData data;
 
-		//public Vector3 Position { get { return new Vector3(data.position); } set { data.position[0] = value.x; data.position[1] = value.y; data.position[2] = value.z; } }
 		public Vector3 Position
 		{
-			get => new Vector3(data.posX, data.posY, data.posZ);
+			get => data.position;
 
 			set
 			{
-				data.posX = value.X; 
-				data.posY = value.Y; 
-				data.posZ = value.Z;
-				InternalCalls.TransformComponent_SetPosition(ComponentEntity.ID, out data.posX, out data.posY, out data.posZ);
+				data.position = value;
+				InternalCalls.TransformComponent_SetPosition(ComponentEntity.ID, ref data.position);
 			}
 		}
 
-		//public Vector3 Rotation { get { return new Vector3(data.rotation); } set { data.rotation[0] = value.x; data.rotation[1] = value.y; data.rotation[2] = value.z; } }
-		public Vector3 Rotation { get => new Vector3(data.rotX, data.rotY, data.rotZ); set { data.rotX = value.X; data.rotY = value.Y; data.rotZ = value.Z; } }
+		public Vector3 Rotation 
+		{ 
+			get => data.rotation; 
+			
+			set 
+			{ 
+				data.rotation = value;
+				InternalCalls.TransformComponent_SetRotation(ComponentEntity.ID, ref data.rotation);
+			} 
+		}
 
-		//public Vector3 Scale { get { return new Vector3(data.scale); } set { data.scale[0] = value.x; data.scale[1] = value.y; data.scale[2] = value.z; } }
-		public Vector3 Scale { get => new Vector3(data.scaleX, data.scaleY, data.scaleZ); set { data.scaleX = value.X; data.scaleY = value.Y; data.scaleZ = value.Z; } }
+		public Vector3 Scale 
+		{ 
+			get => data.scale; 
+			
+			set 
+			{
+				data.scale = value;
+				InternalCalls.TransformComponent_SetScale(ComponentEntity.ID, ref data.scale);
+			}
+		}
 
 		public TransformComponent(Entity entity)
 		{

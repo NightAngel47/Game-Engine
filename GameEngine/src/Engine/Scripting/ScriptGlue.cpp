@@ -33,7 +33,7 @@ namespace InternalCalls
 
 		mono_add_internal_call("Engine.Core.InternalCalls::Input_IsKeyPressed(int)", &Input_IsKeyPressed);
 		mono_add_internal_call("Engine.Core.InternalCalls::Input_IsMouseButtonPressed(int)", &Input_IsMouseButtonPressed);
-		mono_add_internal_call("Engine.Core.InternalCalls::Input_GetMousePosition(single&,single&)", &Input_GetMousePosition);
+		mono_add_internal_call("Engine.Core.InternalCalls::Input_GetMousePosition()", &Input_GetMousePosition);
 		mono_add_internal_call("Engine.Core.InternalCalls::Input_GetMouseY()", &Input_GetMouseY);
 		mono_add_internal_call("Engine.Core.InternalCalls::Input_GetMouseX()", &Input_GetMouseX);
 
@@ -48,7 +48,7 @@ namespace InternalCalls
 
 #pragma region Transform Component
 
-		mono_add_internal_call("Engine.Core.InternalCalls::TransformComponent_SetPosition(ulong,single&,single&,single&)", &TransformComponent_SetPosition);
+		mono_add_internal_call("Engine.Core.InternalCalls::TransformComponent_SetPosition(ulong,Engine.Math.Vector3&)", &TransformComponent_SetPosition);
 
 #pragma endregion
 
@@ -72,27 +72,27 @@ namespace InternalCalls
 
 	void ScriptGlue::Log_Trace(MonoString* message)
 	{
-		ENGINE_TRACE(mono_string_to_utf8(message));
+		ENGINE_TRACE(Engine::ScriptEngine::MonoStringToUTF8(message));
 	}
 
 	void ScriptGlue::Log_Info(MonoString* message)
 	{
-		ENGINE_INFO(mono_string_to_utf8(message));
+		ENGINE_INFO(Engine::ScriptEngine::MonoStringToUTF8(message));
 	}
 
 	void ScriptGlue::Log_Warn(MonoString* message)
 	{
-		ENGINE_WARN(mono_string_to_utf8(message));
+		ENGINE_WARN(Engine::ScriptEngine::MonoStringToUTF8(message));
 	}
 
 	void ScriptGlue::Log_Error(MonoString* message)
 	{
-		ENGINE_ERROR(mono_string_to_utf8(message));
+		ENGINE_ERROR(Engine::ScriptEngine::MonoStringToUTF8(message));
 	}
 
 	void ScriptGlue::Log_Critical(MonoString* message)
 	{
-		ENGINE_CRITICAL(mono_string_to_utf8(message));
+		ENGINE_CRITICAL(Engine::ScriptEngine::MonoStringToUTF8(message));
 	}
 
 #pragma endregion
@@ -109,12 +109,9 @@ namespace InternalCalls
 		return Engine::Input::IsMouseButtonPressed(key);
 	}
 	
-	void ScriptGlue::Input_GetMousePosition(float& x, float& y)
+	glm::vec2& ScriptGlue::Input_GetMousePosition()
 	{
-		glm::vec2 mousePos = Engine::Input::GetMousePosition();
-		
-		x = mousePos.x;
-		y = mousePos.y;
+		return Engine::Input::GetMousePosition();
 	}
 
 	float ScriptGlue::Input_GetMouseY()
@@ -140,11 +137,7 @@ namespace InternalCalls
 			auto [uuid, tag] = view.get<Engine::IDComponent, Engine::TagComponent>(entity);
 			if (uuid.ID == entityID)
 			{
-				TagData componentData{};
-
-				componentData.tag = mono_string_new(Engine::ScriptEngine::GetAppDomain(), tag.Tag.c_str());
-
-				*data = componentData;
+				data->tag = mono_string_new(Engine::ScriptEngine::GetAppDomain(), tag.Tag.c_str());
 
 				return;
 			}
@@ -160,33 +153,10 @@ namespace InternalCalls
 			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
 			if (uuid.ID == entityID)
 			{
-				TransformData td{};
+				data->position = tc.Position;
+				data->rotation = tc.Rotation;
+				data->scale = tc.Scale;
 
-				//td.position[0] = tc.Position.x;
-				//td.position[1] = tc.Position.y;
-				//td.position[2] = tc.Position.z;
-				//
-				//td.rotation[0] = tc.Rotation.x;
-				//td.rotation[1] = tc.Rotation.y;
-				//td.rotation[2] = tc.Rotation.z;
-				//
-				//td.scale[0] = tc.Scale.x;
-				//td.scale[1] = tc.Scale.y;
-				//td.scale[2] = tc.Scale.z;
-
-				td.posX = tc.Position.x;
-				td.posY = tc.Position.y;
-				td.posZ = tc.Position.z;
-
-				td.rotX = tc.Rotation.x;
-				td.rotY = tc.Rotation.y;
-				td.rotZ = tc.Rotation.z;
-
-				td.scaleX = tc.Scale.x;
-				td.scaleY = tc.Scale.y;
-				td.scaleZ = tc.Scale.z;
-
-				*data = td;
 				return;
 			}
 		}
@@ -196,7 +166,7 @@ namespace InternalCalls
 
 #pragma region Transform Component
 
-	void ScriptGlue::TransformComponent_SetPosition(uint64_t entityID, float& x, float& y, float& z)
+	void ScriptGlue::TransformComponent_SetPosition(uint64_t entityID, glm::vec3& position)
 	{
 		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
 
@@ -205,7 +175,39 @@ namespace InternalCalls
 			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
 			if (uuid.ID == entityID)
 			{
-				tc.Position = { x, y, z };
+				tc.Position = position;
+
+				return;
+			}
+		}
+	}
+
+	void ScriptGlue::TransformComponent_SetRotation(uint64_t entityID, glm::vec3& rotation)
+	{
+		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+
+		for (auto entity : view)
+		{
+			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
+			if (uuid.ID == entityID)
+			{
+				tc.Rotation = rotation;
+
+				return;
+			}
+		}
+	}
+
+	void ScriptGlue::TransformComponent_SetScale(uint64_t entityID, glm::vec3& scale)
+	{
+		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+
+		for (auto entity : view)
+		{
+			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
+			if (uuid.ID == entityID)
+			{
+				tc.Scale = scale;
 
 				return;
 			}

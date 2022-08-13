@@ -114,17 +114,9 @@ namespace Engine
 
 	void ScriptEngine::ShutdownMono()
 	{
-		// TODO fix shutdown crashing
-
-		//mono_assembly_close(s_Data->CoreAssembly);
 		s_Data->CoreAssembly = nullptr;
-
-		//mono_domain_unload(s_Data->AppDomain);
 		s_Data->AppDomain = nullptr;
-
-		//mono_jit_cleanup(s_Data->RootDomain);
-		s_Data->RootDomain = nullptr;
-
+		mono_jit_cleanup(s_Data->RootDomain);
 	}
 
 	MonoDomain* ScriptEngine::GetRootDomain()
@@ -269,16 +261,6 @@ namespace Engine
 		return accessibility;
 	}
 
-	void ScriptEngine::HandleMonoException(MonoObject* ptrExObject)
-	{
-		// Report Exception
-		if (!ptrExObject) return;
-
-		MonoString* exString = mono_object_to_string(ptrExObject, nullptr);
-		const char* exCString = mono_string_to_utf8(exString);
-		ENGINE_CORE_ERROR(exCString);
-	}
-
 	bool CheckMonoError(MonoError& error)
 	{
 		bool hasError = !mono_error_ok(&error);
@@ -286,12 +268,32 @@ namespace Engine
 		{
 			unsigned short errorCode = mono_error_get_error_code(&error);
 			const char* errorMessage = mono_error_get_message(&error);
+
 			printf("Mono Error!\n");
 			printf("\tError Code: %hu\n", errorCode);
 			printf("\tError Message: %s\n", errorMessage);
+
 			mono_error_cleanup(&error);
 		}
 		return hasError;
+	}
+
+	void ScriptEngine::HandleMonoException(MonoObject* ptrExObject)
+	{
+		// Report Exception
+		if (!ptrExObject) return;
+
+		MonoString* exString = mono_object_to_string(ptrExObject, nullptr);
+
+		MonoError error;
+		char* utf8 = mono_string_to_utf8_checked(exString, &error);
+		if (CheckMonoError(error))
+			return;
+
+		std::string result(utf8);
+		mono_free(utf8);
+
+		ENGINE_CORE_ERROR(result);
 	}
 
 	std::string ScriptEngine::MonoStringToUTF8(MonoString* monoString)
@@ -303,8 +305,10 @@ namespace Engine
 		char* utf8 = mono_string_to_utf8_checked(monoString, &error);
 		if (CheckMonoError(error))
 			return "";
+
 		std::string result(utf8);
 		mono_free(utf8);
+
 		return result;
 	}
 }
