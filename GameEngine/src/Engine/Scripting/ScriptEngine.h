@@ -46,7 +46,7 @@ namespace Engine
 	class ScriptInstance
 	{
 	public:
-		ScriptInstance(Ref<ScriptClass> scriptClass);
+		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
 		~ScriptInstance() = default;
 
 		void InvokeOnCreate();
@@ -60,6 +60,7 @@ namespace Engine
 
 		MonoObject* m_Instance = nullptr;
 
+		MonoMethod* m_Constructor = nullptr;
 		OnCreate OnCreateThunk = nullptr;
 		OnDestroy OnDestroyThunk = nullptr;
 		OnUpdate OnUpdateThunk = nullptr;

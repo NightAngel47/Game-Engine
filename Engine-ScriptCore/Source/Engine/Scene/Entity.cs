@@ -4,10 +4,13 @@ namespace Engine.Scene
 {
 	public abstract class Entity
 	{
-		public ulong ID { get; private set; }
+		public readonly ulong ID;
 
-		public Entity()
+		protected Entity() { ID = 0; }
+
+		internal Entity(ulong id)
 		{
+			ID = id;
 			Log.Info($"Entity Created with ID: {ID}");
 		}
 

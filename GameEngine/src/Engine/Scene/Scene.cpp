@@ -313,6 +313,14 @@ namespace Engine
 	{
 		ScriptEngine::OnRuntimeStart(this);
 
+		// Start Scripts
+		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
+		{
+			Entity entity = { e, this };
+			ScriptEngine::OnCreateEntity(entity, sc.ScriptName);
+		});
+
+		// Start Native Scripts
 		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
 		{
 			if (!nsc.Instance)
@@ -321,12 +329,6 @@ namespace Engine
 				nsc.Instance->m_Entity = Entity{ e, this };
 				nsc.Instance->OnCreate();
 			}
-		});
-
-		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
-		{
-			Entity entity = { e, this };
-			ScriptEngine::OnCreateEntity(entity, sc.ScriptName);
 		});
 	}
 
@@ -338,7 +340,6 @@ namespace Engine
 
 	void Scene::OnScriptsStop()
 	{
-
 		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
 		{
 			Entity entity = { e, this };
@@ -392,6 +393,14 @@ namespace Engine
 
 	void Scene::OnScriptsUpdate(Timestep ts)
 	{
+		// Update Scripts
+		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
+		{
+			Entity entity = { e, this };
+			ScriptEngine::OnUpdateEntity(entity, sc.ScriptName, ts);
+		});
+
+		// Update Native Scripts
 		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
 		{
 			if (!nsc.Instance)
@@ -402,12 +411,6 @@ namespace Engine
 			}
 
 			nsc.Instance->OnUpdate(ts);
-		});
-
-		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
-		{
-			Entity entity = { e, this };
-			ScriptEngine::OnUpdateEntity(entity, sc.ScriptName, ts);
 		});
 	}
 

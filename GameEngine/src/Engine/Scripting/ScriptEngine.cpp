@@ -269,21 +269,9 @@ namespace Engine
 		{
 			UUID entityUUID = entity.GetUUID();
 			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses[className];
-			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass);
+
+			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entity);
 			s_ScriptEngineData->EntityInstances[entityUUID] = instance;
-
-			// set EntityID property
-			{
-				MonoProperty* ptrIDProperty = mono_class_get_property_from_name(scriptClass->GetMonoClass(), "ID");
-				ENGINE_CORE_ASSERT(ptrIDProperty, "Could not find mono property!");
-
-				MonoObject* ptrExObject = nullptr;
-				void* params = nullptr;
-				auto uuid = entityUUID;
-				params = &uuid;
-				mono_property_set_value(ptrIDProperty, instance->GetMonoObject(), &params, &ptrExObject);
-				HandleMonoException(ptrExObject);
-			}
 
 			instance->InvokeOnCreate();
 		}
@@ -501,14 +489,17 @@ namespace Engine
 	{
 		m_MonoClass = ScriptEngine::GetClassInAssembly(s_ScriptEngineData->CoreAssembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
 	}
+
 	MonoObject* ScriptClass::Instantiate()
 	{
 		return ScriptEngine::InstantiateClass(m_MonoClass);
 	}
+
 	MonoMethod* ScriptClass::GetMethod(const std::string& name, int parameterCount)
 	{
 		return mono_class_get_method_from_name(m_MonoClass, name.c_str(), parameterCount);
 	}
+
 	MonoObject* ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, void** params)
 	{
 		MonoObject* monoException = nullptr;
@@ -519,12 +510,19 @@ namespace Engine
 		return result;
 	}
 
-	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass)
+	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
 		: m_ScriptClass(scriptClass)
 	{
 		m_Instance = m_ScriptClass->Instantiate();
 
-		MonoClass* monoClass = m_ScriptClass->GetMonoClass();
+		m_Constructor = mono_class_get_method_from_name(s_ScriptEngineData->EntityClass, ".ctor", 1);
+		{
+			UUID entityID = entity.GetUUID();
+			void* param = &entityID;
+			m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, &param);
+		}
+
+		MonoClass * monoClass = m_ScriptClass->GetMonoClass();
 
 		// setup onCreate method
 		MonoMethod* OnCreateMethodPtr = mono_class_get_method_from_name(monoClass, "OnCreate", 0);
