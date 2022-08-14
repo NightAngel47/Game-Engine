@@ -1,4 +1,4 @@
-﻿using Engine.Scene;
+﻿using System;
 using System.Runtime.CompilerServices;
 using Engine.Math;
 
@@ -47,21 +47,37 @@ namespace Engine.Core
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void Entity_GetComponent_Tag(ulong entityID, out TagComponent.TagData data);
-		
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void Entity_GetComponent_Transform(ulong entityID, out TransformComponent.TransformData data);
+		internal static extern bool Entity_HasComponent(ulong entityID, ref Type componentType);
 
 		#endregion
 
-		#region Transform Component
+		#region TagComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TagComponent_GetTag(ulong entityID, out string tag);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TagComponent_SetTag(ulong entityID, ref string tag);
+
+		#endregion
+
+		#region TransformComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetPosition(ulong entityID, out Vector3 position);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void TransformComponent_SetPosition(ulong entityID, ref Vector3 position);
-		
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetRotation(ulong entityID, out Vector3 rotation);
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void TransformComponent_SetRotation(ulong entityID, ref Vector3 rotation);
-		
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetScale(ulong entityID, out Vector3 scale);
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void TransformComponent_SetScale(ulong entityID, ref Vector3 scale);
 

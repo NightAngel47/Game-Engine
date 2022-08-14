@@ -31,39 +31,36 @@ namespace InternalCalls
 
 		static bool Input_IsKeyPressed(Engine::KeyCode key);
 		static bool Input_IsMouseButtonPressed(Engine::MouseCode key);
+
 		static void Input_GetMousePosition(glm::vec2* mousePos);
+
 		static float Input_GetMouseY();
 		static float Input_GetMouseX();
 
 #pragma endregion
 
-#pragma region Components
-
-		struct TagData
-		{
-			MonoString* tag;
-		};
-
-		struct TransformData
-		{
-			glm::vec3 position;
-			glm::vec3 rotation;
-			glm::vec3 scale;
-		};
-
-#pragma endregion
-
 #pragma region Entity
 
-		static void Entity_GetComponent_Tag(Engine::UUID entityID, TagData* outTag);
-		static void Entity_GetComponent_Transform(Engine::UUID entityID, TransformData* outTransform);
+		//static bool Entity_HasComponent(Engine::UUID entityID, T componentType);
 
 #pragma endregion
 
-#pragma region Transform Component
+#pragma region TagComponent
 
 		static void TransformComponent_SetPosition(Engine::UUID entityID, glm::vec3& position);
 		static void TransformComponent_SetRotation(Engine::UUID entityID, glm::vec3& rotation);
+
+#pragma endregion
+
+#pragma region TransformComponent
+
+		static void TransformComponent_SetPosition(Engine::UUID entityID, glm::vec3& position);
+		static void TransformComponent_SetPosition(Engine::UUID entityID, glm::vec3& position);
+
+		static void TransformComponent_SetRotation(Engine::UUID entityID, glm::vec3& rotation);
+		static void TransformComponent_SetRotation(Engine::UUID entityID, glm::vec3& rotation);
+
+		static void TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale);
 		static void TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale);
 
 #pragma endregion

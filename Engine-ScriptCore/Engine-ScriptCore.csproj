@@ -69,7 +69,6 @@
     <Compile Include="Source\Engine\Math\Vector3.cs" />
     <Compile Include="Source\Engine\Scene\Components.cs" />
     <Compile Include="Source\Engine\Scene\Entity.cs" />
-    <Compile Include="Source\Engine\Scene\RegisterComponentTypes.cs" />
     <Compile Include="Source\Engine\Scene\Scene.cs" />
     <Compile Include="Source\ExampleEntity.cs" />
   </ItemGroup>
