@@ -8,7 +8,7 @@ namespace Engine.Scene
 
 		public Entity()
 		{
-			//Log.Info($"Entity Created with ID: {ID}");
+			Log.Info($"Entity Created with ID: {ID}");
 		}
 
 		protected abstract void OnCreate();

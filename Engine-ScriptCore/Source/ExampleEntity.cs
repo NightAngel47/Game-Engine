@@ -7,7 +7,7 @@ namespace Source
 	public class ExampleEntity : Entity
 	{
 		private TransformComponent transformComponent;
-		private float speed = 5.0f;
+		public float speed = 5.0f;
 
 		private float timeProgress;
 		private int iterations;

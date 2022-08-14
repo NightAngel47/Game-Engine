@@ -34,7 +34,7 @@ namespace Engine.Core
 		internal static extern bool Input_IsMouseButtonPressed(int key);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern ref Vector2 Input_GetMousePosition();
+		internal static extern void Input_GetMousePosition(out Vector2 mousePos);
 		
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern float Input_GetMouseY();

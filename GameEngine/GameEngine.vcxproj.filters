@@ -207,9 +207,6 @@
     <ClInclude Include="src\Engine\Scene\ScriptableEntity.h">
       <Filter>src\Engine\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Scripting\MonoScript.h">
-      <Filter>src\Engine\Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Scripting\ScriptEngine.h">
       <Filter>src\Engine\Scripting</Filter>
     </ClInclude>
@@ -1582,9 +1579,6 @@
     </ClCompile>
     <ClCompile Include="src\Engine\Scene\SceneSerializer.cpp">
       <Filter>src\Engine\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Scripting\MonoScript.cpp">
-      <Filter>src\Engine\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Scripting\ScriptEngine.cpp">
       <Filter>src\Engine\Scripting</Filter>

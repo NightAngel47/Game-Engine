@@ -6,7 +6,7 @@
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Renderer/Renderer2D.h"
 
-#include "Engine/Scripting/ScriptGlue.h"
+#include "Engine/Scripting/ScriptEngine.h"
 
 #include <glm/glm.hpp>
 
@@ -311,25 +311,22 @@ namespace Engine
 
 	void Scene::OnScriptsStart()
 	{
-		InternalCalls::ScriptGlue::InitRuntime(this);
+		ScriptEngine::OnRuntimeStart(this);
 
-		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
 		{
 			if (!nsc.Instance)
 			{
 				nsc.Instance = nsc.InstantiateScript();
-				nsc.Instance->m_Entity = Entity{ entity, this };
+				nsc.Instance->m_Entity = Entity{ e, this };
 				nsc.Instance->OnCreate();
 			}
 		});
 
-		m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
+		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
 		{
-			if (!sc.scriptInstatiated)
-			{
-				sc.InstantiateScript(Entity{ entity, this });
-				sc.Instance->OnCreateMethod();
-			}
+			Entity entity = { e, this };
+			ScriptEngine::OnCreateEntity(entity, sc.ScriptName);
 		});
 	}
 
@@ -341,15 +338,14 @@ namespace Engine
 
 	void Scene::OnScriptsStop()
 	{
-		m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
+
+		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
 		{
-			if (sc.scriptInstatiated)
-			{
-				sc.Instance->OnDestroyMethod();
-			}
+			Entity entity = { e, this };
+			ScriptEngine::OnDestroyEntity(entity, sc.ScriptName);
 		});
 
-		InternalCalls::ScriptGlue::ShutdownRuntime();
+		ScriptEngine::OnRuntimeStop();
 	}
 
 	void Scene::OnPhysics2DUpdate(Timestep ts)
@@ -396,27 +392,22 @@ namespace Engine
 
 	void Scene::OnScriptsUpdate(Timestep ts)
 	{
-		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
 		{
 			if (!nsc.Instance)
 			{
 				nsc.Instance = nsc.InstantiateScript();
-				nsc.Instance->m_Entity = Entity{ entity, this };
+				nsc.Instance->m_Entity = Entity{ e, this };
 				nsc.Instance->OnCreate();
 			}
 
 			nsc.Instance->OnUpdate(ts);
 		});
 
-		m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
+		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
 		{
-			if (!sc.scriptInstatiated)
-			{
-				sc.InstantiateScript(Entity{ entity, this });
-				sc.Instance->OnCreateMethod();
-			}
-
-			sc.Instance->OnUpdateMethod(ts);
+			Entity entity = { e, this };
+			ScriptEngine::OnUpdateEntity(entity, sc.ScriptName, ts);
 		});
 	}
 

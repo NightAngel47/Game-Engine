@@ -9,13 +9,6 @@ namespace InternalCalls
 
 #define ENGINE_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Engine.Core.InternalCalls::" #Name, Name)
 
-	struct RuntimeData
-	{
-		Engine::Scene* m_ActiveScene;
-	};
-
-	static RuntimeData* s_Data;
-
 	void ScriptGlue::RegisterInternalCalls()
 	{
 		ENGINE_PROFILE_FUNCTION();
@@ -59,20 +52,6 @@ namespace InternalCalls
 
 	}
 
-	void ScriptGlue::InitRuntime(Engine::Scene* activeScene)
-	{
-		s_Data = new RuntimeData();
-
-		s_Data->m_ActiveScene = activeScene;
-	}
-
-	void ScriptGlue::ShutdownRuntime()
-	{
-		s_Data->m_ActiveScene = nullptr;
-
-		delete s_Data;
-	}
-
 #pragma region Log
 
 	void ScriptGlue::Log_Trace(MonoString* message)
@@ -114,9 +93,9 @@ namespace InternalCalls
 		return Engine::Input::IsMouseButtonPressed(key);
 	}
 	
-	glm::vec2& ScriptGlue::Input_GetMousePosition()
+	void ScriptGlue::Input_GetMousePosition(glm::vec2* mousePos)
 	{
-		return Engine::Input::GetMousePosition();
+		*mousePos = Engine::Input::GetMousePosition();
 	}
 
 	float ScriptGlue::Input_GetMouseY()
@@ -133,9 +112,9 @@ namespace InternalCalls
 
 #pragma region Entity
 
-	void ScriptGlue::Entity_GetComponent_Tag(uint64_t entityID, TagData* outTag)
+	void ScriptGlue::Entity_GetComponent_Tag(Engine::UUID entityID, TagData* outTag)
 	{
-		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TagComponent>();
+		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TagComponent>();
 
 		for (auto entity : view)
 		{
@@ -149,9 +128,9 @@ namespace InternalCalls
 		}
 	}
 
-	void ScriptGlue::Entity_GetComponent_Transform(uint64_t entityID, TransformData* outTransform)
+	void ScriptGlue::Entity_GetComponent_Transform(Engine::UUID entityID, TransformData* outTransform)
 	{
-		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
 
 		for (auto entity : view)
 		{
@@ -171,9 +150,9 @@ namespace InternalCalls
 
 #pragma region Transform Component
 
-	void ScriptGlue::TransformComponent_SetPosition(uint64_t entityID, glm::vec3& position)
+	void ScriptGlue::TransformComponent_SetPosition(Engine::UUID entityID, glm::vec3& position)
 	{
-		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
 
 		for (auto entity : view)
 		{
@@ -187,9 +166,9 @@ namespace InternalCalls
 		}
 	}
 
-	void ScriptGlue::TransformComponent_SetRotation(uint64_t entityID, glm::vec3& rotation)
+	void ScriptGlue::TransformComponent_SetRotation(Engine::UUID entityID, glm::vec3& rotation)
 	{
-		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
 
 		for (auto entity : view)
 		{
@@ -203,9 +182,9 @@ namespace InternalCalls
 		}
 	}
 
-	void ScriptGlue::TransformComponent_SetScale(uint64_t entityID, glm::vec3& scale)
+	void ScriptGlue::TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale)
 	{
-		auto view = s_Data->m_ActiveScene->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
 
 		for (auto entity : view)
 		{
