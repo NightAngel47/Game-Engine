@@ -93,7 +93,6 @@ namespace Engine
 
 		auto& srcSceneRegistry = other->m_Registry;
 		auto& dstceneRegistry = newScene->m_Registry;
-		std::unordered_map<UUID, entt::entity> enttMap;
 
 		// Create entities in new scene
 		auto idView = srcSceneRegistry.view<IDComponent>();
@@ -102,11 +101,10 @@ namespace Engine
 			UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
 			const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
 			Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
-			enttMap[uuid] = newEntity;
 		}
 
 		// Copy Components (Except ID and Tag Components)
-		CopyComponent(AllComponents{}, dstceneRegistry, srcSceneRegistry, enttMap);
+		CopyComponent(AllComponents{}, dstceneRegistry, srcSceneRegistry, newScene->m_EntityMap);
 
 		return newScene;
 	}
@@ -116,13 +114,16 @@ namespace Engine
 		return CreateEntityWithUUID(UUID(), name);
 	}
 
-	Engine::Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
+	Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
+
 		entity.AddComponent<IDComponent>(uuid);
 		entity.AddComponent<TransformComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
+
+		m_EntityMap[uuid] = entity;
 
 		return entity;
 	}
@@ -130,6 +131,7 @@ namespace Engine
 	void Scene::DestroyEntity(Entity entity)
 	{
 		m_Registry.destroy(entity);
+		m_EntityMap.erase(entity.GetUUID());
 	}
 
 	void Scene::OnRuntimeStart()
@@ -249,6 +251,12 @@ namespace Engine
 	{
 		Entity newEntity = CreateEntity(entity.GetName());
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
+	}
+
+	Entity Scene::GetEntityWithUUID(UUID uuid)
+	{
+		ENGINE_CORE_ASSERT(m_EntityMap.find(uuid) != m_EntityMap.end(), "Could not find Entity with UUID: " + uuid + " in Scene: " + m_Name);
+		return { m_EntityMap.at(uuid), this };
 	}
 
 	void Scene::OnPhysics2DStart()

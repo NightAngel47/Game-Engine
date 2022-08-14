@@ -2,6 +2,8 @@
 #include "Engine/Scripting/ScriptGlue.h"
 #include <Engine/Scripting/ScriptEngine.h>
 
+#include "Engine/Scene/Entity.h"
+#include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Components.h"
 
 namespace InternalCalls
@@ -114,36 +116,20 @@ namespace InternalCalls
 
 	void ScriptGlue::Entity_GetComponent_Tag(Engine::UUID entityID, TagData* outTag)
 	{
-		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TagComponent>();
+		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
+		auto& tag = entity.GetComponent<Engine::TagComponent>();
 
-		for (auto entity : view)
-		{
-			auto [uuid, tag] = view.get<Engine::IDComponent, Engine::TagComponent>(entity);
-			if (uuid.ID == entityID)
-			{
-				outTag->tag = mono_string_new(Engine::ScriptEngine::GetAppDomain(), tag.Tag.c_str());
-
-				return;
-			}
-		}
+		outTag->tag = mono_string_new(Engine::ScriptEngine::GetAppDomain(), tag.Tag.c_str());
 	}
 
 	void ScriptGlue::Entity_GetComponent_Transform(Engine::UUID entityID, TransformData* outTransform)
 	{
-		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
+		auto& tc = entity.GetComponent<Engine::TransformComponent>();
 
-		for (auto entity : view)
-		{
-			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
-			if (uuid.ID == entityID)
-			{
-				outTransform->position = tc.Position;
-				outTransform->rotation = tc.Rotation;
-				outTransform->scale = tc.Scale;
-
-				return;
-			}
-		}
+		outTransform->position = tc.Position;
+		outTransform->rotation = tc.Rotation;
+		outTransform->scale = tc.Scale;
 	}
 
 #pragma endregion
@@ -152,50 +138,26 @@ namespace InternalCalls
 
 	void ScriptGlue::TransformComponent_SetPosition(Engine::UUID entityID, glm::vec3& position)
 	{
-		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
+		auto& tc = entity.GetComponent<Engine::TransformComponent>();
 
-		for (auto entity : view)
-		{
-			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
-			if (uuid.ID == entityID)
-			{
-				tc.Position = position;
-
-				return;
-			}
-		}
+		tc.Position = position;
 	}
 
 	void ScriptGlue::TransformComponent_SetRotation(Engine::UUID entityID, glm::vec3& rotation)
 	{
-		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
+		auto& tc = entity.GetComponent<Engine::TransformComponent>();
 
-		for (auto entity : view)
-		{
-			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
-			if (uuid.ID == entityID)
-			{
-				tc.Rotation = rotation;
-
-				return;
-			}
-		}
+		tc.Rotation = rotation;
 	}
 
 	void ScriptGlue::TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale)
 	{
-		auto view = Engine::ScriptEngine::GetSceneContext()->GetAllEntitiesWith<Engine::IDComponent, Engine::TransformComponent>();
+		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
+		auto& tc = entity.GetComponent<Engine::TransformComponent>();
 
-		for (auto entity : view)
-		{
-			auto [uuid, tc] = view.get<Engine::IDComponent, Engine::TransformComponent>(entity);
-			if (uuid.ID == entityID)
-			{
-				tc.Scale = scale;
-
-				return;
-			}
-		}
+		tc.Scale = scale;
 	}
 
 #pragma endregion

@@ -4,7 +4,7 @@
 #include <mono/metadata/appdomain.h>
 #include <mono/metadata/debug-helpers.h>
 
-#include "Engine/Scene/Scene.h"
+#include "Engine/Core/UUID.h"
 #include "Engine/Core/KeyCodes.h"
 #include "Engine/Core/MouseCodes.h"
 
