@@ -1,7 +1,6 @@
 #pragma once
 #include "Engine/Renderer/Texture.h"
 #include "Engine/Scene/SceneCamera.h"
-#include "Engine/Scripting/MonoScript.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Core/UUID.h"
 
@@ -100,6 +99,14 @@ namespace Engine
 		CameraComponent(const CameraComponent&) = default;
 	};
 
+	struct ScriptComponent
+	{
+		std::string ScriptName;
+
+		ScriptComponent() = default;
+		ScriptComponent(const ScriptComponent&) = default;
+	};
+
 	// Forward declaration
 	class ScriptableEntity;
 
@@ -115,30 +122,6 @@ namespace Engine
 		{
 			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
 			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
-		}
-	};
-
-	struct ScriptComponent
-	{
-		MonoScript* Instance = nullptr;
-		std::string scriptName;
-		bool scriptInstatiated;
-
-		ScriptComponent() = default;
-		ScriptComponent(const ScriptComponent&) = default;
-
-		void ValidateScript()
-		{
-			Instance = new MonoScript(scriptName);
-		}
-
-		void InstantiateScript(Entity& entity)
-		{
-			if (!scriptInstatiated)
-			{
-				Instance->InstantiateScript(scriptName, entity);
-				scriptInstatiated = true;
-			}
 		}
 	};
 
@@ -200,6 +183,8 @@ namespace Engine
 	{
 	};
 
-	using AllComponents =
-		ComponentGroup<TransformComponent, SpriteRendererComponent, CircleRendererComponent, CameraComponent, NativeScriptComponent, ScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
+	using AllComponents = ComponentGroup<
+		TransformComponent, SpriteRendererComponent, CircleRendererComponent, 
+		CameraComponent, NativeScriptComponent, ScriptComponent, 
+		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }

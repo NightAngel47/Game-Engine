@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>ENGINE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\GameEngine\vendor\spdlog\include;..\GameEngine\src;..\GameEngine\vendor;..\GameEngine\vendor\glm;..\GameEngine\vendor\entt\include;C:\Program Files\Mono\include\mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\GameEngine\vendor\spdlog\include;..\GameEngine\src;..\GameEngine\vendor;..\GameEngine\vendor\glm;..\GameEngine\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -92,9 +92,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\lib\mono\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\Mono\lib\mono $(SolutionDir)\bin\Debug-windows-x86_64\$(ProjectName)\Mono\lib\mono &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\Mono\lib\mono $(SolutionDir)\bin\Debug-windows-x86_64\$(ProjectName)\Mono\lib\mono &gt; nul)
-IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\etc\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\Mono\etc $(SolutionDir)\bin\Debug-windows-x86_64\$(ProjectName)\Mono\etc &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\Mono\etc $(SolutionDir)\bin\Debug-windows-x86_64\$(ProjectName)\Mono\etc &gt; nul)
-IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll $(SolutionDir)\bin\Debug-windows-x86_64\$(ProjectName) &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll $(SolutionDir)\bin\Debug-windows-x86_64\$(ProjectName) &gt; nul)</Command>
+      <Command>IF EXIST $(SolutionDir)\GameEngine\vendor\mono\lib\mono\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\mono\lib\mono $(SolutionDir)\bin\Debug-windows-x86_64\$(ProjectName)\mono\lib\mono &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\mono\lib\mono $(SolutionDir)\bin\Debug-windows-x86_64\$(ProjectName)\mono\lib\mono &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -102,7 +100,7 @@ IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll\ (xcopy /Q 
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>ENGINE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\GameEngine\vendor\spdlog\include;..\GameEngine\src;..\GameEngine\vendor;..\GameEngine\vendor\glm;..\GameEngine\vendor\entt\include;C:\Program Files\Mono\include\mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\GameEngine\vendor\spdlog\include;..\GameEngine\src;..\GameEngine\vendor;..\GameEngine\vendor\glm;..\GameEngine\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -118,9 +116,7 @@ IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll\ (xcopy /Q 
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\lib\mono\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\Mono\lib\mono $(SolutionDir)\bin\Release-windows-x86_64\$(ProjectName)\Mono\lib\mono &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\Mono\lib\mono $(SolutionDir)\bin\Release-windows-x86_64\$(ProjectName)\Mono\lib\mono &gt; nul)
-IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\etc\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\Mono\etc $(SolutionDir)\bin\Release-windows-x86_64\$(ProjectName)\Mono\etc &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\Mono\etc $(SolutionDir)\bin\Release-windows-x86_64\$(ProjectName)\Mono\etc &gt; nul)
-IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll $(SolutionDir)\bin\Release-windows-x86_64\$(ProjectName) &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll $(SolutionDir)\bin\Release-windows-x86_64\$(ProjectName) &gt; nul)</Command>
+      <Command>IF EXIST $(SolutionDir)\GameEngine\vendor\mono\lib\mono\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\mono\lib\mono $(SolutionDir)\bin\Release-windows-x86_64\$(ProjectName)\mono\lib\mono &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\mono\lib\mono $(SolutionDir)\bin\Release-windows-x86_64\$(ProjectName)\mono\lib\mono &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -128,7 +124,7 @@ IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll\ (xcopy /Q 
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>ENGINE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\GameEngine\vendor\spdlog\include;..\GameEngine\src;..\GameEngine\vendor;..\GameEngine\vendor\glm;..\GameEngine\vendor\entt\include;C:\Program Files\Mono\include\mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\GameEngine\vendor\spdlog\include;..\GameEngine\src;..\GameEngine\vendor;..\GameEngine\vendor\glm;..\GameEngine\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -144,9 +140,7 @@ IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll\ (xcopy /Q 
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\lib\mono\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\Mono\lib\mono $(SolutionDir)\bin\Dist-windows-x86_64\$(ProjectName)\Mono\lib\mono &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\Mono\lib\mono $(SolutionDir)\bin\Dist-windows-x86_64\$(ProjectName)\Mono\lib\mono &gt; nul)
-IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\etc\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\Mono\etc $(SolutionDir)\bin\Dist-windows-x86_64\$(ProjectName)\Mono\etc &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\Mono\etc $(SolutionDir)\bin\Dist-windows-x86_64\$(ProjectName)\Mono\etc &gt; nul)
-IF EXIST $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll $(SolutionDir)\bin\Dist-windows-x86_64\$(ProjectName) &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\Mono\bin\mono-2.0-sgen.dll $(SolutionDir)\bin\Dist-windows-x86_64\$(ProjectName) &gt; nul)</Command>
+      <Command>IF EXIST $(SolutionDir)\GameEngine\vendor\mono\lib\mono\ (xcopy /Q /E /Y /I $(SolutionDir)\GameEngine\vendor\mono\lib\mono $(SolutionDir)\bin\Dist-windows-x86_64\$(ProjectName)\mono\lib\mono &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\GameEngine\vendor\mono\lib\mono $(SolutionDir)\bin\Dist-windows-x86_64\$(ProjectName)\mono\lib\mono &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

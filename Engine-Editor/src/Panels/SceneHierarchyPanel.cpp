@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Engine/Scene/Components.h"
+#include "Engine/Scripting/ScriptEngine.h"
 
 #include <cstring>
 
@@ -417,15 +418,26 @@ namespace Engine
 
 		DrawComponent<ScriptComponent>("Script Component", entity, [](auto& component)
 		{
-			auto& scriptName = component.scriptName;
+			bool scriptClassExists = ScriptEngine::EntityClassExists(component.ScriptName);
 
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
-			strcpy_s(buffer, sizeof(buffer), scriptName.c_str());
+			strcpy_s(buffer, sizeof(buffer), component.ScriptName.c_str());
+
+			if (!scriptClassExists)
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
+			}
+
 			if (ImGui::InputText("ScriptName", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 			{
-				scriptName = std::string(buffer);
-				component.ValidateScript();
+
+				component.ScriptName = std::string(buffer);
+			}
+
+			if (!scriptClassExists)
+			{
+				ImGui::PopStyleColor();
 			}
 		});
 	}

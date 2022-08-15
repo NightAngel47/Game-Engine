@@ -20,8 +20,7 @@ project "Engine-Editor"
 		"%{wks.location}/GameEngine/vendor",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.ImGuizmo}",
-		"%{IncludeDir.Mono}"
+		"%{IncludeDir.ImGuizmo}"
 	}
 
 	links
@@ -31,9 +30,7 @@ project "Engine-Editor"
 
 	postbuildcommands
 	{
-		"{COPY} %{LibraryDir.Mono_Lib}/mono/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/lib/mono",
-		"{COPY} %{LibraryDir.Mono_Etc}/ %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/Mono/etc",
-		"{COPY} %{Library.Mono_SGen_DLL} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}"
+		"{COPY} %{LibraryDir.mono}/mono %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/mono/lib/mono"
 	}	
 
 	filter "system:windows"

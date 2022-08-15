@@ -2,6 +2,7 @@
 **/bin/
 !vendor/premake/bin/
 **/bin-int/
+Intermediates/
 
 # Engine files
 *.log
@@ -19,6 +20,5 @@
 
 # Directories
 GameEngine/vendor/VulkanSDK
-GameEngine/vendor/Mono
 Engine-Editor/assets/cache
 scripts/__pycache__

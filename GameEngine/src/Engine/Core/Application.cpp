@@ -2,6 +2,7 @@
 #include "Engine/Core/Application.h"
 
 #include "Engine/Renderer/Renderer.h"
+#include "Engine/Scripting/ScriptEngine.h"
 
 #include "Engine/Utils/PlatformUtils.h"
 
@@ -27,7 +28,7 @@ namespace Engine
 		m_Window->SetEventCallBack(ENGINE_BIND_EVENT_FN(Application::OnEvent));
 
 		Renderer::Init();
-		m_ScriptEngine = new ScriptEngine();
+		ScriptEngine::Init();
 
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
@@ -37,6 +38,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
+		ScriptEngine::Shutdown();
 		Renderer::Shutdown();
 	}
 

@@ -38,8 +38,8 @@ namespace Engine
 		void OnViewportResize(uint32_t width, uint32_t height);
 		Entity GetPrimaryCameraEntity();
 
-
 		void DuplicateEntity(Entity entity);
+		Entity GetEntityWithUUID(UUID uuid);
 
 		void SetSceneName(const std::string& name) { if (!name.empty()) m_Name = name; }
 
@@ -63,10 +63,14 @@ namespace Engine
 		void OnRender2DUpdate();
 	private:
 		entt::registry m_Registry;
+		std::unordered_map<UUID, entt::entity> m_EntityMap;
+
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 		std::string m_Name;
 
 		// Physics
+		float m_Accumulator = 0.0f;
+		const float m_PhysicsTimestep = 0.01f;
 		b2World* m_PhysicsWorld;
 		uint32_t m_VelocityIteractions = 8;
 		uint32_t m_PositionIteractions = 3;

@@ -1,5 +1,6 @@
-﻿using Engine.Scene;
+﻿using System;
 using System.Runtime.CompilerServices;
+using Engine.Math;
 
 namespace Engine.Core
 {
@@ -9,16 +10,16 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Trace(string message);
-
+		
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Info(string message);
-
+		
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Warn(string message);
-
+		
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Error(string message);
-
+		
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Critical(string message);
 
@@ -28,16 +29,16 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern bool Input_IsKeyPressed(int key);
-
+		
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern bool Input_IsMouseButtonPressed(int key);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void Input_GetMousePosition(out float x, out float y);
-
+		internal static extern void Input_GetMousePosition(out Vector2 mousePos);
+		
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern float Input_GetMouseY();
-
+		
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern float Input_GetMouseX();
 
@@ -46,16 +47,29 @@ namespace Engine.Core
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void Entity_GetComponent(ulong entityID, out TagComponent.TagData data);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void Entity_GetComponent(ulong entityID, out TransformComponent.TransformData data);
+		internal static extern bool Entity_HasComponent(ulong entityID, Type componentType);
 
 		#endregion
 
-		#region Transform Component
+		#region TransformComponent
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void TransformComponent_SetPosition(ulong entityID, out float x, out float y, out float z);
+		internal static extern void TransformComponent_GetPosition(ulong entityID, out Vector3 position);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_SetPosition(ulong entityID, ref Vector3 position);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetRotation(ulong entityID, out Vector3 rotation);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_SetRotation(ulong entityID, ref Vector3 rotation);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetScale(ulong entityID, out Vector3 scale);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_SetScale(ulong entityID, ref Vector3 scale);
 
 		#endregion
 	}

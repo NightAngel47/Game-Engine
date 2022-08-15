@@ -250,7 +250,7 @@ namespace Engine
 			out << YAML::BeginMap; // ScriptComponent
 
 			auto& scriptComponent = entity.GetComponent<ScriptComponent>();
-			out << YAML::Key << "ScriptName" << YAML::Value << scriptComponent.scriptName;
+			out << YAML::Key << "ScriptName" << YAML::Value << scriptComponent.ScriptName;
 
 			out << YAML::EndMap; // ScriptComponent
 		}
@@ -425,9 +425,7 @@ namespace Engine
 				if (scriptComponent)
 				{
 					auto& script = deserializedEntity.AddComponent<ScriptComponent>();
-					script.scriptName = scriptComponent["ScriptName"].as<std::string>();
-
-					if (!script.scriptName.empty()) script.ValidateScript();
+					script.ScriptName = scriptComponent["ScriptName"].as<std::string>();
 				}
 
 				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

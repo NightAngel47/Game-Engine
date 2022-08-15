@@ -6,6 +6,8 @@
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Renderer/Renderer2D.h"
 
+#include "Engine/Scripting/ScriptEngine.h"
+
 #include <glm/glm.hpp>
 
 // box2d
@@ -14,6 +16,7 @@
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_polygon_shape.h>
 #include "box2d/b2_circle_shape.h"
+#include <box2d/b2_types.h>
 
 namespace Engine
 {
@@ -90,7 +93,6 @@ namespace Engine
 
 		auto& srcSceneRegistry = other->m_Registry;
 		auto& dstceneRegistry = newScene->m_Registry;
-		std::unordered_map<UUID, entt::entity> enttMap;
 
 		// Create entities in new scene
 		auto idView = srcSceneRegistry.view<IDComponent>();
@@ -99,11 +101,10 @@ namespace Engine
 			UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
 			const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
 			Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
-			enttMap[uuid] = newEntity;
 		}
 
 		// Copy Components (Except ID and Tag Components)
-		CopyComponent(AllComponents{}, dstceneRegistry, srcSceneRegistry, enttMap);
+		CopyComponent(AllComponents{}, dstceneRegistry, srcSceneRegistry, newScene->m_EntityMap);
 
 		return newScene;
 	}
@@ -113,13 +114,16 @@ namespace Engine
 		return CreateEntityWithUUID(UUID(), name);
 	}
 
-	Engine::Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
+	Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
+
 		entity.AddComponent<IDComponent>(uuid);
 		entity.AddComponent<TransformComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
+
+		m_EntityMap[uuid] = entity;
 
 		return entity;
 	}
@@ -127,6 +131,7 @@ namespace Engine
 	void Scene::DestroyEntity(Entity entity)
 	{
 		m_Registry.destroy(entity);
+		m_EntityMap.erase(entity.GetUUID());
 	}
 
 	void Scene::OnRuntimeStart()
@@ -247,6 +252,12 @@ namespace Engine
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
 	}
 
+	Entity Scene::GetEntityWithUUID(UUID uuid)
+	{
+		ENGINE_CORE_ASSERT(m_EntityMap.find(uuid) != m_EntityMap.end(), "Could not find Entity with UUID: " + std::to_string(uuid) + " in Scene: " + m_Name);
+		return { m_EntityMap.at(uuid), this };
+	}
+
 	void Scene::OnPhysics2DStart()
 	{
 		m_PhysicsWorld = new b2World({ 0.0f, -9.8f });
@@ -307,22 +318,23 @@ namespace Engine
 
 	void Scene::OnScriptsStart()
 	{
-		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+		ScriptEngine::OnRuntimeStart(this);
+
+		// Start Scripts
+		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
+		{
+			Entity entity = { e, this };
+			ScriptEngine::OnCreateEntity(entity, sc.ScriptName);
+		});
+
+		// Start Native Scripts
+		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
 		{
 			if (!nsc.Instance)
 			{
 				nsc.Instance = nsc.InstantiateScript();
-				nsc.Instance->m_Entity = Entity{ entity, this };
+				nsc.Instance->m_Entity = Entity{ e, this };
 				nsc.Instance->OnCreate();
-			}
-		});
-
-		m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
-		{
-			if (!sc.scriptInstatiated)
-			{
-				sc.InstantiateScript(Entity{ entity, this });
-				sc.Instance->OnCreate();
 			}
 		});
 	}
@@ -335,58 +347,77 @@ namespace Engine
 
 	void Scene::OnScriptsStop()
 	{
-		m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
+		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
 		{
-			if (sc.scriptInstatiated)
-			{
-				sc.Instance->OnDestroy();
-			}
+			Entity entity = { e, this };
+			ScriptEngine::OnDestroyEntity(entity, sc.ScriptName);
 		});
+
+		ScriptEngine::OnRuntimeStop();
 	}
 
 	void Scene::OnPhysics2DUpdate(Timestep ts)
 	{
-		m_PhysicsWorld->Step(ts, m_VelocityIteractions, m_PositionIteractions);
-
-		// Retrieve transform from box2d
-		auto view = m_Registry.view<Rigidbody2DComponent>();
-		for (auto e : view)
+		m_Accumulator += ts;
+		while (m_Accumulator >= m_PhysicsTimestep)
 		{
-			Entity entity = { e, this };
-			auto& transform = entity.GetComponent<TransformComponent>();
-			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+			// update transform
+			{
+				auto view = m_Registry.view<Rigidbody2DComponent>();
+				for (auto e : view)
+				{
+					Entity entity = { e, this };
+					auto& transform = entity.GetComponent<TransformComponent>();
+					auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
-			b2Body* body = (b2Body*)rb2d.RuntimeBody;
-			auto& position = body->GetPosition();
-			transform.Position.x = position.x;
-			transform.Position.y = position.y;
-			transform.Rotation.z = body->GetAngle();
+					b2Body* body = (b2Body*)rb2d.RuntimeBody;
+					body->SetTransform({ transform.Position.x, transform.Position.y }, transform.Rotation.z);
+				}
+			}
+
+			m_PhysicsWorld->Step(m_PhysicsTimestep, m_VelocityIteractions, m_PositionIteractions);
+
+			// Retrieve transform from box2d
+			{
+				auto view = m_Registry.view<Rigidbody2DComponent>();
+				for (auto e : view)
+				{
+					Entity entity = { e, this };
+					auto& transform = entity.GetComponent<TransformComponent>();
+					auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+
+					b2Body* body = (b2Body*)rb2d.RuntimeBody;
+					auto& position = body->GetPosition();
+					transform.Position.x = position.x;
+					transform.Position.y = position.y;
+					transform.Rotation.z = body->GetAngle();
+				}
+			}
+
+			m_Accumulator -= m_PhysicsTimestep;
 		}
 	}
 
 	void Scene::OnScriptsUpdate(Timestep ts)
 	{
-		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+		// Update Scripts
+		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
+		{
+			Entity entity = { e, this };
+			ScriptEngine::OnUpdateEntity(entity, sc.ScriptName, ts);
+		});
+
+		// Update Native Scripts
+		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
 		{
 			if (!nsc.Instance)
 			{
 				nsc.Instance = nsc.InstantiateScript();
-				nsc.Instance->m_Entity = Entity{ entity, this };
+				nsc.Instance->m_Entity = Entity{ e, this };
 				nsc.Instance->OnCreate();
 			}
 
 			nsc.Instance->OnUpdate(ts);
-		});
-
-		m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc)
-		{
-			if (!sc.scriptInstatiated)
-			{
-				sc.InstantiateScript(Entity{ entity, this });
-				sc.Instance->OnCreate();
-			}
-
-			sc.Instance->OnUpdate(ts);
 		});
 	}
 

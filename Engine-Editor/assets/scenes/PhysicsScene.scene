@@ -18,6 +18,8 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
+    ScriptComponent:
+      ScriptName: Source.ExampleEntity
   - Entity: 17601489424193035467
     TagComponent:
       Tag: Dynamic Box
