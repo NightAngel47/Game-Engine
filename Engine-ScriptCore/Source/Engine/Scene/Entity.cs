@@ -32,7 +32,7 @@ namespace Engine.Scene
 				return null;
 			}
 
-			return new T();
+			return new T() { Entity = this };
 		}
 	}
 }

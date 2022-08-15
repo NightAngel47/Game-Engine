@@ -47,17 +47,7 @@ namespace Engine.Core
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern bool Entity_HasComponent(ulong entityID, ref Type componentType);
-
-		#endregion
-
-		#region TagComponent
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void TagComponent_GetTag(ulong entityID, out string tag);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void TagComponent_SetTag(ulong entityID, ref string tag);
+		internal static extern bool Entity_HasComponent(ulong entityID, Type componentType);
 
 		#endregion
 

@@ -14,9 +14,9 @@ namespace Source
 
 		protected override void OnCreate()
 		{
-			TagComponent tagComponent = GetComponent<TagComponent>();
-			string name = tagComponent.Tag;
-			Log.Info($"Name: {name}");
+			//TagComponent tagComponent = GetComponent<TagComponent>();
+			//string name = tagComponent.Tag;
+			//Log.Info($"Name: {name}");
 
 			transformComponent = GetComponent<TransformComponent>();
 			Vector3 pos = transformComponent.Position;

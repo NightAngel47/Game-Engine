@@ -8,6 +8,16 @@
 
 namespace InternalCalls
 {
+	static std::unordered_map < MonoType*, std::function<bool(Engine::Entity) >> s_EntityHasComponentFuncs;
+
+	static Engine::Entity GetEntityFromScene(Engine::UUID entityID)
+	{
+		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
+		Engine::Entity entity = scene->GetEntityWithUUID(entityID);
+		ENGINE_CORE_ASSERT(entity, "Entity with UUID: " + std::to_string(entityID) + " was not found in Scene!");
+		return entity;
+	}
 
 #define ENGINE_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Engine.Core.InternalCalls::" #Name, Name)
 
@@ -31,7 +41,9 @@ namespace InternalCalls
 
 		ENGINE_ADD_INTERNAL_CALL(Input_IsKeyPressed);
 		ENGINE_ADD_INTERNAL_CALL(Input_IsMouseButtonPressed);
+		
 		ENGINE_ADD_INTERNAL_CALL(Input_GetMousePosition);
+		
 		ENGINE_ADD_INTERNAL_CALL(Input_GetMouseY);
 		ENGINE_ADD_INTERNAL_CALL(Input_GetMouseX);
 
@@ -39,19 +51,54 @@ namespace InternalCalls
 
 #pragma region Entity
 
-		ENGINE_ADD_INTERNAL_CALL(Entity_GetComponent_Tag);
-		ENGINE_ADD_INTERNAL_CALL(Entity_GetComponent_Transform);
+		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
 
 #pragma endregion
 
-#pragma region Transform Component
+#pragma region TransformComponent
 
+		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetPosition);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetPosition);
+		
+		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetRotation);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetRotation);
+		
+		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetScale);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetScale);
 
 #pragma endregion
 
+	}
+
+	template<typename... Component>
+	static void RegisterComponent()
+	{
+		([]()
+		{
+			std::string_view typeName = typeid(Component).name();
+			size_t pos = typeName.find_last_of(':');
+			std::string_view structName = typeName.substr(pos + 1);
+			std::string managedTypeName = fmt::format("Engine.Scene.{}", structName);
+
+			MonoType* managedType = mono_reflection_type_from_name(managedTypeName.data(), mono_assembly_get_image(Engine::ScriptEngine::GetCoreAssembly()));
+			if (!managedType)
+			{
+				ENGINE_CORE_ERROR("Could not register component: {} for scripting!", managedTypeName);
+				return;
+			}
+			s_EntityHasComponentFuncs[managedType] = [](Engine::Entity entity) { return entity.HasComponent<Component>(); };
+		}(), ... );
+	}
+
+	template<typename... Component>
+	static void RegisterComponent(Engine::ComponentGroup<Component...>)
+	{
+		RegisterComponent<Component...>();
+	}
+
+	void ScriptGlue::RegisterComponentTypes()
+	{
+		RegisterComponent(Engine::AllComponents{});
 	}
 
 #pragma region Log
@@ -114,50 +161,52 @@ namespace InternalCalls
 
 #pragma region Entity
 
-	void ScriptGlue::Entity_GetComponent_Tag(Engine::UUID entityID, TagData* outTag)
+	bool ScriptGlue::Entity_HasComponent(Engine::UUID entityID, MonoReflectionType* componentType)
 	{
-		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
-		auto& tag = entity.GetComponent<Engine::TagComponent>();
-
-		outTag->tag = mono_string_new(Engine::ScriptEngine::GetAppDomain(), tag.Tag.c_str());
-	}
-
-	void ScriptGlue::Entity_GetComponent_Transform(Engine::UUID entityID, TransformData* outTransform)
-	{
-		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
-		auto& tc = entity.GetComponent<Engine::TransformComponent>();
-
-		outTransform->position = tc.Position;
-		outTransform->rotation = tc.Rotation;
-		outTransform->scale = tc.Scale;
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		MonoType* managedType = mono_reflection_type_get_type(componentType);
+		ENGINE_CORE_ASSERT(s_EntityHasComponentFuncs.find(managedType) != s_EntityHasComponentFuncs.end());
+		return s_EntityHasComponentFuncs.at(managedType)(entity);
 	}
 
 #pragma endregion
 
-#pragma region Transform Component
+#pragma region TransformComponent
+
+	void ScriptGlue::TransformComponent_GetPosition(Engine::UUID entityID, glm::vec3* position)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*position = entity.GetComponent<Engine::TransformComponent>().Position;
+	}
 
 	void ScriptGlue::TransformComponent_SetPosition(Engine::UUID entityID, glm::vec3& position)
 	{
-		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
-		auto& tc = entity.GetComponent<Engine::TransformComponent>();
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::TransformComponent>().Position = position;
+	}
 
-		tc.Position = position;
+	void ScriptGlue::TransformComponent_GetRotation(Engine::UUID entityID, glm::vec3* rotation)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*rotation = entity.GetComponent<Engine::TransformComponent>().Rotation;
 	}
 
 	void ScriptGlue::TransformComponent_SetRotation(Engine::UUID entityID, glm::vec3& rotation)
 	{
-		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
-		auto& tc = entity.GetComponent<Engine::TransformComponent>();
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::TransformComponent>().Rotation = rotation;
+	}
 
-		tc.Rotation = rotation;
+	void ScriptGlue::TransformComponent_GetScale(Engine::UUID entityID, glm::vec3* scale)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*scale = entity.GetComponent<Engine::TransformComponent>().Scale;
 	}
 
 	void ScriptGlue::TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale)
 	{
-		Engine::Entity entity = Engine::ScriptEngine::GetSceneContext()->GetEntityWithUUID(entityID);
-		auto& tc = entity.GetComponent<Engine::TransformComponent>();
-
-		tc.Scale = scale;
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::TransformComponent>().Scale = scale;
 	}
 
 #pragma endregion

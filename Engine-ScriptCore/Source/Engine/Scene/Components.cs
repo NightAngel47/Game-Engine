@@ -5,31 +5,7 @@ namespace Engine.Scene
 {
 	public abstract class Component
 	{
-		public Entity Entity { get; protected set; } = null;
-	}
-
-	public class TagComponent : Component
-	{
-
-		public string Tag
-		{
-			get
-			{
-				InternalCalls.TagComponent_GetTag(Entity.ID, out string tag);
-				return tag;
-			}
-
-			set => InternalCalls.TagComponent_SetTag(Entity.ID, ref value);
-		}
-
-		public TagComponent()
-		{
-		}
-
-		public TagComponent(Entity entity)
-		{
-			Entity = entity;
-		}
+		public Entity Entity { get; internal set; } = null;
 	}
 
 	public class TransformComponent : Component

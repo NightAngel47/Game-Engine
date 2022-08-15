@@ -133,6 +133,8 @@ namespace Engine
 		LoadAssembly("Resources/Scripts/Engine-ScriptCore.dll");
 
 		LoadEntityClasses(s_ScriptEngineData->CoreAssembly);
+
+		InternalCalls::ScriptGlue::RegisterComponentTypes();
 		InternalCalls::ScriptGlue::RegisterInternalCalls();
 	}
 

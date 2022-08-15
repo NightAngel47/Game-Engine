@@ -69,7 +69,7 @@ namespace Engine
 		std::string m_Name;
 
 		// Physics
-		float m_Accumulator;
+		float m_Accumulator = 0.0f;
 		const float m_PhysicsTimestep = 0.01f;
 		b2World* m_PhysicsWorld;
 		uint32_t m_VelocityIteractions = 8;

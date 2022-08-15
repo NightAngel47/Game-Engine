@@ -164,7 +164,6 @@ namespace Engine
 
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
-
 		// Update scripts
 		OnScriptsUpdate(ts);
 
@@ -255,7 +254,7 @@ namespace Engine
 
 	Entity Scene::GetEntityWithUUID(UUID uuid)
 	{
-		ENGINE_CORE_ASSERT(m_EntityMap.find(uuid) != m_EntityMap.end(), "Could not find Entity with UUID: " + uuid + " in Scene: " + m_Name);
+		ENGINE_CORE_ASSERT(m_EntityMap.find(uuid) != m_EntityMap.end(), "Could not find Entity with UUID: " + std::to_string(uuid) + " in Scene: " + m_Name);
 		return { m_EntityMap.at(uuid), this };
 	}
 
