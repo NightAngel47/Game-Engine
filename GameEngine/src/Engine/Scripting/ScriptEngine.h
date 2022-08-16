@@ -10,6 +10,7 @@ extern "C"
 	typedef struct _MonoObject MonoObject;
 	typedef struct _MonoMethod MonoMethod;
 	typedef struct _MonoClassField MonoClassField;
+	typedef struct _MonoType MonoType;
 	typedef struct _MonoProperty MonoProperty;
 	typedef struct _MonoString MonoString;
 }
@@ -23,10 +24,24 @@ typedef void(*OnUpdate) (MonoObject* obj, MonoObject* timestep, MonoObject** exp
 namespace Engine
 {
 
+	class ScriptField
+	{
+	public:
+		ScriptField() = default;
+		ScriptField(MonoClassField* monoField);
+		~ScriptField() = default;
+
+	private:
+		MonoClassField* m_MonoField = nullptr;
+		uint8_t m_Access;
+		MonoType* m_MonoType = nullptr;
+		std::string m_Name;
+	};
+
 	class ScriptClass
 	{
 	public:
-		ScriptClass(std::string classNamespace, std::string className);
+		ScriptClass(const std::string& classNamespace, const std::string& className);
 		~ScriptClass() = default;
 
 		MonoObject* Instantiate();
@@ -41,11 +56,13 @@ namespace Engine
 		std::string m_ClassName;
 
 		MonoClass* m_MonoClass = nullptr;
+		ScriptField* m_ScriptFields[];
 	};
 
 	class ScriptInstance
 	{
 	public:
+		ScriptInstance() = default;
 		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
 		~ScriptInstance() = default;
 

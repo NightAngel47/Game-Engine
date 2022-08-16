@@ -12,6 +12,8 @@ namespace Source
 		private float timeProgress;
 		private int iterations;
 
+		public string exampleString = "Example";
+
 		protected override void OnCreate()
 		{
 			//TagComponent tagComponent = GetComponent<TagComponent>();

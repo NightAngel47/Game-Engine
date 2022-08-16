@@ -486,10 +486,21 @@ namespace Engine
 		return result;
 	}
 
-	ScriptClass::ScriptClass(std::string classNamespace, std::string className)
+	ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className)
 		: m_ClassNamespace(classNamespace), m_ClassName(className)
 	{
 		m_MonoClass = ScriptEngine::GetClassInAssembly(s_ScriptEngineData->CoreAssembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
+		
+		m_ScriptFields[mono_class_num_fields(m_MonoClass)] = {};
+
+		int i = 0;
+		void* itr = nullptr;
+		MonoClassField* field = nullptr;
+		while ((field = mono_class_get_fields(m_MonoClass, &itr)) != nullptr)
+		{
+			m_ScriptFields[i] = new ScriptField(field);
+			++i;
+		}
 	}
 
 	MonoObject* ScriptClass::Instantiate()
@@ -544,31 +555,39 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnCreate()
 	{
+		if (!OnCreateThunk) return; // handle script without OnCreate
+
 		MonoObject* ptrExObject = nullptr;
-
 		OnCreateThunk(m_Instance, &ptrExObject);
-
 		HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnDestroy()
 	{
+		if (!OnDestroyThunk) return; // handle script without OnDestroy
+
 		MonoObject* ptrExObject = nullptr;
-
 		OnDestroyThunk(m_Instance, &ptrExObject);
-
 		HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnUpdate(Timestep ts)
 	{
+		if (!OnUpdateThunk) return; // handle script without OnUpdate
+
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->TimestepClass, &ts);
-
 		MonoObject* ptrExObject = nullptr;
-
 		OnUpdateThunk(m_Instance, paramBox, &ptrExObject);
-
 		HandleMonoException(ptrExObject);
+	}
+
+	ScriptField::ScriptField(MonoClassField* monoField)
+		:m_MonoField(monoField)
+	{
+		m_Access = ScriptEngine::GetFieldAccessibility(m_MonoField);
+		m_MonoType = mono_field_get_type(m_MonoField);
+		m_Name = mono_field_get_name(m_MonoField);
+		ENGINE_CORE_TRACE("Field: " + m_Name + " Type: " + mono_type_get_name(m_MonoType));
 	}
 
 }
