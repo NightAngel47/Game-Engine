@@ -686,6 +686,9 @@
       <Project>{E4442B0F-5059-53C0-19DB-F61F85AE4FF1}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Engine\Scripting\ScriptClass" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

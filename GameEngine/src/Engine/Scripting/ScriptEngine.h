@@ -24,6 +24,7 @@ typedef void(*OnUpdate) (MonoObject* obj, MonoObject* timestep, MonoObject** exp
 namespace Engine
 {
 
+	class ScriptInstance;
 	class ScriptField
 	{
 	public:
@@ -31,11 +32,16 @@ namespace Engine
 		ScriptField(MonoClassField* monoField);
 		~ScriptField() = default;
 
+		MonoClassField* GetMonoField() { return m_MonoField; }
+		void GetValue(Ref<ScriptInstance> instance, void* value);
+		const std::string& GetTypeName() { return m_TypeName; }
+
+		bool IsPublic();
+
 	private:
 		MonoClassField* m_MonoField = nullptr;
 		uint8_t m_Access;
-		MonoType* m_MonoType = nullptr;
-		std::string m_Name;
+		std::string m_TypeName;
 	};
 
 	class ScriptClass
@@ -51,12 +57,15 @@ namespace Engine
 		MonoMethod* GetMethod(const std::string& name, int parameterCount);
 		MonoObject* InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr);
 
+		Ref<ScriptField> GetScriptField(const std::string& fieldName) { return m_ScriptFields[fieldName]; }
+		std::unordered_map<std::string, Ref<ScriptField>> GetScriptFields() { return m_ScriptFields; }
+
 	private:
 		std::string m_ClassNamespace;
 		std::string m_ClassName;
 
 		MonoClass* m_MonoClass = nullptr;
-		ScriptField* m_ScriptFields[];
+		std::unordered_map<std::string, Ref<ScriptField>> m_ScriptFields;
 	};
 
 	class ScriptInstance

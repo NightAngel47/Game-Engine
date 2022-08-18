@@ -1629,4 +1629,7 @@
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Engine\Scripting\ScriptClass" />
+  </ItemGroup>
 </Project>

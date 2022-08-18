@@ -8,6 +8,7 @@ namespace Source
 	{
 		private TransformComponent transformComponent;
 		public float speed = 5.0f;
+		public int testNum = 25;
 
 		private float timeProgress;
 		private int iterations;

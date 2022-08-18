@@ -338,7 +338,7 @@ namespace Engine
 	{
 		if (EntityInstanceExists(entityID))
 		{
-			return s_ScriptEngineData->EntityInstances[entityID];
+			return s_ScriptEngineData->EntityInstances.at(entityID);
 		}
 
 		ENGINE_CORE_WARN("Entity Instances with UUID of " + std::to_string(entityID) + " could not be found!");
@@ -490,15 +490,14 @@ namespace Engine
 		: m_ClassNamespace(classNamespace), m_ClassName(className)
 	{
 		m_MonoClass = ScriptEngine::GetClassInAssembly(s_ScriptEngineData->CoreAssembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
-		
-		m_ScriptFields[mono_class_num_fields(m_MonoClass)] = {};
 
 		int i = 0;
 		void* itr = nullptr;
 		MonoClassField* field = nullptr;
 		while ((field = mono_class_get_fields(m_MonoClass, &itr)) != nullptr)
 		{
-			m_ScriptFields[i] = new ScriptField(field);
+			const char* fieldName = mono_field_get_name(field);
+			m_ScriptFields[fieldName] = CreateRef<ScriptField>(field);
 			++i;
 		}
 	}
@@ -585,9 +584,22 @@ namespace Engine
 		:m_MonoField(monoField)
 	{
 		m_Access = ScriptEngine::GetFieldAccessibility(m_MonoField);
-		m_MonoType = mono_field_get_type(m_MonoField);
-		m_Name = mono_field_get_name(m_MonoField);
-		ENGINE_CORE_TRACE("Field: " + m_Name + " Type: " + mono_type_get_name(m_MonoType));
+		MonoType* monoType = mono_field_get_type(m_MonoField);
+		m_TypeName = mono_type_get_name(monoType);
+		
+		// TODO remove/move to debug only
+		std::string name = mono_field_get_name(m_MonoField);
+		ENGINE_CORE_TRACE("Field: " + name + " Type: " + m_TypeName);
+	}
+
+	void ScriptField::GetValue(Ref<ScriptInstance> instance, void* value)
+	{
+		mono_field_get_value(instance->GetMonoObject(), m_MonoField, value);
+	}
+
+	bool ScriptField::IsPublic()
+	{
+		return m_Access& (uint8_t)Accessibility::Public ? true : false;
 	}
 
 }
