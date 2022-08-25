@@ -29,6 +29,7 @@ namespace Engine
 		MonoDomain* AppDomain = nullptr;
 
 		MonoAssembly* CoreAssembly = nullptr;
+		MonoAssembly* AppAssembly = nullptr;
 
 		MonoClass* EntityClass = nullptr;
 		MonoClass* TimestepClass = nullptr;
@@ -130,9 +131,10 @@ namespace Engine
 		s_ScriptEngineData = new ScriptEngineData();
 
 		InitMono();
-		LoadAssembly("Resources/Scripts/Engine-ScriptCore.dll");
 
-		LoadEntityClasses(s_ScriptEngineData->CoreAssembly);
+		LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll");
+		LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll");
+		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 
 		InternalCalls::ScriptGlue::RegisterComponentTypes();
 		InternalCalls::ScriptGlue::RegisterInternalCalls();
@@ -159,22 +161,30 @@ namespace Engine
 	void ScriptEngine::ShutdownMono()
 	{
 		s_ScriptEngineData->CoreAssembly = nullptr;
+		s_ScriptEngineData->AppAssembly = nullptr;
+
 		s_ScriptEngineData->AppDomain = nullptr;
 		mono_jit_cleanup(s_ScriptEngineData->RootDomain);
 	}
 
-	void ScriptEngine::LoadAssembly(const std::filesystem::path& assemblyPath)
+	void ScriptEngine::LoadCoreAssembly(const std::filesystem::path& assemblyPath)
 	{
-		s_ScriptEngineData->AppDomain = mono_domain_create_appdomain("Engine-ScriptCore-AppDomain", nullptr);
+		s_ScriptEngineData->AppDomain = mono_domain_create_appdomain("EngineScriptRuntime", nullptr);
 		ENGINE_CORE_ASSERT(s_ScriptEngineData->AppDomain, "App Domain could not be initialized!");
 		mono_domain_set(s_ScriptEngineData->AppDomain, true);
 
 		s_ScriptEngineData->CoreAssembly = LoadMonoAssembly(assemblyPath);
-		PrintAssemblyTypes(s_ScriptEngineData->CoreAssembly);
+		//PrintAssemblyTypes(s_ScriptEngineData->CoreAssembly);
 
 		MonoImage* image = mono_assembly_get_image(s_ScriptEngineData->CoreAssembly);
 		s_ScriptEngineData->EntityClass = mono_class_from_name(image, "Engine.Scene", "Entity");
 		s_ScriptEngineData->TimestepClass = mono_class_from_name(image, "Engine.Core", "Timestep");
+	}
+
+	void ScriptEngine::LoadAppAssembly(const std::filesystem::path& assemblyPath)
+	{
+		s_ScriptEngineData->AppAssembly = LoadMonoAssembly(assemblyPath);
+		PrintAssemblyTypes(s_ScriptEngineData->AppAssembly);
 	}
 
 	void ScriptEngine::LoadEntityClasses(MonoAssembly* assembly)
@@ -489,7 +499,7 @@ namespace Engine
 	ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className)
 		: m_ClassNamespace(classNamespace), m_ClassName(className)
 	{
-		m_MonoClass = ScriptEngine::GetClassInAssembly(s_ScriptEngineData->CoreAssembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
+		m_MonoClass = ScriptEngine::GetClassInAssembly(s_ScriptEngineData->AppAssembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
 
 		int i = 0;
 		void* itr = nullptr;
