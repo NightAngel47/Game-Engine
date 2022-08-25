@@ -33,8 +33,9 @@ namespace Engine
 		~ScriptField() = default;
 
 		MonoClassField* GetMonoField() { return m_MonoField; }
-		void GetValue(Ref<ScriptInstance> instance, void* value);
 		const std::string& GetTypeName() { return m_TypeName; }
+		void GetValue(Ref<ScriptInstance> instance, void* value);
+		void SetValue(Ref<ScriptInstance> instance, void* value);
 
 		bool IsPublic();
 

@@ -597,6 +597,11 @@ namespace Engine
 		mono_field_get_value(instance->GetMonoObject(), m_MonoField, value);
 	}
 
+	void ScriptField::SetValue(Ref<ScriptInstance> instance, void* value)
+	{
+		mono_field_set_value(instance->GetMonoObject(), m_MonoField, value);
+	}
+
 	bool ScriptField::IsPublic()
 	{
 		return m_Access& (uint8_t)Accessibility::Public ? true : false;

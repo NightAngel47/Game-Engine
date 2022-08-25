@@ -442,6 +442,7 @@ namespace Engine
 			Ref<Engine::ScriptClass> scriptClass = Engine::ScriptEngine::GetEntityClasses().at(component.ScriptName);
 			Ref<Engine::ScriptInstance> scriptInstance = Engine::ScriptEngine::GetEntityInstance(entity.GetUUID());
 
+			//TODO: Allow for modifying script fields for instances outside of play mode
 			auto scriptFields = scriptClass->GetScriptFields();
 			for (auto const& [key, val] : scriptFields)
 			{
@@ -456,7 +457,10 @@ namespace Engine
 						{
 							float fieldValue;
 							val->GetValue(scriptInstance, &fieldValue);
-							ImGui::DragFloat(key.c_str(), &fieldValue, 0.1f);
+							if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
+							{
+								val->SetValue(scriptInstance, &fieldValue);
+							}
 						}
 						else
 						{
