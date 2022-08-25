@@ -29,6 +29,7 @@ namespace Engine
 		MonoDomain* AppDomain = nullptr;
 
 		MonoAssembly* CoreAssembly = nullptr;
+		MonoAssembly* AppAssembly = nullptr;
 
 		MonoClass* EntityClass = nullptr;
 		MonoClass* TimestepClass = nullptr;
@@ -130,9 +131,10 @@ namespace Engine
 		s_ScriptEngineData = new ScriptEngineData();
 
 		InitMono();
-		LoadAssembly("Resources/Scripts/Engine-ScriptCore.dll");
 
-		LoadEntityClasses(s_ScriptEngineData->CoreAssembly);
+		LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll");
+		LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll");
+		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 
 		InternalCalls::ScriptGlue::RegisterComponentTypes();
 		InternalCalls::ScriptGlue::RegisterInternalCalls();
@@ -159,22 +161,30 @@ namespace Engine
 	void ScriptEngine::ShutdownMono()
 	{
 		s_ScriptEngineData->CoreAssembly = nullptr;
+		s_ScriptEngineData->AppAssembly = nullptr;
+
 		s_ScriptEngineData->AppDomain = nullptr;
 		mono_jit_cleanup(s_ScriptEngineData->RootDomain);
 	}
 
-	void ScriptEngine::LoadAssembly(const std::filesystem::path& assemblyPath)
+	void ScriptEngine::LoadCoreAssembly(const std::filesystem::path& assemblyPath)
 	{
-		s_ScriptEngineData->AppDomain = mono_domain_create_appdomain("Engine-ScriptCore-AppDomain", nullptr);
+		s_ScriptEngineData->AppDomain = mono_domain_create_appdomain("EngineScriptRuntime", nullptr);
 		ENGINE_CORE_ASSERT(s_ScriptEngineData->AppDomain, "App Domain could not be initialized!");
 		mono_domain_set(s_ScriptEngineData->AppDomain, true);
 
 		s_ScriptEngineData->CoreAssembly = LoadMonoAssembly(assemblyPath);
-		PrintAssemblyTypes(s_ScriptEngineData->CoreAssembly);
+		//PrintAssemblyTypes(s_ScriptEngineData->CoreAssembly);
 
 		MonoImage* image = mono_assembly_get_image(s_ScriptEngineData->CoreAssembly);
 		s_ScriptEngineData->EntityClass = mono_class_from_name(image, "Engine.Scene", "Entity");
 		s_ScriptEngineData->TimestepClass = mono_class_from_name(image, "Engine.Core", "Timestep");
+	}
+
+	void ScriptEngine::LoadAppAssembly(const std::filesystem::path& assemblyPath)
+	{
+		s_ScriptEngineData->AppAssembly = LoadMonoAssembly(assemblyPath);
+		PrintAssemblyTypes(s_ScriptEngineData->AppAssembly);
 	}
 
 	void ScriptEngine::LoadEntityClasses(MonoAssembly* assembly)
@@ -338,7 +348,7 @@ namespace Engine
 	{
 		if (EntityInstanceExists(entityID))
 		{
-			return s_ScriptEngineData->EntityInstances[entityID];
+			return s_ScriptEngineData->EntityInstances.at(entityID);
 		}
 
 		ENGINE_CORE_WARN("Entity Instances with UUID of " + std::to_string(entityID) + " could not be found!");
@@ -486,10 +496,20 @@ namespace Engine
 		return result;
 	}
 
-	ScriptClass::ScriptClass(std::string classNamespace, std::string className)
+	ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className)
 		: m_ClassNamespace(classNamespace), m_ClassName(className)
 	{
-		m_MonoClass = ScriptEngine::GetClassInAssembly(s_ScriptEngineData->CoreAssembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
+		m_MonoClass = ScriptEngine::GetClassInAssembly(s_ScriptEngineData->AppAssembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
+
+		int i = 0;
+		void* itr = nullptr;
+		MonoClassField* field = nullptr;
+		while ((field = mono_class_get_fields(m_MonoClass, &itr)) != nullptr)
+		{
+			const char* fieldName = mono_field_get_name(field);
+			m_ScriptFields[fieldName] = CreateRef<ScriptField>(field);
+			++i;
+		}
 	}
 
 	MonoObject* ScriptClass::Instantiate()
@@ -544,31 +564,57 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnCreate()
 	{
+		if (!OnCreateThunk) return; // handle script without OnCreate
+
 		MonoObject* ptrExObject = nullptr;
-
 		OnCreateThunk(m_Instance, &ptrExObject);
-
 		HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnDestroy()
 	{
+		if (!OnDestroyThunk) return; // handle script without OnDestroy
+
 		MonoObject* ptrExObject = nullptr;
-
 		OnDestroyThunk(m_Instance, &ptrExObject);
-
 		HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnUpdate(Timestep ts)
 	{
+		if (!OnUpdateThunk) return; // handle script without OnUpdate
+
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->TimestepClass, &ts);
-
 		MonoObject* ptrExObject = nullptr;
-
 		OnUpdateThunk(m_Instance, paramBox, &ptrExObject);
-
 		HandleMonoException(ptrExObject);
+	}
+
+	ScriptField::ScriptField(MonoClassField* monoField)
+		:m_MonoField(monoField)
+	{
+		m_Access = ScriptEngine::GetFieldAccessibility(m_MonoField);
+		MonoType* monoType = mono_field_get_type(m_MonoField);
+		m_TypeName = mono_type_get_name(monoType);
+		
+		// TODO remove/move to debug only
+		std::string name = mono_field_get_name(m_MonoField);
+		ENGINE_CORE_TRACE("Field: " + name + " Type: " + m_TypeName);
+	}
+
+	void ScriptField::GetValue(Ref<ScriptInstance> instance, void* value)
+	{
+		mono_field_get_value(instance->GetMonoObject(), m_MonoField, value);
+	}
+
+	void ScriptField::SetValue(Ref<ScriptInstance> instance, void* value)
+	{
+		mono_field_set_value(instance->GetMonoObject(), m_MonoField, value);
+	}
+
+	bool ScriptField::IsPublic()
+	{
+		return m_Access& (uint8_t)Accessibility::Public ? true : false;
 	}
 
 }

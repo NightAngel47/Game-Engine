@@ -416,7 +416,7 @@ namespace Engine
 			ImGui::DragFloat("RestitutionThreshold", &component.RestitutionThreshold, 0.01f, 0.0f, std::numeric_limits<float>::infinity());
 		});
 
-		DrawComponent<ScriptComponent>("Script Component", entity, [](auto& component)
+		DrawComponent<ScriptComponent>("Script Component", entity, [&](auto& component)
 		{
 			bool scriptClassExists = ScriptEngine::EntityClassExists(component.ScriptName);
 
@@ -431,13 +431,47 @@ namespace Engine
 
 			if (ImGui::InputText("ScriptName", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 			{
-
 				component.ScriptName = std::string(buffer);
 			}
 
 			if (!scriptClassExists)
 			{
 				ImGui::PopStyleColor();
+			}
+
+			Ref<Engine::ScriptClass> scriptClass = Engine::ScriptEngine::GetEntityClasses().at(component.ScriptName);
+			Ref<Engine::ScriptInstance> scriptInstance = Engine::ScriptEngine::GetEntityInstance(entity.GetUUID());
+
+			//TODO: Allow for modifying script fields for instances outside of play mode
+			auto scriptFields = scriptClass->GetScriptFields();
+			for (auto const& [key, val] : scriptFields)
+			{
+				if (val->IsPublic())
+				{
+					ImGui::Text(key.c_str());
+					ImGui::SameLine();
+					const std::string& typeName = val->GetTypeName();
+					if (typeName == "System.Single")
+					{
+						if (scriptInstance)
+						{
+							float fieldValue;
+							val->GetValue(scriptInstance, &fieldValue);
+							if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
+							{
+								val->SetValue(scriptInstance, &fieldValue);
+							}
+						}
+						else
+						{
+							ImGui::Text("Float Value");
+						}
+					}
+					else
+					{
+						ImGui::Text("Unsupported Value");
+					}
+				}
 			}
 		});
 	}

@@ -615,7 +615,6 @@ namespace Engine
 		{
 			m_ActiveScene->DuplicateEntity(selectedEntity);
 		}
-
 	}
 
 	void EditorLayer::MousePicking()

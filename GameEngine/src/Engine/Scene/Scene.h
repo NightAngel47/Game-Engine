@@ -48,6 +48,7 @@ namespace Engine
 		{
 			return m_Registry.view<Components...>();
 		}
+
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
@@ -61,6 +62,7 @@ namespace Engine
 		void OnPhysics2DUpdate(Timestep ts);
 		void OnScriptsUpdate(Timestep ts);
 		void OnRender2DUpdate();
+
 	private:
 		entt::registry m_Registry;
 		std::unordered_map<UUID, entt::entity> m_EntityMap;

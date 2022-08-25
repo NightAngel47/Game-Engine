@@ -10,6 +10,7 @@ extern "C"
 	typedef struct _MonoObject MonoObject;
 	typedef struct _MonoMethod MonoMethod;
 	typedef struct _MonoClassField MonoClassField;
+	typedef struct _MonoType MonoType;
 	typedef struct _MonoProperty MonoProperty;
 	typedef struct _MonoString MonoString;
 }
@@ -23,10 +24,31 @@ typedef void(*OnUpdate) (MonoObject* obj, MonoObject* timestep, MonoObject** exp
 namespace Engine
 {
 
+	class ScriptInstance;
+	class ScriptField
+	{
+	public:
+		ScriptField() = default;
+		ScriptField(MonoClassField* monoField);
+		~ScriptField() = default;
+
+		MonoClassField* GetMonoField() { return m_MonoField; }
+		const std::string& GetTypeName() { return m_TypeName; }
+		void GetValue(Ref<ScriptInstance> instance, void* value);
+		void SetValue(Ref<ScriptInstance> instance, void* value);
+
+		bool IsPublic();
+
+	private:
+		MonoClassField* m_MonoField = nullptr;
+		uint8_t m_Access;
+		std::string m_TypeName;
+	};
+
 	class ScriptClass
 	{
 	public:
-		ScriptClass(std::string classNamespace, std::string className);
+		ScriptClass(const std::string& classNamespace, const std::string& className);
 		~ScriptClass() = default;
 
 		MonoObject* Instantiate();
@@ -36,16 +58,21 @@ namespace Engine
 		MonoMethod* GetMethod(const std::string& name, int parameterCount);
 		MonoObject* InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr);
 
+		Ref<ScriptField> GetScriptField(const std::string& fieldName) { return m_ScriptFields[fieldName]; }
+		std::unordered_map<std::string, Ref<ScriptField>> GetScriptFields() { return m_ScriptFields; }
+
 	private:
 		std::string m_ClassNamespace;
 		std::string m_ClassName;
 
 		MonoClass* m_MonoClass = nullptr;
+		std::unordered_map<std::string, Ref<ScriptField>> m_ScriptFields;
 	};
 
 	class ScriptInstance
 	{
 	public:
+		ScriptInstance() = default;
 		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
 		~ScriptInstance() = default;
 
@@ -102,7 +129,8 @@ namespace Engine
 		static void InitMono();
 		static void ShutdownMono();
 
-		static void LoadAssembly(const std::filesystem::path& assemblyPath);
+		static void LoadCoreAssembly(const std::filesystem::path& assemblyPath);
+		static void LoadAppAssembly(const std::filesystem::path& assemblyPath);
 		static void LoadEntityClasses(MonoAssembly* assembly);
 		static MonoObject* InstantiateClass(MonoClass* monoClass);
 

@@ -2,6 +2,7 @@
 **/bin/
 !vendor/premake/bin/
 **/bin-int/
+Binaries/
 Intermediates/
 
 # Engine files
@@ -13,6 +14,9 @@ Intermediates/
 **.vcxproj
 **.vcxproj.filters
 **.vcxproj.user
+**.csproj
+**.csproj.filters
+**.csproj.user
 
 *.tlog
 *.lastbuildstate

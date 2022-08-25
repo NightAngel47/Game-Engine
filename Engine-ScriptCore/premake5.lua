@@ -4,18 +4,15 @@ project "Engine-ScriptCore"
 	dotnetframework "4.8"
 	csversion "10.0"
 
-	targetdir ("%{wks.location}/Engine-Editor/Resources/Scripts")
-	objdir ("%{wks.location}/Engine-Editor/Resources/Scripts/Intermediates")
+	targetdir ("../Engine-Editor/Resources/Scripts/Binaries")
+	objdir ("../Engine-Editor/Resources/Scripts/Intermediates")
 
 	files
 	{
 		"Source/**.cs",
 		"Properties/**.cs",
 	}
-
-	filter "system:windows"
-		systemversion "latest"
-
+	
 	filter "configurations:Debug"
 		defines "ENGINE_DEBUG"
 		runtime "Debug"
