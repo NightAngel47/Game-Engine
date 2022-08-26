@@ -74,7 +74,10 @@ namespace GameProject.Source
 				Transform.Rotation = rotation;
 			}
 
-			Transform.Position += new Vector3(movement.X, movement.Y, 0.0f);
+			if (movement.sqrMagnitude > 0)
+			{
+				Transform.Position += new Vector3(movement.X, movement.Y, 0.0f);
+			}
 		}
 	}
 }

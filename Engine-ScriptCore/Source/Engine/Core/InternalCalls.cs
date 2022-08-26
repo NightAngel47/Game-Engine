@@ -71,6 +71,36 @@ namespace Engine.Core
 
 		#endregion Random
 
+		#region Vector2
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector2_Magnitude(Vector2 vector2);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector2_sqrMagnitude(Vector2 vector2);
+
+		#endregion Vector2
+
+		#region Vector3
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector3_Magnitude(Vector3 vector3);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector3_sqrMagnitude(Vector3 vector3);
+
+		#endregion Vector3
+
+		#region Vector4
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector4_Magnitude(Vector4 vector4);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector4_sqrMagnitude(Vector4 vector4);
+
+		#endregion Vector4
+
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
