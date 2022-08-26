@@ -2,7 +2,7 @@
 using Engine.Core;
 using Engine.Math;
 
-namespace Source
+namespace GameProject.Source
 {
 	public class Camera : Entity
 	{

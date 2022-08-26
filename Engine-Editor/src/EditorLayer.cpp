@@ -10,8 +10,7 @@
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Math/Math.h"
-
-//#include "Engine/Scripting/ScriptGlue.h"
+#include "Engine/Math/Random.h"
 
 namespace Engine
 {

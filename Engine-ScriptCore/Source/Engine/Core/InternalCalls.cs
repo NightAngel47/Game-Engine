@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Engine.Math;
 
 namespace Engine.Core
@@ -23,7 +22,7 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Critical(string message);
 
-		#endregion
+		#endregion Log
 
 		#region Input
 
@@ -42,14 +41,42 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern float Input_GetMouseX();
 
-		#endregion
+		#endregion Input
+
+		#region Random
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Random_Float();
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Random_Float_Seed(uint seed);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern int Random_Int();
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern int Random_Int_Seed(uint seed);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Random_Range_Float(float min, float max);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Random_Range_Float_Seed(float min, float max, uint seed);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern int Random_Range_Int(int min, int max);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern int Random_Range_Int_Seed(int min, int max, uint seed);
+
+		#endregion Random
 
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern bool Entity_HasComponent(ulong entityID, Type componentType);
+		internal static extern bool Entity_HasComponent(ulong entityID, System.Type componentType);
 
-		#endregion
+		#endregion Entity
 
 		#region TransformComponent
 
@@ -71,7 +98,7 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void TransformComponent_SetScale(ulong entityID, ref Vector3 scale);
 
-		#endregion
+		#endregion TransformComponent
 
 		#region SpriteRendererComponent
 
@@ -87,6 +114,6 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void SpriteRendererComponent_SetTiling(ulong entityID, float tiling);
 
-		#endregion
+		#endregion SpriteRendererComponent
 	}
 }

@@ -1,32 +1,10 @@
 #include "enginepch.h"
 #include "ParticleSystem.h"
+#include "Engine/Math/Random.h"
 
 #include <glm/gtc/constants.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/compatibility.hpp>
-
-#include <random>
-
-class Random
-{
-public:
-	static void Init()
-	{
-		s_RandomEngine.seed(std::random_device()());
-	}
-
-	static float Float()
-	{
-		return (float)s_Distribution(s_RandomEngine) / (float)std::numeric_limits<uint32_t>::max();
-	}
-
-private:
-	static std::mt19937 s_RandomEngine;
-	static std::uniform_int_distribution<std::mt19937::result_type> s_Distribution;
-};
-
-std::mt19937 Random::s_RandomEngine;
-std::uniform_int_distribution<std::mt19937::result_type> Random::s_Distribution;
 
 ParticleSystem::ParticleSystem(uint32_t maxParticles)
 	: m_PoolIndex(maxParticles - 1)
@@ -80,12 +58,12 @@ void ParticleSystem::Emit(const ParticleProps& particleProps)
 	Particle& particle = m_ParticlePool[m_PoolIndex];
 	particle.Active = true;
 	particle.Position = particleProps.Position;
-	particle.Rotation = Random::Float() * 2.0f * glm::pi<float>();
+	particle.Rotation = Engine::Math::Random::Float() * 2.0f * glm::pi<float>();
 
 	// Velocity
 	particle.Velocity = particleProps.Velocity;
-	particle.Velocity.x += particleProps.VelocityVariation.x * (Random::Float() - 0.5f);
-	particle.Velocity.y += particleProps.VelocityVariation.y * (Random::Float() - 0.5f);
+	particle.Velocity.x += particleProps.VelocityVariation.x * (Engine::Math::Random::Float() - 0.5f);
+	particle.Velocity.y += particleProps.VelocityVariation.y * (Engine::Math::Random::Float() - 0.5f);
 
 	// Color
 	particle.ColorBegin = particleProps.ColorBegin;
@@ -93,7 +71,7 @@ void ParticleSystem::Emit(const ParticleProps& particleProps)
 
 	particle.LifeTime = particleProps.LifeTime;
 	particle.LifeRemaining = particleProps.LifeTime;
-	particle.SizeBegin = particleProps.SizeBegin + particleProps.SizeVariation * (Random::Float() - 0.5f);
+	particle.SizeBegin = particleProps.SizeBegin + particleProps.SizeVariation * (Engine::Math::Random::Float() - 0.5f);
 	particle.SizeEnd = particleProps.SizeEnd;
 
 	m_PoolIndex = --m_PoolIndex % m_ParticlePool.size();

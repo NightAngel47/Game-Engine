@@ -1,5 +1,6 @@
 #include "enginepch.h"
 #include "Engine/Math/Math.h"
+#include "Engine/Utils/PlatformUtils.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>

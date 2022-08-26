@@ -28,7 +28,7 @@ namespace InternalCalls
 		static void Log_Error(MonoString* message);
 		static void Log_Critical(MonoString* message);
 
-#pragma endregion
+#pragma endregion Log
 
 #pragma region Input
 
@@ -40,13 +40,28 @@ namespace InternalCalls
 		static float Input_GetMouseY();
 		static float Input_GetMouseX();
 
-#pragma endregion
+#pragma endregion Input
+
+#pragma region Random
+
+		static float Random_Float();
+		static float Random_Float_Seed(unsigned int seed);
+
+		static int Random_Int();
+		static int Random_Int_Seed(unsigned int seed);
+
+		static float Random_Range_Float(float min, float max);
+		static float Random_Range_Float_Seed(float min, float max, unsigned int seed);
+		static int Random_Range_Int(int min, int max);
+		static int Random_Range_Int_Seed(int min, int max, unsigned int seed);
+
+#pragma endregion Random
 
 #pragma region Entity
 
 		static bool Entity_HasComponent(Engine::UUID entityID, MonoReflectionType* componentType);
 
-#pragma endregion
+#pragma endregion Entity
 
 #pragma region TransformComponent
 
@@ -59,7 +74,7 @@ namespace InternalCalls
 		static void TransformComponent_GetScale(Engine::UUID entityID, glm::vec3* scale);
 		static void TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale);
 
-#pragma endregion
+#pragma endregion TransformComponent
 
 #pragma region SpriteRendererComponent
 
@@ -69,7 +84,7 @@ namespace InternalCalls
 		static float SpriteRendererComponent_GetTiling(Engine::UUID entityID);
 		static void SpriteRendererComponent_SetTiling(Engine::UUID entityID, float tiling);
 
-#pragma endregion
+#pragma endregion SpriteRendererComponent
 	};
 }
 

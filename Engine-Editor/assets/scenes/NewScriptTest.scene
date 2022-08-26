@@ -12,10 +12,10 @@ Entities:
       Path: textures\shipGreen_manned.png
       Tiling: 1
     ScriptComponent:
-      ScriptName: Source.ExampleEntity
+      ScriptName: GameProject.Source.Player
       ScriptFields:
-        moveSpeed: 10
-        spinSpeed: 2.5
+        moveSpeed: 5
+        rotSpeeed: 5
   - Entity: 17540509940495339677
     TagComponent:
       Tag: Camera
@@ -35,10 +35,10 @@ Entities:
       Primary: true
       FixedAspectRatio: false
     ScriptComponent:
-      ScriptName: Source.ExampleEntity
+      ScriptName: GameProject.Source.Camera
       ScriptFields:
-        moveSpeed: 10
-        spinSpeed: 2.5
+        moveSpeed: 5
+        rotSpeeed: 5
   - Entity: 8412092258379128351
     TagComponent:
       Tag: Background
@@ -50,3 +50,7 @@ Entities:
       Color: [0.208188787, 0.127864107, 0.265822768, 1]
       Path: textures\Checkerboard.png
       Tiling: 15
+    ScriptComponent:
+      ScriptName: GameProject.Source.ColorChanger
+      ScriptFields:
+        {}

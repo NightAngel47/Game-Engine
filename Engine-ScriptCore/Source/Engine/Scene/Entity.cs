@@ -1,5 +1,4 @@
-﻿using System;
-using Engine.Core;
+﻿using Engine.Core;
 
 namespace Engine.Scene
 {
@@ -22,7 +21,7 @@ namespace Engine.Scene
 
 		public bool HasComponent<T>() where T : Component, new()
 		{
-			Type componentType = typeof(T);
+			System.Type componentType = typeof(T);
 			return InternalCalls.Entity_HasComponent(ID, componentType);
 		}
 

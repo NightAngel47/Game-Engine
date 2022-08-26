@@ -1,10 +1,11 @@
 #include "enginepch.h"
 #include "Engine/Scripting/ScriptGlue.h"
-#include <Engine/Scripting/ScriptEngine.h>
+#include "Engine/Scripting/ScriptEngine.h"
 
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Components.h"
+#include "Engine/Math/Random.h"
 
 namespace InternalCalls
 {
@@ -38,6 +39,15 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Input_GetMousePosition);
 		ENGINE_ADD_INTERNAL_CALL(Input_GetMouseY);
 		ENGINE_ADD_INTERNAL_CALL(Input_GetMouseX);
+
+		ENGINE_ADD_INTERNAL_CALL(Random_Float);
+		ENGINE_ADD_INTERNAL_CALL(Random_Float_Seed);
+		ENGINE_ADD_INTERNAL_CALL(Random_Int);
+		ENGINE_ADD_INTERNAL_CALL(Random_Int_Seed);
+		ENGINE_ADD_INTERNAL_CALL(Random_Range_Float);
+		ENGINE_ADD_INTERNAL_CALL(Random_Range_Float_Seed);
+		ENGINE_ADD_INTERNAL_CALL(Random_Range_Int);
+		ENGINE_ADD_INTERNAL_CALL(Random_Range_Int_Seed);
 
 		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
 
@@ -142,6 +152,50 @@ namespace InternalCalls
 	}
 
 #pragma endregion Input
+
+#pragma region Random
+
+	float ScriptGlue::Random_Float()
+	{
+		return Engine::Math::Random::Float();
+	}
+
+	float ScriptGlue::Random_Float_Seed(unsigned int seed)
+	{
+		return Engine::Math::Random::Float(seed);
+	}
+
+	int ScriptGlue::Random_Int()
+	{
+		return Engine::Math::Random::Int();
+	}
+
+	int ScriptGlue::Random_Int_Seed(unsigned int seed)
+	{
+		return Engine::Math::Random::Int(seed);
+	}
+
+	float ScriptGlue::Random_Range_Float(float min, float max)
+	{
+		return Engine::Math::Random::Range(min, max);
+	}
+
+	float ScriptGlue::Random_Range_Float_Seed(float min, float max, unsigned int seed)
+	{
+		return Engine::Math::Random::Range(min, max, seed);
+	}
+
+	int ScriptGlue::Random_Range_Int(int min, int max)
+	{
+		return Engine::Math::Random::Range(min, max);
+	}
+
+	int ScriptGlue::Random_Range_Int_Seed(int min, int max, unsigned int seed)
+	{
+		return Engine::Math::Random::Range(min, max, seed);
+	}
+
+#pragma endregion Random
 
 #pragma region Entity
 

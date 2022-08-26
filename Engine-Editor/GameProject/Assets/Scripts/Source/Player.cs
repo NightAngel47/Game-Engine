@@ -2,22 +2,17 @@
 using Engine.Core;
 using Engine.Math;
 
-namespace Source
+namespace GameProject.Source
 {
 	public class Player : Entity
 	{
-		SpriteRendererComponent sprite;
 		public float moveSpeed = 5.0f;
 		public float rotSpeeed = 5.0f;
-		private int testNum = 25;
 
 		public string exampleString = "Example";
 
 		protected override void OnCreate()
 		{
-			sprite = GetComponent<SpriteRendererComponent>();
-			sprite.Color = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
-			sprite.Tiling = 1000.0f;
 
 			Vector3 pos = Transform.Position;
 			Vector3 rot = Transform.Rotation;
