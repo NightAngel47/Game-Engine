@@ -273,6 +273,12 @@ namespace Engine
 							val->GetValue(scriptInstance, &fieldValue);
 							out << YAML::Key << key << YAML::Value << fieldValue;
 						}
+						else if (typeName == "System.Int32")
+						{
+							int fieldValue;
+							val->GetValue(scriptInstance, &fieldValue);
+							out << YAML::Key << key << YAML::Value << fieldValue;
+						}
 						else
 						{
 							ENGINE_CORE_WARN("Type: " + typeName + " from script is not supported!");
@@ -477,6 +483,11 @@ namespace Engine
 								if (typeName == "System.Single")
 								{
 									float fieldValue = fields[fieldName].as<float>();
+									scriptField->SetValue(scriptInstance, &fieldValue);
+								}
+								if (typeName == "System.Int32")
+								{
+									int fieldValue = fields[fieldName].as<int>();
 									scriptField->SetValue(scriptInstance, &fieldValue);
 								}
 								else

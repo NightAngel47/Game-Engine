@@ -471,6 +471,22 @@ namespace Engine
 							ImGui::Text("Float Value");
 						}
 					}
+					else if (typeName == "System.Int32")
+					{
+						if (scriptInstance)
+						{
+							int fieldValue;
+							val->GetValue(scriptInstance, &fieldValue);
+							if (ImGui::DragInt(("##" + key).c_str(), &fieldValue))
+							{
+								val->SetValue(scriptInstance, &fieldValue);
+							}
+						}
+						else
+						{
+							ImGui::Text("Int Value");
+						}
+					}
 					else
 					{
 						ImGui::Text("Unsupported Value");
