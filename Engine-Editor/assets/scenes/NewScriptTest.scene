@@ -2,19 +2,20 @@ Scene: NewScriptTest.scene
 Entities:
   - Entity: 1594666678092074743
     TagComponent:
-      Tag: Sprite
+      Tag: Player
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      Path: ""
+      Color: [0, 1, 0.630952358, 1]
+      Path: textures\shipGreen_manned.png
       Tiling: 1
     ScriptComponent:
       ScriptName: Source.ExampleEntity
       ScriptFields:
-        speed: 5.30000019
+        moveSpeed: 10
+        spinSpeed: 2.5
   - Entity: 17540509940495339677
     TagComponent:
       Tag: Camera
@@ -33,3 +34,19 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
+    ScriptComponent:
+      ScriptName: Source.ExampleEntity
+      ScriptFields:
+        moveSpeed: 10
+        spinSpeed: 2.5
+  - Entity: 8412092258379128351
+    TagComponent:
+      Tag: Background
+    TransformComponent:
+      Position: [-0.0203680098, 0, -0.300000012]
+      Rotation: [0, 0, 0]
+      Scale: [100, 100, 1]
+    SpriteRendererComponent:
+      Color: [0.208188787, 0.127864107, 0.265822768, 1]
+      Path: textures\Checkerboard.png
+      Tiling: 15

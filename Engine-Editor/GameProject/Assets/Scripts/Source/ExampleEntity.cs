@@ -7,7 +7,8 @@ namespace Source
 	public class ExampleEntity : Entity
 	{
 		private TransformComponent transformComponent;
-		public float speed = 5.0f;
+		public float moveSpeed = 5.0f;
+		public float spinSpeed = 5.0f;
 		public int testNum = 25;
 
 		private float timeProgress;
@@ -29,7 +30,7 @@ namespace Source
 			Log.Info($"Rotation: ({rot.X}, {rot.Y}, {rot.Z})");
 			Log.Info($"Scale: ({scale.X}, {scale.Y}, {scale.Z})");
 
-			Log.Warn($"Speed: {speed}");
+			Log.Warn($"Speed: {moveSpeed}");
 		}
 
 		protected override void OnDestroy()
@@ -64,26 +65,40 @@ namespace Source
 
 			if (Input.IsKeyPressed(KeyCode.A))
 			{
-				movement.X += -1.0f * speed * ts;
+				movement.X += -1.0f * moveSpeed * ts;
 				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
 			}
 
 			if (Input.IsKeyPressed(KeyCode.D))
 			{
-				movement.X += 1.0f * speed * ts;
+				movement.X += 1.0f * moveSpeed * ts;
 				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
 			}
 
 			if (Input.IsKeyPressed(KeyCode.S))
 			{
-				movement.Y += -1.0f * speed * ts;
+				movement.Y += -1.0f * moveSpeed * ts;
 				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
 			}
 
 			if (Input.IsKeyPressed(KeyCode.W))
 			{
-				movement.Y += 1.0f * speed * ts;
+				movement.Y += 1.0f * moveSpeed * ts;
 				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
+			}
+
+			if (Input.IsKeyPressed(KeyCode.Q))
+			{
+				Vector3 rotation = transformComponent.Rotation;
+				rotation.Z += 1.0f * spinSpeed * ts;
+				transformComponent.Rotation = rotation;
+			}
+
+			if (Input.IsKeyPressed(KeyCode.E))
+			{
+				Vector3 rotation = transformComponent.Rotation;
+				rotation.Z += -1.0f * spinSpeed * ts;
+				transformComponent.Rotation = rotation;
 			}
 
 			transformComponent.Position += new Vector3(movement.X, movement.Y, 0.0f);
