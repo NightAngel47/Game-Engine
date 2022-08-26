@@ -33,19 +33,6 @@ namespace Engine
 		return b2_staticBody;
 	}
 
-	Scene::Scene() 
-	{
-	}
-
-	Scene::Scene(std::string name)
-		:m_Name(name) 
-	{
-	}
-
-	Scene::~Scene() 
-	{
-	}
-
 	template<typename... Component>
 	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap)
 	{
@@ -453,19 +440,16 @@ namespace Engine
 	template<>
 	void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
 	{
-
 	}
 
 	template<>
 	void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
 	{
-
 	}
 
 	template<>
 	void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
 	{
-
 	}
 
 	template<>
@@ -478,13 +462,11 @@ namespace Engine
 	template<>
 	void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
 	{
-		
 	}
 
 	template<>
 	void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
 	{
-		
 	}
 
 	template<>
@@ -505,12 +487,10 @@ namespace Engine
 	template<>
 	void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
 	{
-		
 	}
 
 	template<>
 	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
 	{
-
 	}
 }

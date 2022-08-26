@@ -146,6 +146,7 @@ namespace Engine
 
 		ShutdownMono();
 
+		s_ScriptEngineData->EntityInstances.clear();
 		delete s_ScriptEngineData;
 	}
 
@@ -224,8 +225,6 @@ namespace Engine
 	void ScriptEngine::OnRuntimeStop()
 	{
 		s_ScriptEngineData->SceneContext = nullptr;
-
-		s_ScriptEngineData->EntityInstances.clear();
 	}
 
 	MonoObject* ScriptEngine::InstantiateClass(MonoClass* monoClass)
@@ -272,24 +271,47 @@ namespace Engine
 			return true;
 		}
 
+		ENGINE_CORE_WARN("Entity Class of " + className + " could not be found!");
 		return false;
+	}
+
+	Ref<ScriptInstance> ScriptEngine::CreateEntityInstance(const UUID& entityID, const std::string& className)
+	{
+		if (EntityClassExists(className))
+		{
+			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses[className];
+
+			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entityID);
+			s_ScriptEngineData->EntityInstances[entityID] = instance;
+
+			return instance;
+		}
+
+		return nullptr;
+	}
+
+	void ScriptEngine::DeleteEntityInstance(Ref<ScriptInstance> instance, UUID entityID)
+	{
+		if (EntityInstanceExists(entityID))
+		{
+			s_ScriptEngineData->EntityInstances.erase(entityID);
+			instance = nullptr;
+		}
 	}
 
 	void ScriptEngine::OnCreateEntity(Entity entity, const std::string& className)
 	{
 		if (EntityClassExists(className))
 		{
-			UUID entityUUID = entity.GetUUID();
-			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses[className];
-
-			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entity);
-			s_ScriptEngineData->EntityInstances[entityUUID] = instance;
-
-			instance->InvokeOnCreate();
-		}
-		else
-		{
-			ENGINE_CORE_WARN("Entity Class of " + className + " could not be found!");
+			UUID entityID = entity.GetUUID();
+			if (EntityInstanceExists(entityID))
+			{
+				s_ScriptEngineData->EntityInstances[entityID]->InvokeOnCreate();
+			}
+			else
+			{
+				CreateEntityInstance(entityID, className);
+			}
 		}
 	}
 
@@ -297,19 +319,14 @@ namespace Engine
 	{
 		if (EntityClassExists(className))
 		{
-			UUID entityUUID = entity.GetUUID();
-			if (EntityInstanceExists(entityUUID))
+			UUID entityID = entity.GetUUID();
+			if (EntityInstanceExists(entityID))
 			{
-				Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances[entityUUID];
+				Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances[entityID];
 				instance->InvokeOnDestroy();
 
-				s_ScriptEngineData->EntityInstances.erase(entityUUID);
-				instance = nullptr;
+				//DeleteEntityInstance(instance, entityID);
 			}
-		}
-		else
-		{
-			ENGINE_CORE_WARN("Entity Class of " + className + " could not be found!");
 		}
 	}
 
@@ -317,19 +334,15 @@ namespace Engine
 	{
 		if (EntityClassExists(className))
 		{
-			UUID entityUUID = entity.GetUUID();
-			if (EntityInstanceExists(entityUUID))
+			UUID entityID = entity.GetUUID();
+			if (EntityInstanceExists(entityID))
 			{
-				s_ScriptEngineData->EntityInstances[entityUUID]->InvokeOnUpdate(ts);
+				s_ScriptEngineData->EntityInstances[entityID]->InvokeOnUpdate(ts);
 			}
 			else
 			{
-				OnCreateEntity(entity, className);
+				CreateEntityInstance(entityID, className);
 			}
-		}
-		else
-		{
-			ENGINE_CORE_WARN("Entity Class of " + className + " could not be found!");
 		}
 	}
 
@@ -532,15 +545,15 @@ namespace Engine
 		return result;
 	}
 
-	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
+	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID)
 		: m_ScriptClass(scriptClass)
 	{
 		m_Instance = m_ScriptClass->Instantiate();
 
 		m_Constructor = mono_class_get_method_from_name(s_ScriptEngineData->EntityClass, ".ctor", 1);
 		{
-			UUID entityID = entity.GetUUID();
-			void* param = &entityID;
+			UUID id = entityID;
+			void* param = &id;
 			m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, &param);
 		}
 

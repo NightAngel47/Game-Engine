@@ -432,6 +432,7 @@ namespace Engine
 			if (ImGui::InputText("ScriptName", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 			{
 				component.ScriptName = std::string(buffer);
+				ScriptEngine::CreateEntityInstance(entity.GetUUID(), component.ScriptName);
 			}
 
 			if (!scriptClassExists)
@@ -439,10 +440,15 @@ namespace Engine
 				ImGui::PopStyleColor();
 			}
 
+			if (component.ScriptName.empty())
+			{
+				return;
+			}
+
 			Ref<Engine::ScriptClass> scriptClass = Engine::ScriptEngine::GetEntityClasses().at(component.ScriptName);
 			Ref<Engine::ScriptInstance> scriptInstance = Engine::ScriptEngine::GetEntityInstance(entity.GetUUID());
 
-			//TODO: Allow for modifying script fields for instances outside of play mode
+			// TODO add more types
 			auto scriptFields = scriptClass->GetScriptFields();
 			for (auto const& [key, val] : scriptFields)
 			{

@@ -73,7 +73,7 @@ namespace Engine
 	{
 	public:
 		ScriptInstance() = default;
-		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
+		ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID);
 		~ScriptInstance() = default;
 
 		void InvokeOnCreate();
@@ -108,6 +108,9 @@ namespace Engine
 		static Scene* GetSceneContext();
 		
 		static bool EntityClassExists(const std::string& className);
+		static Ref<ScriptInstance> CreateEntityInstance(const UUID& entityID, const std::string& className);
+		static void DeleteEntityInstance(Ref<ScriptInstance> instance, UUID entityID);
+
 		static void OnCreateEntity(Entity entity, const std::string& className);
 		static void OnDestroyEntity(Entity entity, const std::string& className);
 		static void OnUpdateEntity(Entity entity, const std::string& className, Timestep ts);

@@ -15,11 +15,13 @@ namespace Engine
 	class Scene
 	{
 	public:
-		Scene();
-		Scene(std::string name);
-		~Scene();
+		Scene() = default;
+		Scene(std::string name)
+			:m_Name(name) {}
+		~Scene() = default;
 		
 		static Ref<Scene> Copy(Ref<Scene> other);
+		void SetSceneName(const std::string& name) { if (!name.empty()) m_Name = name; }
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
@@ -40,8 +42,6 @@ namespace Engine
 
 		void DuplicateEntity(Entity entity);
 		Entity GetEntityWithUUID(UUID uuid);
-
-		void SetSceneName(const std::string& name) { if (!name.empty()) m_Name = name; }
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -73,7 +73,7 @@ namespace Engine
 		// Physics
 		float m_Accumulator = 0.0f;
 		const float m_PhysicsTimestep = 0.01f;
-		b2World* m_PhysicsWorld;
+		b2World* m_PhysicsWorld = nullptr;
 		uint32_t m_VelocityIteractions = 8;
 		uint32_t m_PositionIteractions = 3;
 

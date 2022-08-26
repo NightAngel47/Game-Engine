@@ -3,6 +3,7 @@
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Core/UUID.h"
+#include "Engine/Scripting/ScriptEngine.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -105,6 +106,8 @@ namespace Engine
 
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;
+		ScriptComponent(const std::string& scriptName)
+			:ScriptName(scriptName) {}
 	};
 
 	// Forward declaration

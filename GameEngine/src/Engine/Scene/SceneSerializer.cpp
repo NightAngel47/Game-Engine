@@ -252,6 +252,35 @@ namespace Engine
 			auto& scriptComponent = entity.GetComponent<ScriptComponent>();
 			out << YAML::Key << "ScriptName" << YAML::Value << scriptComponent.ScriptName;
 
+			Ref<ScriptInstance> scriptInstance = ScriptEngine::GetEntityInstance(entity.GetUUID());
+			if (scriptInstance)
+			{
+				out << YAML::Key << "ScriptFields";
+				out << YAML::BeginMap; // ScriptFields
+
+				// TODO add more types
+				auto scriptFields = Engine::ScriptEngine::GetEntityClasses().at(scriptComponent.ScriptName)->GetScriptFields();
+				for (auto const& [key, val] : scriptFields)
+				{
+					if (val->IsPublic())
+					{
+						const std::string& typeName = val->GetTypeName();
+						if (typeName == "System.Single")
+						{
+							float fieldValue;
+							val->GetValue(scriptInstance, &fieldValue);
+							out << YAML::Key << key << YAML::Value << fieldValue;
+						}
+						else
+						{
+							ENGINE_CORE_WARN("Type: " + typeName + " from script is not supported!");
+						}
+					}
+				}
+
+				out << YAML::EndMap; // ScriptFields
+			}
+
 			out << YAML::EndMap; // ScriptComponent
 		}
 		
@@ -353,7 +382,7 @@ namespace Engine
 		{
 			for (auto entity : entities)
 			{
-				uint64_t uuid = entity["Entity"].as<uint64_t>();
+				UUID uuid = entity["Entity"].as<uint64_t>();
 
 				std::string name;
 				auto tagComponent = entity["TagComponent"];
@@ -426,6 +455,32 @@ namespace Engine
 				{
 					auto& script = deserializedEntity.AddComponent<ScriptComponent>();
 					script.ScriptName = scriptComponent["ScriptName"].as<std::string>();
+
+					Ref<ScriptInstance> scriptInstance = ScriptEngine::CreateEntityInstance(deserializedEntity.GetUUID(), script.ScriptName);
+
+					if (scriptInstance)
+					{
+						auto scriptFields = ScriptEngine::GetEntityClasses().at(script.ScriptName)->GetScriptFields();
+
+						auto& fields = scriptComponent["ScriptFields"];
+
+						for (auto field : fields)
+						{
+							std::string fieldName = field.first.as<std::string>();
+							Ref<ScriptField> scriptField = scriptFields.at(fieldName);
+
+							const std::string& typeName = scriptField->GetTypeName();
+							if (typeName == "System.Single")
+							{
+								float fieldValue = fields[fieldName].as<float>();
+								scriptField->SetValue(scriptInstance, &fieldValue);
+							}
+							else
+							{
+								ENGINE_CORE_WARN("Type: " + typeName + " from script is not supported!");
+							}
+						}
+					}
 				}
 
 				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
