@@ -467,17 +467,20 @@ namespace Engine
 						for (auto field : fields)
 						{
 							std::string fieldName = field.first.as<std::string>();
-							Ref<ScriptField> scriptField = scriptFields.at(fieldName);
+							if (scriptFields.find(fieldName) != scriptFields.end())
+							{
+								Ref<ScriptField> scriptField = scriptFields.at(fieldName);
 
-							const std::string& typeName = scriptField->GetTypeName();
-							if (typeName == "System.Single")
-							{
-								float fieldValue = fields[fieldName].as<float>();
-								scriptField->SetValue(scriptInstance, &fieldValue);
-							}
-							else
-							{
-								ENGINE_CORE_WARN("Type: " + typeName + " from script is not supported!");
+								const std::string& typeName = scriptField->GetTypeName();
+								if (typeName == "System.Single")
+								{
+									float fieldValue = fields[fieldName].as<float>();
+									scriptField->SetValue(scriptInstance, &fieldValue);
+								}
+								else
+								{
+									ENGINE_CORE_WARN("Type: " + typeName + " from script is not supported!");
+								}
 							}
 						}
 					}

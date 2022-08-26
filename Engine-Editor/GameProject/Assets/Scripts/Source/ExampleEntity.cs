@@ -8,7 +8,7 @@ namespace Source
 	{
 		private TransformComponent transformComponent;
 		public float moveSpeed = 5.0f;
-		public float spinSpeed = 5.0f;
+		public float rotSpeeed = 5.0f;
 		public int testNum = 25;
 
 		private float timeProgress;
@@ -90,14 +90,14 @@ namespace Source
 			if (Input.IsKeyPressed(KeyCode.Q))
 			{
 				Vector3 rotation = transformComponent.Rotation;
-				rotation.Z += 1.0f * spinSpeed * ts;
+				rotation.Z += 1.0f * rotSpeeed * ts;
 				transformComponent.Rotation = rotation;
 			}
 
 			if (Input.IsKeyPressed(KeyCode.E))
 			{
 				Vector3 rotation = transformComponent.Rotation;
-				rotation.Z += -1.0f * spinSpeed * ts;
+				rotation.Z += -1.0f * rotSpeeed * ts;
 				transformComponent.Rotation = rotation;
 			}
 
