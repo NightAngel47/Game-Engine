@@ -17,7 +17,7 @@ namespace Engine.Scene
 
 		protected virtual void OnCreate() { }
 		protected virtual void OnDestroy() { }
-		protected virtual void OnUpdate(Timestep ts) { }
+		protected virtual void OnUpdate(float ts) { }
 
 		public bool HasComponent<T>() where T : Component, new()
 		{

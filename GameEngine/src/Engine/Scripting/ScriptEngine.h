@@ -53,7 +53,6 @@ namespace Engine
 		static MonoAssembly* GetCoreAssembly();
 		static MonoAssembly* GetAppAssembly();
 		static MonoClass* GetEntityClass();
-		static MonoClass* GetTimestepClass();
 
 		static MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className);
 		static uint8_t GetFieldAccessibility(MonoClassField* field);

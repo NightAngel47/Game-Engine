@@ -9,7 +9,7 @@ namespace GameProject.Source
 		public float moveSpeed = 5.0f;
 		public float rotSpeeed = 5.0f;
 
-		protected override void OnUpdate(Timestep ts)
+		protected override void OnUpdate(float ts)
 		{
 
 			Vector2 movement = new Vector2(0.0f, 0.0f);

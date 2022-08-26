@@ -29,7 +29,7 @@ namespace GameProject.Source
 			Log.Warn("Example Entity Destroyed.");
 		}
 
-		protected override void OnUpdate(Timestep ts)
+		protected override void OnUpdate(float ts)
 		{
 			if (Input.IsMouseButtonPressed(MouseCode.ButtonMiddle))
 			{
@@ -78,6 +78,8 @@ namespace GameProject.Source
 			{
 				Transform.Position += new Vector3(movement.X, movement.Y, 0.0f);
 			}
+
+			Log.Trace(Transform.ToString());
 		}
 	}
 }

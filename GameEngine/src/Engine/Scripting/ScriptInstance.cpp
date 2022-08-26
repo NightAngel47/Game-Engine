@@ -71,13 +71,12 @@ namespace Engine
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
-	void ScriptInstance::InvokeOnUpdate(Timestep ts)
+	void ScriptInstance::InvokeOnUpdate(float ts)
 	{
 		if (!OnUpdateThunk) return; // handle script without OnUpdate
 
-		MonoObject* paramBox = mono_value_box(ScriptEngine::GetAppDomain(), ScriptEngine::GetTimestepClass(), &ts);
 		MonoObject* ptrExObject = nullptr;
-		OnUpdateThunk(m_Instance, paramBox, &ptrExObject);
+		OnUpdateThunk(m_Instance, &ts, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 }

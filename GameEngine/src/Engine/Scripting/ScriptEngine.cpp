@@ -21,7 +21,6 @@ namespace Engine
 		MonoAssembly* AppAssembly = nullptr;
 
 		MonoClass* EntityClass = nullptr;
-		MonoClass* TimestepClass = nullptr;
 
 		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
@@ -150,7 +149,6 @@ namespace Engine
 
 		MonoImage* image = mono_assembly_get_image(s_ScriptEngineData->CoreAssembly);
 		s_ScriptEngineData->EntityClass = mono_class_from_name(image, "Engine.Scene", "Entity");
-		s_ScriptEngineData->TimestepClass = mono_class_from_name(image, "Engine.Core", "Timestep");
 	}
 
 	void ScriptEngine::LoadAppAssembly(const std::filesystem::path& assemblyPath)
@@ -243,11 +241,6 @@ namespace Engine
 	MonoClass* ScriptEngine::GetEntityClass()
 	{
 		return s_ScriptEngineData->EntityClass;
-	}
-
-	MonoClass* ScriptEngine::GetTimestepClass()
-	{
-		return s_ScriptEngineData->TimestepClass;
 	}
 
 	bool ScriptEngine::EntityClassExists(const std::string& className)

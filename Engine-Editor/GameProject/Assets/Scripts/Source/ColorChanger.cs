@@ -17,7 +17,7 @@ namespace GameProject.Source
 			sprite = GetComponent<SpriteRendererComponent>();
 		}
 
-		protected override void OnUpdate(Timestep ts)
+		protected override void OnUpdate(float ts)
 		{
 			timeElapsed += ts;
 			if (timeElapsed >= secondsBetween)

@@ -5,7 +5,7 @@
 
 typedef void(*OnCreate) (MonoObject* obj, MonoObject** exp);
 typedef void(*OnDestroy) (MonoObject* obj, MonoObject** exp);
-typedef void(*OnUpdate) (MonoObject* obj, MonoObject* timestep, MonoObject** exp);
+typedef void(*OnUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
 
 namespace Engine
 {
@@ -19,7 +19,7 @@ namespace Engine
 
 		void InvokeOnCreate();
 		void InvokeOnDestroy();
-		void InvokeOnUpdate(Timestep ts);
+		void InvokeOnUpdate(float ts);
 
 		MonoObject* GetMonoObject() { return m_Instance; }
 

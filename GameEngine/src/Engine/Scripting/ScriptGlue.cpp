@@ -208,12 +208,12 @@ namespace InternalCalls
 
 #pragma region Vector2
 
-	float ScriptGlue::Vector2_Magnitude(glm::vec2 vector2)
+	float ScriptGlue::Vector2_Magnitude(glm::vec2& vector2)
 	{
 		return glm::length(vector2);
 	}
 
-	float ScriptGlue::Vector2_sqrMagnitude(glm::vec2 vector2)
+	float ScriptGlue::Vector2_sqrMagnitude(glm::vec2& vector2)
 	{
 		return glm::dot(vector2, vector2);
 	}
@@ -222,12 +222,12 @@ namespace InternalCalls
 	
 #pragma region Vector3
 
-	float ScriptGlue::Vector3_Magnitude(glm::vec3 vector3)
+	float ScriptGlue::Vector3_Magnitude(glm::vec3& vector3)
 	{
 		return glm::length(vector3);
 	}
 
-	float ScriptGlue::Vector3_sqrMagnitude(glm::vec3 vector3)
+	float ScriptGlue::Vector3_sqrMagnitude(glm::vec3& vector3)
 	{
 		return glm::dot(vector3, vector3);
 	}
@@ -236,12 +236,12 @@ namespace InternalCalls
 
 #pragma region Vector4
 
-	float ScriptGlue::Vector4_Magnitude(glm::vec4 vector4)
+	float ScriptGlue::Vector4_Magnitude(glm::vec4& vector4)
 	{
 		return glm::length(vector4);
 	}
 
-	float ScriptGlue::Vector4_sqrMagnitude(glm::vec4 vector4)
+	float ScriptGlue::Vector4_sqrMagnitude(glm::vec4& vector4)
 	{
 		return glm::dot(vector4, vector4);
 	}

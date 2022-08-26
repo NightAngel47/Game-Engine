@@ -16,8 +16,8 @@ namespace Engine.Math
 			W = w;
 		}
 
-		public float Magnitude => InternalCalls.Vector4_Magnitude(this);
-		public float sqrMagnitude => InternalCalls.Vector4_sqrMagnitude(this);
+		public float Magnitude => InternalCalls.Vector4_Magnitude(ref this);
+		public float sqrMagnitude => InternalCalls.Vector4_sqrMagnitude(ref this);
 
 		public static Vector4 operator +(Vector4 lhs, Vector4 rhs) => new Vector4(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z, lhs.W + rhs.W);
 		public static Vector4 operator -(Vector4 lhs, Vector4 rhs) => new Vector4(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z, lhs.W - rhs.W);
