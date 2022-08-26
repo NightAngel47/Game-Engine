@@ -6,13 +6,10 @@ namespace Source
 {
 	public class ExampleEntity : Entity
 	{
-		private TransformComponent transformComponent;
+		SpriteRendererComponent sprite;
 		public float moveSpeed = 5.0f;
 		public float rotSpeeed = 5.0f;
-		public int testNum = 25;
-
-		private float timeProgress;
-		private int iterations;
+		private int testNum = 25;
 
 		public string exampleString = "Example";
 
@@ -22,10 +19,13 @@ namespace Source
 			//string name = tagComponent.Tag;
 			//Log.Info($"Name: {name}");
 
-			transformComponent = GetComponent<TransformComponent>();
-			Vector3 pos = transformComponent.Position;
-			Vector3 rot = transformComponent.Rotation;
-			Vector3 scale = transformComponent.Scale;
+			sprite = GetComponent<SpriteRendererComponent>();
+			sprite.Color = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+			sprite.Tiling = 1000.0f;
+
+			Vector3 pos = Transform.Position;
+			Vector3 rot = Transform.Rotation;
+			Vector3 scale = Transform.Scale;
 			Log.Info($"Position: ({pos.X}, {pos.Y}, {pos.Z})");
 			Log.Info($"Rotation: ({rot.X}, {rot.Y}, {rot.Z})");
 			Log.Info($"Scale: ({scale.X}, {scale.Y}, {scale.Z})");
@@ -40,20 +40,6 @@ namespace Source
 
 		protected override void OnUpdate(Timestep ts)
 		{
-			if (Input.IsKeyPressed(KeyCode.Space))
-			{
-				Log.Trace($"{ts}");
-			}
-
-			timeProgress += ts;
-			++iterations;
-			if (timeProgress >= 1.0f)
-			{
-				Log.Trace($"Script Calls per second: {iterations}");
-				timeProgress = 0.0f;
-				iterations = 0;
-			}
-
 			if (Input.IsMouseButtonPressed(MouseCode.ButtonMiddle))
 			{
 				Vector2 curMousePos = Input.GetMousePosition();
@@ -89,19 +75,19 @@ namespace Source
 
 			if (Input.IsKeyPressed(KeyCode.Q))
 			{
-				Vector3 rotation = transformComponent.Rotation;
+				Vector3 rotation = Transform.Rotation;
 				rotation.Z += 1.0f * rotSpeeed * ts;
-				transformComponent.Rotation = rotation;
+				Transform.Rotation = rotation;
 			}
 
 			if (Input.IsKeyPressed(KeyCode.E))
 			{
-				Vector3 rotation = transformComponent.Rotation;
+				Vector3 rotation = Transform.Rotation;
 				rotation.Z += -1.0f * rotSpeeed * ts;
-				transformComponent.Rotation = rotation;
+				Transform.Rotation = rotation;
 			}
 
-			transformComponent.Position += new Vector3(movement.X, movement.Y, 0.0f);
+			Transform.Position += new Vector3(movement.X, movement.Y, 0.0f);
 			//Vector3 pos = transformComponent.Position;
 			//Log.Info($"Position: ({pos.X}, {pos.Y}, {pos.Z})");
 		}

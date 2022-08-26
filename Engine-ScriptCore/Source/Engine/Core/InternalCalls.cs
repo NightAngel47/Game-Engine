@@ -72,5 +72,21 @@ namespace Engine.Core
 		internal static extern void TransformComponent_SetScale(ulong entityID, ref Vector3 scale);
 
 		#endregion
+
+		#region SpriteRendererComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void SpriteRendererComponent_GetColor(ulong entityID, out Vector4 color);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void SpriteRendererComponent_SetColor(ulong entityID, ref Vector4 color);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float SpriteRendererComponent_GetTiling(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void SpriteRendererComponent_SetTiling(ulong entityID, float tiling);
+
+		#endregion
 	}
 }

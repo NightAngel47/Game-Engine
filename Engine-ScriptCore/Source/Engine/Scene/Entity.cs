@@ -6,6 +6,7 @@ namespace Engine.Scene
 	public abstract class Entity
 	{
 		public readonly ulong ID;
+		public TransformComponent Transform => GetComponent<TransformComponent>();
 
 		protected Entity() { ID = 0; }
 

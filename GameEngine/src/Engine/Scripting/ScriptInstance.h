@@ -28,7 +28,6 @@ namespace Engine
 
 		MonoObject* m_Instance = nullptr;
 
-		MonoMethod* m_Constructor = nullptr;
 		OnCreate OnCreateThunk = nullptr;
 		OnDestroy OnDestroyThunk = nullptr;
 		OnUpdate OnUpdateThunk = nullptr;

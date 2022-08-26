@@ -27,47 +27,31 @@ namespace InternalCalls
 
 		// Add internal calls
 
-#pragma region Log
-
 		ENGINE_ADD_INTERNAL_CALL(Log_Trace);
 		ENGINE_ADD_INTERNAL_CALL(Log_Info);
 		ENGINE_ADD_INTERNAL_CALL(Log_Warn);
 		ENGINE_ADD_INTERNAL_CALL(Log_Error);
 		ENGINE_ADD_INTERNAL_CALL(Log_Critical);
 
-#pragma endregion
-
-#pragma region Input
-
 		ENGINE_ADD_INTERNAL_CALL(Input_IsKeyPressed);
 		ENGINE_ADD_INTERNAL_CALL(Input_IsMouseButtonPressed);
-		
 		ENGINE_ADD_INTERNAL_CALL(Input_GetMousePosition);
-		
 		ENGINE_ADD_INTERNAL_CALL(Input_GetMouseY);
 		ENGINE_ADD_INTERNAL_CALL(Input_GetMouseX);
 
-#pragma endregion
-
-#pragma region Entity
-
 		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
-
-#pragma endregion
-
-#pragma region TransformComponent
 
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetPosition);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetPosition);
-		
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetRotation);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetRotation);
-		
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetScale);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetScale);
 
-#pragma endregion
-
+		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_GetColor);
+		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_SetColor);
+		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_GetTiling);
+		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_SetTiling);
 	}
 
 	template<typename... Component>
@@ -128,7 +112,7 @@ namespace InternalCalls
 		ENGINE_CRITICAL(Engine::ScriptEngine::MonoStringToUTF8(message));
 	}
 
-#pragma endregion
+#pragma endregion Log
 
 #pragma region Input
 
@@ -157,7 +141,7 @@ namespace InternalCalls
 		return Engine::Input::GetMouseX();
 	}
 
-#pragma endregion
+#pragma endregion Input
 
 #pragma region Entity
 
@@ -169,7 +153,7 @@ namespace InternalCalls
 		return s_EntityHasComponentFuncs.at(managedType)(entity);
 	}
 
-#pragma endregion
+#pragma endregion Entity
 
 #pragma region TransformComponent
 
@@ -209,5 +193,33 @@ namespace InternalCalls
 		entity.GetComponent<Engine::TransformComponent>().Scale = scale;
 	}
 
-#pragma endregion
+#pragma endregion TransformComponent
+
+#pragma region SpriteRendererComponent
+
+	void ScriptGlue::SpriteRendererComponent_GetColor(Engine::UUID entityID, glm::vec4* color)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*color = entity.GetComponent<Engine::SpriteRendererComponent>().Color;
+	}
+
+	void ScriptGlue::SpriteRendererComponent_SetColor(Engine::UUID entityID, glm::vec4& color)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::SpriteRendererComponent>().Color = color;
+	}
+
+	float ScriptGlue::SpriteRendererComponent_GetTiling(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		return entity.GetComponent<Engine::SpriteRendererComponent>().Tiling;
+	}
+
+	void ScriptGlue::SpriteRendererComponent_SetTiling(Engine::UUID entityID, float tiling)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::SpriteRendererComponent>().Tiling = tiling;
+	}
+
+#pragma endregion SpriteRendererComponent
 }

@@ -10,11 +10,11 @@ namespace Engine
 	{
 		m_Instance = m_ScriptClass->Instantiate();
 
-		m_Constructor = mono_class_get_method_from_name(ScriptEngine::GetEntityClass(), ".ctor", 1);
+		MonoMethod* constructor = mono_class_get_method_from_name(ScriptEngine::GetEntityClass(), ".ctor", 1);
 		{
 			UUID id = entityID;
 			void* param = &id;
-			m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, &param);
+			m_ScriptClass->InvokeMethod(m_Instance, constructor, &param);
 		}
 
 		MonoClass* monoClass = m_ScriptClass->GetMonoClass();

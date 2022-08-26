@@ -60,6 +60,16 @@ namespace InternalCalls
 		static void TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale);
 
 #pragma endregion
+
+#pragma region SpriteRendererComponent
+
+		static void SpriteRendererComponent_GetColor(Engine::UUID entityID, glm::vec4* color);
+		static void SpriteRendererComponent_SetColor(Engine::UUID entityID, glm::vec4& color);
+
+		static float SpriteRendererComponent_GetTiling(Engine::UUID entityID);
+		static void SpriteRendererComponent_SetTiling(Engine::UUID entityID, float tiling);
+
+#pragma endregion
 	};
 }
 
