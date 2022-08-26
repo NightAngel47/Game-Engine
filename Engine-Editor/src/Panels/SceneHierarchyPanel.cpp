@@ -440,10 +440,6 @@ namespace Engine
 			if (!scriptClassExists)
 			{
 				ImGui::PopStyleColor();
-			}
-
-			if (component.ScriptName.empty())
-			{
 				return;
 			}
 

@@ -21,18 +21,36 @@ namespace Engine
 
 		// setup onCreate method
 		MonoMethod* OnCreateMethodPtr = mono_class_get_method_from_name(monoClass, "OnCreate", 0);
-		ENGINE_CORE_ASSERT(OnCreateMethodPtr, "Could not find create method desc in class!");
-		OnCreateThunk = (OnCreate)mono_method_get_unmanaged_thunk(OnCreateMethodPtr);
+		if (OnCreateMethodPtr)
+		{
+			OnCreateThunk = (OnCreate)mono_method_get_unmanaged_thunk(OnCreateMethodPtr);
+		}
+		else
+		{
+			ENGINE_CORE_WARN("Could not find create method desc in class!");
+		}
 
 		// setup onDestroy method
 		MonoMethod* OnDestroyMethodPtr = mono_class_get_method_from_name(monoClass, "OnDestroy", 0);
-		ENGINE_CORE_ASSERT(OnDestroyMethodPtr, "Could not find destroy method desc in class!");
-		OnDestroyThunk = (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr);
+		if (OnDestroyMethodPtr)
+		{
+			OnDestroyThunk = (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr);
+		}
+		else
+		{
+			ENGINE_CORE_WARN("Could not find destroy method desc in class!");
+		}
 
 		// setup onUpdate method
 		MonoMethod* OnUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnUpdate", 1);
-		ENGINE_CORE_ASSERT(OnUpdateMethodPtr, "Could not find update method desc in class!");
-		OnUpdateThunk = (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr);
+		if (OnUpdateMethodPtr)
+		{
+			OnUpdateThunk = (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr);
+		}
+		else
+		{
+			ENGINE_CORE_WARN("Could not find update method desc in class!");
+		}
 	}
 
 	void ScriptInstance::InvokeOnCreate()

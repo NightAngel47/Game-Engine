@@ -4,7 +4,7 @@ using Engine.Math;
 
 namespace Source
 {
-	public class ExampleEntity : Entity
+	public class Player : Entity
 	{
 		SpriteRendererComponent sprite;
 		public float moveSpeed = 5.0f;
@@ -15,10 +15,6 @@ namespace Source
 
 		protected override void OnCreate()
 		{
-			//TagComponent tagComponent = GetComponent<TagComponent>();
-			//string name = tagComponent.Tag;
-			//Log.Info($"Name: {name}");
-
 			sprite = GetComponent<SpriteRendererComponent>();
 			sprite.Color = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 			sprite.Tiling = 1000.0f;
@@ -52,25 +48,21 @@ namespace Source
 			if (Input.IsKeyPressed(KeyCode.A))
 			{
 				movement.X += -1.0f * moveSpeed * ts;
-				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
 			}
 
 			if (Input.IsKeyPressed(KeyCode.D))
 			{
 				movement.X += 1.0f * moveSpeed * ts;
-				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
 			}
 
 			if (Input.IsKeyPressed(KeyCode.S))
 			{
 				movement.Y += -1.0f * moveSpeed * ts;
-				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
 			}
 
 			if (Input.IsKeyPressed(KeyCode.W))
 			{
 				movement.Y += 1.0f * moveSpeed * ts;
-				//Log.Trace($"Movement: ({movement.X}, {movement.Y})");
 			}
 
 			if (Input.IsKeyPressed(KeyCode.Q))
@@ -88,8 +80,6 @@ namespace Source
 			}
 
 			Transform.Position += new Vector3(movement.X, movement.Y, 0.0f);
-			//Vector3 pos = transformComponent.Position;
-			//Log.Info($"Position: ({pos.X}, {pos.Y}, {pos.Z})");
 		}
 	}
 }

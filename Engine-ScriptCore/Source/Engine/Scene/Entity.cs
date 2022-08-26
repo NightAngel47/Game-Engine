@@ -16,9 +16,9 @@ namespace Engine.Scene
 			Log.Info($"Entity Created with ID: {ID}");
 		}
 
-		protected abstract void OnCreate();
-		protected abstract void OnDestroy();
-		protected abstract void OnUpdate(Timestep ts);
+		protected virtual void OnCreate() { }
+		protected virtual void OnDestroy() { }
+		protected virtual void OnUpdate(Timestep ts) { }
 
 		public bool HasComponent<T>() where T : Component, new()
 		{
