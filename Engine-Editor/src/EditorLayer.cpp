@@ -62,6 +62,7 @@ namespace Engine
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
 		ENGINE_PROFILE_FUNCTION();
+		m_FrameTime = ts.GetMilliseconds();
 
 		// Resize
 		if (FramebufferSpecification spec = m_Framebuffer->GetSpecification(); 
@@ -208,6 +209,8 @@ namespace Engine
 			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
 		
+		ImGui::Text("Frametime: %fms", m_FrameTime);
+
 		auto stats = Renderer2D::GetStats();
 		ImGui::Text("Renderer2D Stats:");
 		ImGui::Text("Draw Calls: %d", stats.DrawCalls);

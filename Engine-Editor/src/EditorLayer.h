@@ -60,6 +60,9 @@ namespace Engine
 
 		SceneState m_SceneState = SceneState::Edit;
 
+		// Stats
+		float m_FrameTime;
+
 		// ImGui
 		glm::vec2 m_ViewportSize = glm::vec2{1.0f};
 		bool m_ViewportFocused = false, m_ViewportHovered = false;
