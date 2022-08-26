@@ -6,6 +6,8 @@
 
 #include "Engine/Scene/Components.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scripting/ScriptClass.h"
+#include "Engine/Scripting/ScriptInstance.h"
 
 #include <cstring>
 

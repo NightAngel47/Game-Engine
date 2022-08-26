@@ -3,6 +3,8 @@
 
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/Components.h"
+#include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scripting/ScriptClass.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -259,7 +261,7 @@ namespace Engine
 				out << YAML::BeginMap; // ScriptFields
 
 				// TODO add more types
-				auto scriptFields = Engine::ScriptEngine::GetEntityClasses().at(scriptComponent.ScriptName)->GetScriptFields();
+				auto scriptFields = ScriptEngine::GetEntityClasses().at(scriptComponent.ScriptName)->GetScriptFields();
 				for (auto const& [key, val] : scriptFields)
 				{
 					if (val->IsPublic())
