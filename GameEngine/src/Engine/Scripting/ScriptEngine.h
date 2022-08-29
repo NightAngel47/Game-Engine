@@ -59,6 +59,7 @@ namespace Engine
 		static uint8_t GetPropertyAccessbility(MonoProperty* property);
 
 		static void HandleMonoException(MonoObject* ptrExObject);
+		static MonoString* StringToMonoString(std::string string);
 		static std::string MonoStringToUTF8(MonoString* monoString);
 
 		enum class Accessibility : uint8_t

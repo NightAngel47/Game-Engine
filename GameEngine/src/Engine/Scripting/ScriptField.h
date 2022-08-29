@@ -12,6 +12,7 @@ namespace Engine
 
 		MonoClassField* GetMonoField() { return m_MonoField; }
 		const std::string& GetTypeName() { return m_TypeName; }
+
 		void GetValue(Ref<ScriptInstance> instance, void* value);
 		void SetValue(Ref<ScriptInstance> instance, void* value);
 

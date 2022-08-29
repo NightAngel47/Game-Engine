@@ -11,7 +11,6 @@
 
 #include <cstring>
 
-
 namespace Engine
 {
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
@@ -485,6 +484,29 @@ namespace Engine
 						else
 						{
 							ImGui::Text("Int Value");
+						}
+					}
+					else if (typeName == "System.String")
+					{
+						if (scriptInstance)
+						{
+							MonoString* monoString{};
+							val->GetValue(scriptInstance, &monoString);
+							std::string fieldValue = ScriptEngine::MonoStringToUTF8(monoString);
+
+							char buffer[256];
+							memset(buffer, 0, sizeof(buffer));
+							strcpy_s(buffer, sizeof(buffer), fieldValue.c_str());
+							if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
+							{
+								fieldValue = std::string(buffer);
+								monoString = ScriptEngine::StringToMonoString(fieldValue);
+								val->SetValue(scriptInstance, monoString);
+							}
+						}
+						else
+						{
+							ImGui::Text("String Value");
 						}
 					}
 					else

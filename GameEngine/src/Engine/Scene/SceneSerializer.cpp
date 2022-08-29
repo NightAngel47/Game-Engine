@@ -159,6 +159,9 @@ namespace Engine
 	{
 	}
 
+	// forward declaration
+	typedef struct _MonoString MonoString;
+
 	static void SerializeEntity(YAML::Emitter& out, Entity entity)
 	{
 		ENGINE_CORE_ASSERT(entity.HasComponent<IDComponent>(), "Entity must have UUID!");
@@ -277,6 +280,13 @@ namespace Engine
 						{
 							int fieldValue;
 							val->GetValue(scriptInstance, &fieldValue);
+							out << YAML::Key << key << YAML::Value << fieldValue;
+						}
+						else if (typeName == "System.String")
+						{
+							MonoString* monoString{};
+							val->GetValue(scriptInstance, &monoString);
+							std::string fieldValue = ScriptEngine::MonoStringToUTF8(monoString);
 							out << YAML::Key << key << YAML::Value << fieldValue;
 						}
 						else
@@ -485,10 +495,16 @@ namespace Engine
 									float fieldValue = fields[fieldName].as<float>();
 									scriptField->SetValue(scriptInstance, &fieldValue);
 								}
-								if (typeName == "System.Int32")
+								else if (typeName == "System.Int32")
 								{
 									int fieldValue = fields[fieldName].as<int>();
 									scriptField->SetValue(scriptInstance, &fieldValue);
+								}
+								else if (typeName == "System.String")
+								{
+									std::string fieldValue = fields[fieldName].as<std::string>();
+									MonoString* monoString = ScriptEngine::StringToMonoString(fieldValue);
+									scriptField->SetValue(scriptInstance, monoString);
 								}
 								else
 								{

@@ -78,8 +78,6 @@ namespace GameProject.Source
 			{
 				Transform.Position += new Vector3(movement.X, movement.Y, 0.0f);
 			}
-
-			Log.Trace(Transform.ToString());
 		}
 	}
 }

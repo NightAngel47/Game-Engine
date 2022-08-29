@@ -491,6 +491,11 @@ namespace Engine
 		ENGINE_CORE_ERROR(result);
 	}
 
+	MonoString* ScriptEngine::StringToMonoString(std::string string)
+	{
+		return mono_string_new(s_ScriptEngineData->AppDomain, string.c_str());
+	}
+
 	std::string ScriptEngine::MonoStringToUTF8(MonoString* monoString)
 	{
 		if (monoString == nullptr || mono_string_length(monoString) == 0)

@@ -55,3 +55,4 @@ Entities:
       ScriptFields:
         moveSpeed: 5
         rotSpeeed: 5
+        exampleString: This is a Test
