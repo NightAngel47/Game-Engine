@@ -446,72 +446,119 @@ namespace Engine
 			Ref<Engine::ScriptInstance> scriptInstance = Engine::ScriptEngine::GetEntityInstance(entity.GetUUID());
 
 			// TODO add more types
-			auto scriptFields = scriptClass->GetScriptFields();
+			const auto& scriptFields = scriptClass->GetScriptFields();
 			for (auto const& [key, val] : scriptFields)
 			{
 				if (val->IsPublic())
 				{
 					ImGui::Text(key.c_str());
 					ImGui::SameLine();
-					const std::string& typeName = val->GetTypeName();
-					if (typeName == "System.Single")
+					const char* typeName = val->GetTypeName();
+
+					switch (val->GetType())
+					{
+					default:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::None:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::Float:
 					{
 						if (scriptInstance)
 						{
-							float fieldValue;
-							val->GetValue(scriptInstance, &fieldValue);
+							float fieldValue = val->GetValue<float>(scriptInstance);
 							if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
 							{
 								val->SetValue(scriptInstance, &fieldValue);
 							}
 						}
-						else
-						{
-							ImGui::Text("Float Value");
-						}
+						break;
 					}
-					else if (typeName == "System.Int32")
+					case ScriptFieldType::Double:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::Bool:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::Char:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::String:
 					{
 						if (scriptInstance)
 						{
-							int fieldValue;
-							val->GetValue(scriptInstance, &fieldValue);
+							char buffer[256];
+							memset(buffer, 0, sizeof(buffer));
+							strcpy_s(buffer, sizeof(buffer), ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstance)).c_str());
+							if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
+							{
+								val->SetValue(scriptInstance, ScriptEngine::StringToMonoString(std::string(buffer)));
+							}
+						}
+						break;
+					}
+					case ScriptFieldType::Byte:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::Short:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::Int:
+					{
+						if (scriptInstance)
+						{
+							int fieldValue = val->GetValue<int>(scriptInstance);
 							if (ImGui::DragInt(("##" + key).c_str(), &fieldValue))
 							{
 								val->SetValue(scriptInstance, &fieldValue);
 							}
 						}
-						else
-						{
-							ImGui::Text("Int Value");
-						}
+						break;
 					}
-					else if (typeName == "System.String")
-					{
-						if (scriptInstance)
-						{
-							MonoString* monoString{};
-							val->GetValue(scriptInstance, &monoString);
-							std::string fieldValue = ScriptEngine::MonoStringToUTF8(monoString);
-
-							char buffer[256];
-							memset(buffer, 0, sizeof(buffer));
-							strcpy_s(buffer, sizeof(buffer), fieldValue.c_str());
-							if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
-							{
-								fieldValue = std::string(buffer);
-								monoString = ScriptEngine::StringToMonoString(fieldValue);
-								val->SetValue(scriptInstance, monoString);
-							}
-						}
-						else
-						{
-							ImGui::Text("String Value");
-						}
-					}
-					else
-					{
-						ImGui::Text("Unsupported Value");
+					case ScriptFieldType::Long:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::UByte:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::UShort:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::UInt:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::ULong:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::Vector2:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::Vector3:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::Vector4:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
+					case ScriptFieldType::Entity:
+						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+						ImGui::Text(typeName);
+						break;
 					}
 				}
 			}

@@ -251,7 +251,7 @@ namespace Engine
 			return true;
 		}
 
-		ENGINE_CORE_WARN("Entity Class of " + className + " could not be found!");
+		ENGINE_CORE_ERROR("Entity Class of " + className + " could not be found!");
 		return false;
 	}
 
@@ -259,6 +259,12 @@ namespace Engine
 	{
 		if (EntityClassExists(className))
 		{
+			if (EntityInstanceExists(entityID))
+			{
+				ENGINE_CORE_ERROR("Tried to Create Entity Instance for {}, but it already existed!", entityID);
+				return s_ScriptEngineData->EntityInstances.at(entityID);
+			}
+
 			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses[className];
 
 			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entityID);
@@ -288,10 +294,6 @@ namespace Engine
 			{
 				s_ScriptEngineData->EntityInstances[entityID]->InvokeOnCreate();
 			}
-			else
-			{
-				CreateEntityInstance(entityID, className);
-			}
 		}
 	}
 
@@ -305,7 +307,7 @@ namespace Engine
 				Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances[entityID];
 				instance->InvokeOnDestroy();
 
-				//DeleteEntityInstance(instance, entityID);
+				DeleteEntityInstance(instance, entityID);
 			}
 		}
 	}
@@ -319,10 +321,6 @@ namespace Engine
 			{
 				s_ScriptEngineData->EntityInstances[entityID]->InvokeOnUpdate(ts);
 			}
-			else
-			{
-				CreateEntityInstance(entityID, className);
-			}
 		}
 	}
 
@@ -334,6 +332,7 @@ namespace Engine
 			return true;
 		}
 
+		ENGINE_CORE_ERROR("Entity Instance for {}, does not exists!", entityID);
 		return false;
 	}
 
@@ -343,8 +342,6 @@ namespace Engine
 		{
 			return s_ScriptEngineData->EntityInstances.at(entityID);
 		}
-
-		ENGINE_CORE_WARN("Entity Instances with UUID of " + std::to_string(entityID) + " could not be found!");
 
 		return nullptr;
 	}

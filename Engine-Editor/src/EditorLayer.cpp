@@ -8,6 +8,7 @@
 
 #include "Engine/Debug/Instrumentor.h"
 #include "Engine/Scene/SceneSerializer.h"
+#include "Engine/Scene/Entity.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Math/Math.h"
 #include "Engine/Math/Random.h"
@@ -553,9 +554,9 @@ namespace Engine
 
 		m_EditorScene = CreateRef<Scene>(filenameString);
         m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_EditorScene);
 		m_EditorScenePath = path;
 		m_ActiveScene = m_EditorScene;
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 
 	void EditorLayer::OpenScene()
@@ -690,6 +691,13 @@ namespace Engine
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
 		m_SceneState = SceneState::Edit;
 		m_ActiveScene = m_EditorScene;
+
+		auto view = m_ActiveScene->GetAllEntitiesWith<IDComponent, ScriptComponent>();
+		for (auto entity : view)
+		{
+			auto [uuid, sc] = view.get<IDComponent, ScriptComponent>(entity);
+			ScriptEngine::CreateEntityInstance(uuid.ID, sc.ScriptName);
+		}
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
