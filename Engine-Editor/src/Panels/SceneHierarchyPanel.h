@@ -1,7 +1,5 @@
 #pragma once
-#include "Engine/Core/Base.h"
-#include "Engine/Scene/Scene.h"
-#include "Engine/Scene/Entity.h"
+#include <Engine.h>
 
 namespace Engine
 {

@@ -3,14 +3,14 @@
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/ContentBrowserPanel.h"
 #include "Engine/Renderer/EditorCamera.h"
-#include "Engine/Events/KeyEvent.h"
 
 namespace Engine
 {
 	class EditorLayer : public Layer
 	{
 	public:
-		EditorLayer();
+		EditorLayer()
+			: Layer("EditorLayer") {}
 		virtual ~EditorLayer() = default;
 		
 		virtual void OnAttach() override;
@@ -61,12 +61,12 @@ namespace Engine
 		SceneState m_SceneState = SceneState::Edit;
 
 		// Stats
-		float m_FrameTime;
+		float m_FrameTime = 0;
 
 		// ImGui
 		glm::vec2 m_ViewportSize = glm::vec2{1.0f};
 		bool m_ViewportFocused = false, m_ViewportHovered = false;
-		glm::vec2 m_ViewportBounds[2];
+		glm::vec2 m_ViewportBounds[2] = {};
 
 		// Gizmos
 		int m_GizmoType = -1;

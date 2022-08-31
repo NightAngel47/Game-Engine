@@ -3,7 +3,7 @@
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Core/UUID.h"
-#include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scripting/ScriptFieldData.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -103,6 +103,8 @@ namespace Engine
 	struct ScriptComponent
 	{
 		std::string ScriptName;
+
+		std::unordered_map <std::string, ScriptFieldDataBase*> ScriptFieldsData;
 
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;

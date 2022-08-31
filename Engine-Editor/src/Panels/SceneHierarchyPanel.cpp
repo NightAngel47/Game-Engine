@@ -4,11 +4,6 @@
 #include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Engine/Scene/Components.h"
-#include "Engine/Scripting/ScriptEngine.h"
-#include "Engine/Scripting/ScriptClass.h"
-#include "Engine/Scripting/ScriptInstance.h"
-
 #include <cstring>
 
 namespace Engine
@@ -467,13 +462,10 @@ namespace Engine
 						break;
 					case ScriptFieldType::Float:
 					{
-						if (scriptInstance)
+						float fieldValue = scriptInstance ? val->GetValue<float>(scriptInstance) : component.ScriptFieldsData.at(key)->get<float>();
+						if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
 						{
-							float fieldValue = val->GetValue<float>(scriptInstance);
-							if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
-							{
-								val->SetValue(scriptInstance, &fieldValue);
-							}
+							scriptInstance ? val->SetValue(scriptInstance, &fieldValue) : component.ScriptFieldsData.at(key)->setValue<float>(fieldValue);
 						}
 						break;
 					}
@@ -491,15 +483,12 @@ namespace Engine
 						break;
 					case ScriptFieldType::String:
 					{
-						if (scriptInstance)
+						char buffer[256];
+						memset(buffer, 0, sizeof(buffer));
+						strcpy_s(buffer, sizeof(buffer), scriptInstance ? ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstance)).c_str() : component.ScriptFieldsData.at(key)->get<std::string>().c_str());
+						if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 						{
-							char buffer[256];
-							memset(buffer, 0, sizeof(buffer));
-							strcpy_s(buffer, sizeof(buffer), ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstance)).c_str());
-							if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
-							{
-								val->SetValue(scriptInstance, ScriptEngine::StringToMonoString(std::string(buffer)));
-							}
+							scriptInstance ? val->SetValue(scriptInstance, ScriptEngine::StringToMonoString(std::string(buffer))) : component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer));
 						}
 						break;
 					}
@@ -513,13 +502,10 @@ namespace Engine
 						break;
 					case ScriptFieldType::Int:
 					{
-						if (scriptInstance)
+						int fieldValue = scriptInstance ? val->GetValue<int>(scriptInstance) : component.ScriptFieldsData.at(key)->get<int>();
+						if (ImGui::DragInt(("##" + key).c_str(), &fieldValue))
 						{
-							int fieldValue = val->GetValue<int>(scriptInstance);
-							if (ImGui::DragInt(("##" + key).c_str(), &fieldValue))
-							{
-								val->SetValue(scriptInstance, &fieldValue);
-							}
+							scriptInstance ? val->SetValue(scriptInstance, &fieldValue) : component.ScriptFieldsData.at(key)->setValue<int>(fieldValue);
 						}
 						break;
 					}

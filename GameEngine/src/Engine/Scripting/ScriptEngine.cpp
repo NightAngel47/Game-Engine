@@ -265,8 +265,7 @@ namespace Engine
 				return s_ScriptEngineData->EntityInstances.at(entityID);
 			}
 
-			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses[className];
-
+			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses.at(className);
 			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entityID);
 			s_ScriptEngineData->EntityInstances[entityID] = instance;
 
@@ -290,9 +289,9 @@ namespace Engine
 		if (EntityClassExists(className))
 		{
 			UUID entityID = entity.GetUUID();
-			if (EntityInstanceExists(entityID))
+			if (CreateEntityInstance(entityID, className))
 			{
-				s_ScriptEngineData->EntityInstances[entityID]->InvokeOnCreate();
+				s_ScriptEngineData->EntityInstances.at(entityID)->InvokeOnCreate();
 			}
 		}
 	}
@@ -304,7 +303,7 @@ namespace Engine
 			UUID entityID = entity.GetUUID();
 			if (EntityInstanceExists(entityID))
 			{
-				Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances[entityID];
+				Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances.at(entityID);
 				instance->InvokeOnDestroy();
 
 				DeleteEntityInstance(instance, entityID);
@@ -319,7 +318,7 @@ namespace Engine
 			UUID entityID = entity.GetUUID();
 			if (EntityInstanceExists(entityID))
 			{
-				s_ScriptEngineData->EntityInstances[entityID]->InvokeOnUpdate(ts);
+				s_ScriptEngineData->EntityInstances.at(entityID)->InvokeOnUpdate(ts);
 			}
 		}
 	}

@@ -12,14 +12,29 @@
 #include "Engine/Core/Input.h"
 #include "Engine/Core/KeyCodes.h"
 #include "Engine/Core/MouseCodes.h"
+
+#include "Engine/Events/KeyEvent.h"
+#include "Engine/Events/MouseEvent.h"
+
 #include "Engine/OrthographicCameraController.h"
 
 #include "Engine/ImGui/ImGuiLayer.h"
+
+#include "Engine/Utils/PlatformUtils.h"
+#include "Engine/Math/Math.h"
+#include "Engine/Math/Random.h"
 
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Scene/Components.h"
+#include "Engine/Scene/SceneSerializer.h"
+
+#include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scripting/ScriptClass.h"
+#include "Engine/Scripting/ScriptInstance.h"
+#include "Engine/Scripting/ScriptField.h"
+#include "Engine/Scripting/ScriptFieldData.h"
 
 // ---Renderer------------------------------
 #include "Engine/Renderer/Renderer.h"

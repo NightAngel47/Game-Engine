@@ -6,28 +6,13 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#include "Engine/Debug/Instrumentor.h"
-#include "Engine/Scene/SceneSerializer.h"
-#include "Engine/Scene/Entity.h"
-#include "Engine/Utils/PlatformUtils.h"
-#include "Engine/Math/Math.h"
-#include "Engine/Math/Random.h"
-
 namespace Engine
 {
 	// TODO REMOVE CAUSE TEMP
 	extern const std::filesystem::path g_AssetsPath;
-	
-	EditorLayer::EditorLayer()
-		: Layer("EditorLayer")
-	{
-		ENGINE_PROFILE_FUNCTION();
-	}
 
 	void EditorLayer::OnAttach()
 	{
-		ENGINE_PROFILE_FUNCTION();
-
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
 		m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
 		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
@@ -56,12 +41,11 @@ namespace Engine
 
 	void EditorLayer::OnDetach()
 	{
-		ENGINE_PROFILE_FUNCTION();
+		ENGINE_CORE_WARN("Not Implemented!");
 	}
 
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
-		ENGINE_PROFILE_FUNCTION();
 		m_FrameTime = ts.GetMilliseconds();
 
 		// Resize
@@ -118,7 +102,6 @@ namespace Engine
 
 	void EditorLayer::OnImGuiRender()
 	{
-		ENGINE_PROFILE_FUNCTION();
 
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -391,8 +374,6 @@ namespace Engine
 
 	void EditorLayer::OnEvent(Event& e)
 	{
-		ENGINE_PROFILE_FUNCTION();
-		
 		m_EditorCamera.OnEvent(e);
 
 		EventDispatcher dispatcher(e);
@@ -692,12 +673,12 @@ namespace Engine
 		m_SceneState = SceneState::Edit;
 		m_ActiveScene = m_EditorScene;
 
-		auto view = m_ActiveScene->GetAllEntitiesWith<IDComponent, ScriptComponent>();
-		for (auto entity : view)
-		{
-			auto [uuid, sc] = view.get<IDComponent, ScriptComponent>(entity);
-			ScriptEngine::CreateEntityInstance(uuid.ID, sc.ScriptName);
-		}
+		//auto view = m_ActiveScene->GetAllEntitiesWith<IDComponent, ScriptComponent>();
+		//for (auto entity : view)
+		//{
+		//	auto [uuid, sc] = view.get<IDComponent, ScriptComponent>(entity);
+		//	ScriptEngine::CreateEntityInstance(uuid.ID, sc.ScriptName);
+		//}
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
