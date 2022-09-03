@@ -1,11 +1,11 @@
 #include "enginepch.h"
 #include "Engine/Scripting/ScriptEngine.h"
 #include "Engine/Scripting/ScriptGlue.h"
-#include "Engine/Scripting/ScriptInstance.h"
 
 #include "Engine/Utils/FileUtils.h"
 
 #include "Engine/Scene/Entity.h"
+#include "Engine/Scene/Components.h"
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
@@ -255,9 +255,9 @@ namespace Engine
 		return false;
 	}
 
-	Ref<ScriptInstance> ScriptEngine::CreateEntityInstance(const UUID& entityID, const std::string& className)
+	Ref<ScriptInstance> ScriptEngine::CreateEntityInstance(const UUID& entityID, const ScriptComponent& sc)
 	{
-		if (EntityClassExists(className))
+		if (EntityClassExists(sc.ScriptName))
 		{
 			if (EntityInstanceExists(entityID))
 			{
@@ -265,8 +265,8 @@ namespace Engine
 				return s_ScriptEngineData->EntityInstances.at(entityID);
 			}
 
-			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses.at(className);
-			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entityID);
+			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses.at(sc.ScriptName);
+			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entityID, sc);
 			s_ScriptEngineData->EntityInstances[entityID] = instance;
 
 			return instance;
@@ -284,12 +284,12 @@ namespace Engine
 		}
 	}
 
-	void ScriptEngine::OnCreateEntity(Entity entity, const std::string& className)
+	void ScriptEngine::OnCreateEntity(Entity entity, const ScriptComponent& sc)
 	{
-		if (EntityClassExists(className))
+		if (EntityClassExists(sc.ScriptName))
 		{
 			UUID entityID = entity.GetUUID();
-			if (CreateEntityInstance(entityID, className))
+			if (CreateEntityInstance(entityID, sc))
 			{
 				s_ScriptEngineData->EntityInstances.at(entityID)->InvokeOnCreate();
 			}

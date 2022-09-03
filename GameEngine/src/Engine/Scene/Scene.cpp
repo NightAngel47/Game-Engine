@@ -311,7 +311,7 @@ namespace Engine
 		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnCreateEntity(entity, sc.ScriptName);
+			ScriptEngine::OnCreateEntity(entity, sc);
 		});
 
 		// Start Native Scripts

@@ -3,7 +3,6 @@
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Core/UUID.h"
-#include "Engine/Scripting/ScriptFieldData.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -99,6 +98,9 @@ namespace Engine
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
 	};
+
+	// forward declaration
+	class ScriptFieldDataBase;
 
 	struct ScriptComponent
 	{

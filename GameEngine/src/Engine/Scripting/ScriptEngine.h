@@ -1,6 +1,9 @@
 #pragma once
+#include "Engine/Scripting/ScriptInstance.h"
+#include "Engine/Scripting/ScriptClass.h"
 #include "Engine/Core/Timestep.h"
 #include "Engine/Scene/Scene.h"
+#include "Engine/Scene/Components.h"
 
 extern "C"
 {
@@ -19,10 +22,6 @@ extern "C"
 
 namespace Engine
 {
-	// forward declaration
-	class ScriptClass;
-	class ScriptInstance;
-
 	class ScriptEngine
 	{
 	public:
@@ -38,10 +37,10 @@ namespace Engine
 		static Scene* GetSceneContext();
 		
 		static bool EntityClassExists(const std::string& className);
-		static Ref<ScriptInstance> CreateEntityInstance(const UUID& entityID, const std::string& className);
+		static Ref<ScriptInstance> CreateEntityInstance(const UUID& entityID, const ScriptComponent& sc);
 		static void DeleteEntityInstance(Ref<ScriptInstance> instance, UUID entityID);
 
-		static void OnCreateEntity(Entity entity, const std::string& className);
+		static void OnCreateEntity(Entity entity, const ScriptComponent& sc);
 		static void OnDestroyEntity(Entity entity, const std::string& className);
 		static void OnUpdateEntity(Entity entity, const std::string& className, Timestep ts);
 

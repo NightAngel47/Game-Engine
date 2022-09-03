@@ -1,7 +1,14 @@
 #pragma once
-#include "Engine/Scripting/ScriptEngine.h"
 #include "Engine/Scripting/ScriptClass.h"
-#include "Engine/Core/Timestep.h"
+#include "Engine/Core/UUID.h"
+#include "Engine/Scene/Components.h"
+
+extern "C"
+{
+	typedef struct _MonoObject MonoObject;
+	typedef struct _MonoMethod MonoMethod;
+}
+
 
 typedef void(*OnCreate) (MonoObject* obj, MonoObject** exp);
 typedef void(*OnDestroy) (MonoObject* obj, MonoObject** exp);
@@ -9,12 +16,11 @@ typedef void(*OnUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
 
 namespace Engine
 {
-
 	class ScriptInstance
 	{
 	public:
 		ScriptInstance() = default;
-		ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID);
+		ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID, const ScriptComponent& sc);
 		~ScriptInstance() = default;
 
 		void InvokeOnCreate();
@@ -22,6 +28,9 @@ namespace Engine
 		void InvokeOnUpdate(float ts);
 
 		MonoObject* GetMonoObject() { return m_Instance; }
+
+	private:
+		void SetInstanceFields(const ScriptComponent& sc);
 
 	private:
 		Ref<ScriptClass> m_ScriptClass;

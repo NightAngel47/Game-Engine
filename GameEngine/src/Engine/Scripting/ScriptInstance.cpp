@@ -1,11 +1,14 @@
 #include "enginepch.h"
 #include "Engine/Scripting/ScriptInstance.h"
+#include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scripting/ScriptField.h"
+#include "Engine/Scripting/ScriptFieldData.h"
 
 #include <mono/metadata/object.h>
 
 namespace Engine
 {
-	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID)
+	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID, const ScriptComponent& sc)
 		: m_ScriptClass(scriptClass)
 	{
 		m_Instance = m_ScriptClass->Instantiate();
@@ -51,6 +54,8 @@ namespace Engine
 		{
 			ENGINE_CORE_WARN("Could not find update method desc in class!");
 		}
+
+		SetInstanceFields(sc);
 	}
 
 	void ScriptInstance::InvokeOnCreate()
@@ -79,4 +84,89 @@ namespace Engine
 		OnUpdateThunk(m_Instance, &ts, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
+
+	void ScriptInstance::SetInstanceFields(const ScriptComponent& sc)
+	{
+		auto& scriptFields = m_ScriptClass->GetScriptFields();
+		for (auto const& [key, val] : scriptFields)
+		{
+			if (val->IsPublic())
+			{
+				const char* typeName = val->GetTypeName();
+
+				switch (val->GetType())
+				{
+				default:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::None:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::Float:
+				{
+					float fieldValue = sc.ScriptFieldsData.at(key)->get<float>();
+					val->SetValue(Ref<ScriptInstance>(this), &fieldValue);
+					break;
+				}
+				case ScriptFieldType::Double:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::Bool:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::Char:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::String:
+				{
+					char buffer[256];
+					memset(buffer, 0, sizeof(buffer));
+					strcpy_s(buffer, sizeof(buffer), sc.ScriptFieldsData.at(key)->get<std::string>().c_str());
+					val->SetValue(Ref<ScriptInstance>(this), ScriptEngine::StringToMonoString(std::string(buffer)));
+					break;
+				}
+				case ScriptFieldType::Byte:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::Short:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::Int:
+				{
+					int fieldValue = sc.ScriptFieldsData.at(key)->get<int>();
+					val->SetValue(Ref<ScriptInstance>(this), &fieldValue);
+					break;
+				}
+				case ScriptFieldType::Long:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::UByte:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::UShort:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::UInt:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::ULong:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::Vector2:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::Vector3:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::Vector4:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				case ScriptFieldType::Entity:
+					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					break;
+				}
+			}
+		}
+	}
+
 }

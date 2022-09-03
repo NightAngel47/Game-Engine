@@ -1,5 +1,9 @@
 #pragma once
-#include "Engine/Scripting/ScriptInstance.h"
+
+extern "C"
+{
+	typedef struct _MonoClassField MonoClassField;
+}
 
 namespace Engine
 {
@@ -13,6 +17,9 @@ namespace Engine
 		Vector2, Vector3, Vector4,
 		Entity
 	};
+
+	// forward declaration
+	class ScriptInstance;
 
 	class ScriptField
 	{

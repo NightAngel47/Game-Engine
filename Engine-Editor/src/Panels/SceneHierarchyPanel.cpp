@@ -437,8 +437,8 @@ namespace Engine
 				return;
 			}
 
-			Ref<Engine::ScriptClass> scriptClass = Engine::ScriptEngine::GetEntityClasses().at(component.ScriptName);
-			Ref<Engine::ScriptInstance> scriptInstance = m_IsEditMode ? nullptr : Engine::ScriptEngine::GetEntityInstance(entity.GetUUID());
+			Ref<ScriptClass> scriptClass = ScriptEngine::GetEntityClasses().at(component.ScriptName);
+			Ref<ScriptInstance> scriptInstance = m_IsEditMode ? nullptr : ScriptEngine::GetEntityInstance(entity.GetUUID());
 
 			// TODO add more types
 			const auto& scriptFields = scriptClass->GetScriptFields();
