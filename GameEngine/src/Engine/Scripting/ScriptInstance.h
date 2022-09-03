@@ -20,7 +20,7 @@ namespace Engine
 	{
 	public:
 		ScriptInstance() = default;
-		ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID, const ScriptComponent& sc);
+		ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID, const ScriptComponent* sc = nullptr);
 		~ScriptInstance() = default;
 
 		void InvokeOnCreate();
@@ -30,7 +30,7 @@ namespace Engine
 		MonoObject* GetMonoObject() { return m_Instance; }
 
 	private:
-		void SetInstanceFields(const ScriptComponent& sc);
+		void SetInstanceFields(const ScriptComponent* sc);
 
 	private:
 		Ref<ScriptClass> m_ScriptClass;

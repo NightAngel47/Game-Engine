@@ -255,9 +255,9 @@ namespace Engine
 		return false;
 	}
 
-	Ref<ScriptInstance> ScriptEngine::CreateEntityInstance(const UUID& entityID, const ScriptComponent& sc)
+	Ref<ScriptInstance> ScriptEngine::CreateEntityInstance(const UUID& entityID, const std::string& scriptName, const ScriptComponent* sc)
 	{
-		if (EntityClassExists(sc.ScriptName))
+		if (EntityClassExists(scriptName))
 		{
 			if (EntityInstanceExists(entityID))
 			{
@@ -265,7 +265,7 @@ namespace Engine
 				return s_ScriptEngineData->EntityInstances.at(entityID);
 			}
 
-			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses.at(sc.ScriptName);
+			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses.at(scriptName);
 			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entityID, sc);
 			s_ScriptEngineData->EntityInstances[entityID] = instance;
 
@@ -289,7 +289,7 @@ namespace Engine
 		if (EntityClassExists(sc.ScriptName))
 		{
 			UUID entityID = entity.GetUUID();
-			if (CreateEntityInstance(entityID, sc))
+			if (CreateEntityInstance(entityID, sc.ScriptName, &sc))
 			{
 				s_ScriptEngineData->EntityInstances.at(entityID)->InvokeOnCreate();
 			}

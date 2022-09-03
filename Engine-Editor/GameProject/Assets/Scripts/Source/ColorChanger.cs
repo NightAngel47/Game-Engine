@@ -9,6 +9,8 @@ namespace GameProject.Source
 		SpriteRendererComponent sprite;
 		public float secondsBetween = 1.0f;
 		public int maxTilingAmount = 100;
+
+		public Vector4 color;
 		
 		float timeElapsed;
 

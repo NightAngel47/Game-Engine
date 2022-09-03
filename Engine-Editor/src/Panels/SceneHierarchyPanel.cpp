@@ -428,7 +428,6 @@ namespace Engine
 			if (ImGui::InputText("ScriptName", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 			{
 				component.ScriptName = std::string(buffer);
-				ScriptEngine::CreateEntityInstance(entity.GetUUID(), component.ScriptName);
 			}
 
 			if (!scriptClassExists)
@@ -439,6 +438,7 @@ namespace Engine
 
 			Ref<ScriptClass> scriptClass = ScriptEngine::GetEntityClasses().at(component.ScriptName);
 			Ref<ScriptInstance> scriptInstance = m_IsEditMode ? nullptr : ScriptEngine::GetEntityInstance(entity.GetUUID());
+			MonoObject* scriptInstanceMonoObject = m_IsEditMode ? nullptr : scriptInstance->GetMonoObject();
 
 			// TODO add more types
 			const auto& scriptFields = scriptClass->GetScriptFields();
@@ -462,10 +462,10 @@ namespace Engine
 						break;
 					case ScriptFieldType::Float:
 					{
-						float fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<float>() : val->GetValue<float>(scriptInstance->GetMonoObject());
+						float fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<float>() : val->GetValue<float>(scriptInstanceMonoObject);
 						if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
 						{
-							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<float>(fieldValue) : val->SetValue(scriptInstance->GetMonoObject(), &fieldValue);
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<float>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
 						}
 						break;
 					}
@@ -485,10 +485,10 @@ namespace Engine
 					{
 						char buffer[256];
 						memset(buffer, 0, sizeof(buffer));
-						strcpy_s(buffer, sizeof(buffer), m_IsEditMode ? component.ScriptFieldsData.at(key)->get<std::string>().c_str() : ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstance->GetMonoObject())).c_str());
+						strcpy_s(buffer, sizeof(buffer), m_IsEditMode ? component.ScriptFieldsData.at(key)->get<std::string>().c_str() : ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstanceMonoObject)).c_str());
 						if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 						{
-							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer)) : val->SetValue(scriptInstance->GetMonoObject(), ScriptEngine::StringToMonoString(std::string(buffer)));
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer)) : val->SetValue(scriptInstanceMonoObject, ScriptEngine::StringToMonoString(std::string(buffer)));
 						}
 						break;
 					}
@@ -502,10 +502,10 @@ namespace Engine
 						break;
 					case ScriptFieldType::Int:
 					{
-						int fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<int>() : val->GetValue<int>(scriptInstance->GetMonoObject());
+						int fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<int>() : val->GetValue<int>(scriptInstanceMonoObject);
 						if (ImGui::DragInt(("##" + key).c_str(), &fieldValue))
 						{
-							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<int>(fieldValue) : val->SetValue(scriptInstance->GetMonoObject(), &fieldValue);
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<int>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
 						}
 						break;
 					}
@@ -530,17 +530,32 @@ namespace Engine
 						ImGui::Text(typeName);
 						break;
 					case ScriptFieldType::Vector2:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+					{
+						glm::vec2 fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<glm::vec2>() : val->GetValue<glm::vec2>(scriptInstanceMonoObject);
+						if (ImGui::DragFloat2(("##" + key).c_str(), glm::value_ptr(fieldValue), 0.1f))
+						{
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<glm::vec2>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
+						}
 						break;
+					}
 					case ScriptFieldType::Vector3:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+					{
+						glm::vec3 fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<glm::vec3>() : val->GetValue<glm::vec3>(scriptInstanceMonoObject);
+						if (ImGui::DragFloat3(("##" + key).c_str(), glm::value_ptr(fieldValue), 0.1f))
+						{
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<glm::vec3>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
+						}
 						break;
+					}
 					case ScriptFieldType::Vector4:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+					{
+						glm::vec4 fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<glm::vec4>() : val->GetValue<glm::vec4>(scriptInstanceMonoObject);
+						if (ImGui::DragFloat4(("##" + key).c_str(), glm::value_ptr(fieldValue), 0.1f))
+						{
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<glm::vec4>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
+						}
 						break;
+					}
 					case ScriptFieldType::Entity:
 						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
 						ImGui::Text(typeName);

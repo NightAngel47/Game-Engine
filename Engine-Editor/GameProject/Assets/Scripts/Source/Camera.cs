@@ -9,10 +9,12 @@ namespace GameProject.Source
 		public float moveSpeed = 5.0f;
 		public float rotSpeeed = 5.0f;
 
+		public Vector2 movement;
+
 		protected override void OnUpdate(float ts)
 		{
 
-			Vector2 movement = new Vector2(0.0f, 0.0f);
+			movement = new Vector2(0.0f, 0.0f);
 
 			if (Input.IsKeyPressed(KeyCode.A))
 			{

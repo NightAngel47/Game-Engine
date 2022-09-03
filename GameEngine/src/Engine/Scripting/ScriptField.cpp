@@ -5,6 +5,8 @@
 #include <mono/metadata/object.h>
 #include <mono/metadata/debug-helpers.h>
 
+#include <glm/glm.hpp>
+
 namespace Engine
 {
 	static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
@@ -100,6 +102,27 @@ namespace Engine
 		return *(MonoString**)s_FieldValueBuffer;
 	}
 
+	template<>
+	glm::vec2 ScriptField::GetValue(MonoObject* instance)
+	{
+		GetValueInternal(instance, s_FieldValueBuffer);
+		return *(glm::vec2*)s_FieldValueBuffer;
+	}
+
+	template<>
+	glm::vec3 ScriptField::GetValue(MonoObject* instance)
+	{
+		GetValueInternal(instance, s_FieldValueBuffer);
+		return *(glm::vec3*)s_FieldValueBuffer;
+	}
+
+	template<>
+	glm::vec4 ScriptField::GetValue(MonoObject* instance)
+	{
+		GetValueInternal(instance, s_FieldValueBuffer);
+		return *(glm::vec4*)s_FieldValueBuffer;
+	}
+
 	template<typename T>
 	void ScriptField::SetValue(MonoObject* instance, T* value)
 	{
@@ -120,6 +143,24 @@ namespace Engine
 
 	template<>
 	void ScriptField::SetValue(MonoObject* instance, MonoString* value)
+	{
+		SetValueInternal(instance, value);
+	}
+
+	template<>
+	void ScriptField::SetValue(MonoObject* instance, glm::vec2* value)
+	{
+		SetValueInternal(instance, value);
+	}
+
+	template<>
+	void ScriptField::SetValue(MonoObject* instance, glm::vec3* value)
+	{
+		SetValueInternal(instance, value);
+	}
+
+	template<>
+	void ScriptField::SetValue(MonoObject* instance, glm::vec4* value)
 	{
 		SetValueInternal(instance, value);
 	}

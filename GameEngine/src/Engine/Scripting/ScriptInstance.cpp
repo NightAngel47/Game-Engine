@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID, const ScriptComponent& sc)
+	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID, const ScriptComponent* sc)
 		: m_ScriptClass(scriptClass)
 	{
 		m_Instance = m_ScriptClass->Instantiate();
@@ -85,8 +85,10 @@ namespace Engine
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
-	void ScriptInstance::SetInstanceFields(const ScriptComponent& sc)
+	void ScriptInstance::SetInstanceFields(const ScriptComponent* sc)
 	{
+		if (!sc) return;
+
 		auto& scriptFields = m_ScriptClass->GetScriptFields();
 		for (auto const& [key, val] : scriptFields)
 		{
@@ -104,7 +106,7 @@ namespace Engine
 					break;
 				case ScriptFieldType::Float:
 				{
-					float fieldValue = sc.ScriptFieldsData.at(key)->get<float>();
+					float fieldValue = sc->ScriptFieldsData.at(key)->get<float>();
 					val->SetValue(m_Instance, &fieldValue);
 					break;
 				}
@@ -121,7 +123,7 @@ namespace Engine
 				{
 					char buffer[256];
 					memset(buffer, 0, sizeof(buffer));
-					strcpy_s(buffer, sizeof(buffer), sc.ScriptFieldsData.at(key)->get<std::string>().c_str());
+					strcpy_s(buffer, sizeof(buffer), sc->ScriptFieldsData.at(key)->get<std::string>().c_str());
 					val->SetValue(m_Instance, ScriptEngine::StringToMonoString(std::string(buffer)));
 					break;
 				}
@@ -133,7 +135,7 @@ namespace Engine
 					break;
 				case ScriptFieldType::Int:
 				{
-					int fieldValue = sc.ScriptFieldsData.at(key)->get<int>();
+					int fieldValue = sc->ScriptFieldsData.at(key)->get<int>();
 					val->SetValue(m_Instance, &fieldValue);
 					break;
 				}
@@ -153,13 +155,24 @@ namespace Engine
 					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
 					break;
 				case ScriptFieldType::Vector2:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+				{
+					glm::vec2 fieldValue = sc->ScriptFieldsData.at(key)->get<glm::vec2>();
+					val->SetValue(m_Instance, &fieldValue);
 					break;
+				}
 				case ScriptFieldType::Vector3:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+				{
+					glm::vec3 fieldValue = sc->ScriptFieldsData.at(key)->get<glm::vec3>();
+					val->SetValue(m_Instance, &fieldValue);
+					break;
+				}
 					break;
 				case ScriptFieldType::Vector4:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+				{
+					glm::vec3 fieldValue = sc->ScriptFieldsData.at(key)->get<glm::vec3>();
+					val->SetValue(m_Instance, &fieldValue);
+					break;
+				}
 					break;
 				case ScriptFieldType::Entity:
 					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);

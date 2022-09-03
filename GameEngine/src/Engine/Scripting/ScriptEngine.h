@@ -37,7 +37,7 @@ namespace Engine
 		static Scene* GetSceneContext();
 		
 		static bool EntityClassExists(const std::string& className);
-		static Ref<ScriptInstance> CreateEntityInstance(const UUID& entityID, const ScriptComponent& sc);
+		static Ref<ScriptInstance> CreateEntityInstance(const UUID& entityID, const std::string& scriptName, const ScriptComponent* sc = nullptr);
 		static void DeleteEntityInstance(Ref<ScriptInstance> instance, UUID entityID);
 
 		static void OnCreateEntity(Entity entity, const ScriptComponent& sc);

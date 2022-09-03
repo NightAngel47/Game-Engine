@@ -9,19 +9,20 @@ namespace GameProject.Source
 		public float moveSpeed = 5.0f;
 		public float rotSpeeed = 5.0f;
 
+		public Vector2 movement;
+		public Vector3 rotation;
+
 		public string exampleString = "Example";
 
 		protected override void OnCreate()
 		{
 
 			Vector3 pos = Transform.Position;
-			Vector3 rot = Transform.Rotation;
+			rotation = Transform.Rotation;
 			Vector3 scale = Transform.Scale;
 			Log.Info($"Position: ({pos.X}, {pos.Y}, {pos.Z})");
-			Log.Info($"Rotation: ({rot.X}, {rot.Y}, {rot.Z})");
+			Log.Info($"Rotation: ({rotation.X}, {rotation.Y}, {rotation.Z})");
 			Log.Info($"Scale: ({scale.X}, {scale.Y}, {scale.Z})");
-
-			Log.Warn($"Speed: {moveSpeed}");
 		}
 
 		protected override void OnDestroy()
@@ -38,7 +39,7 @@ namespace GameProject.Source
 				Log.Trace($"Current Mouse Pos: ({curMousePos.X}, {curMousePos.Y})");
 			}
 
-			Vector2 movement = new Vector2(0.0f, 0.0f);
+			movement = new Vector2(0.0f, 0.0f);
 
 			if (Input.IsKeyPressed(KeyCode.A))
 			{
@@ -62,14 +63,14 @@ namespace GameProject.Source
 
 			if (Input.IsKeyPressed(KeyCode.Q))
 			{
-				Vector3 rotation = Transform.Rotation;
+				rotation = Transform.Rotation;
 				rotation.Z += 1.0f * rotSpeeed * ts;
 				Transform.Rotation = rotation;
 			}
 
 			if (Input.IsKeyPressed(KeyCode.E))
 			{
-				Vector3 rotation = Transform.Rotation;
+				rotation = Transform.Rotation;
 				rotation.Z += -1.0f * rotSpeeed * ts;
 				Transform.Rotation = rotation;
 			}
