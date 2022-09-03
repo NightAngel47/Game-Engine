@@ -105,7 +105,7 @@ namespace Engine
 				case ScriptFieldType::Float:
 				{
 					float fieldValue = sc.ScriptFieldsData.at(key)->get<float>();
-					val->SetValue(Ref<ScriptInstance>(this), &fieldValue);
+					val->SetValue(m_Instance, &fieldValue);
 					break;
 				}
 				case ScriptFieldType::Double:
@@ -122,7 +122,7 @@ namespace Engine
 					char buffer[256];
 					memset(buffer, 0, sizeof(buffer));
 					strcpy_s(buffer, sizeof(buffer), sc.ScriptFieldsData.at(key)->get<std::string>().c_str());
-					val->SetValue(Ref<ScriptInstance>(this), ScriptEngine::StringToMonoString(std::string(buffer)));
+					val->SetValue(m_Instance, ScriptEngine::StringToMonoString(std::string(buffer)));
 					break;
 				}
 				case ScriptFieldType::Byte:
@@ -134,7 +134,7 @@ namespace Engine
 				case ScriptFieldType::Int:
 				{
 					int fieldValue = sc.ScriptFieldsData.at(key)->get<int>();
-					val->SetValue(Ref<ScriptInstance>(this), &fieldValue);
+					val->SetValue(m_Instance, &fieldValue);
 					break;
 				}
 				case ScriptFieldType::Long:

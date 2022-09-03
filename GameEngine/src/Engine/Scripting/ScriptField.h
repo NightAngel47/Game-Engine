@@ -3,6 +3,7 @@
 extern "C"
 {
 	typedef struct _MonoClassField MonoClassField;
+	typedef struct _MonoObject MonoObject;
 }
 
 namespace Engine
@@ -18,9 +19,6 @@ namespace Engine
 		Entity
 	};
 
-	// forward declaration
-	class ScriptInstance;
-
 	class ScriptField
 	{
 	public:
@@ -33,16 +31,16 @@ namespace Engine
 		const char* GetTypeName();
 
 		template<typename T>
-		T GetValue(Ref<ScriptInstance> instance);
+		T GetValue(MonoObject* instance);
 
 		template<typename T>
-		void SetValue(Ref<ScriptInstance> instance, T* value);
+		void SetValue(MonoObject* instance, T* value);
 
 		bool IsPublic();
 
 	private:
-		void GetValueInternal(Ref<ScriptInstance> instance, void* buffer);
-		void SetValueInternal(Ref<ScriptInstance> instance, const void* value);
+		void GetValueInternal(MonoObject* instance, void* buffer);
+		void SetValueInternal(MonoObject* instance, const void* value);
 
 	private:
 		MonoClassField* m_MonoField = nullptr;

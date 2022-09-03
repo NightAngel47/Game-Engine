@@ -73,53 +73,53 @@ namespace Engine
 	}
 
 	template<typename T>
-	T ScriptField::GetValue(Ref<ScriptInstance> instance)
+	T ScriptField::GetValue(MonoObject* instance)
 	{
 		GetValueInternal(instance, s_FieldValueBuffer);
 		return *(T*)s_FieldValueBuffer;
 	}
 
 	template<>
-	float ScriptField::GetValue(Ref<ScriptInstance> instance)
+	float ScriptField::GetValue(MonoObject* instance)
 	{
 		GetValueInternal(instance, s_FieldValueBuffer);
 		return *(float*)s_FieldValueBuffer;
 	}
 
 	template<>
-	int ScriptField::GetValue(Ref<ScriptInstance> instance)
+	int ScriptField::GetValue(MonoObject* instance)
 	{
 		GetValueInternal(instance, s_FieldValueBuffer);
 		return *(int*)s_FieldValueBuffer;
 	}
 
 	template<>
-	MonoString* ScriptField::GetValue(Ref<ScriptInstance> instance)
+	MonoString* ScriptField::GetValue(MonoObject* instance)
 	{
 		GetValueInternal(instance, s_FieldValueBuffer);
 		return *(MonoString**)s_FieldValueBuffer;
 	}
 
 	template<typename T>
-	void ScriptField::SetValue(Ref<ScriptInstance> instance, T* value)
+	void ScriptField::SetValue(MonoObject* instance, T* value)
 	{
 		SetValueInternal(instance, value);
 	}
 
 	template<>
-	void ScriptField::SetValue(Ref<ScriptInstance> instance, float* value)
+	void ScriptField::SetValue(MonoObject* instance, float* value)
 	{
 		SetValueInternal(instance, value);
 	}
 
 	template<>
-	void ScriptField::SetValue(Ref<ScriptInstance> instance, int* value)
+	void ScriptField::SetValue(MonoObject* instance, int* value)
 	{
 		SetValueInternal(instance, value);
 	}
 
 	template<>
-	void ScriptField::SetValue(Ref<ScriptInstance> instance, MonoString* value)
+	void ScriptField::SetValue(MonoObject* instance, MonoString* value)
 	{
 		SetValueInternal(instance, value);
 	}
@@ -129,13 +129,13 @@ namespace Engine
 		return m_Access & (uint8_t)ScriptEngine::Accessibility::Public ? true : false;
 	}
 
-	void ScriptField::GetValueInternal(Ref<ScriptInstance> instance, void* buffer)
+	void ScriptField::GetValueInternal(MonoObject* instance, void* buffer)
 	{
-		mono_field_get_value(instance->GetMonoObject(), m_MonoField, s_FieldValueBuffer);
+		mono_field_get_value(instance, m_MonoField, s_FieldValueBuffer);
 	}
 
-	void ScriptField::SetValueInternal(Ref<ScriptInstance> instance, const void* value)
+	void ScriptField::SetValueInternal(MonoObject* instance, const void* value)
 	{
-		mono_field_set_value(instance->GetMonoObject(), m_MonoField, (void*)value);
+		mono_field_set_value(instance, m_MonoField, (void*)value);
 	}
 }

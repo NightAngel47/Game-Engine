@@ -462,10 +462,10 @@ namespace Engine
 						break;
 					case ScriptFieldType::Float:
 					{
-						float fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<float>() : val->GetValue<float>(scriptInstance);
+						float fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<float>() : val->GetValue<float>(scriptInstance->GetMonoObject());
 						if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
 						{
-							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<float>(fieldValue) : val->SetValue(scriptInstance, &fieldValue);
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<float>(fieldValue) : val->SetValue(scriptInstance->GetMonoObject(), &fieldValue);
 						}
 						break;
 					}
@@ -485,10 +485,10 @@ namespace Engine
 					{
 						char buffer[256];
 						memset(buffer, 0, sizeof(buffer));
-						strcpy_s(buffer, sizeof(buffer), m_IsEditMode ? component.ScriptFieldsData.at(key)->get<std::string>().c_str() : ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstance)).c_str());
+						strcpy_s(buffer, sizeof(buffer), m_IsEditMode ? component.ScriptFieldsData.at(key)->get<std::string>().c_str() : ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstance->GetMonoObject())).c_str());
 						if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 						{
-							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer)) : val->SetValue(scriptInstance, ScriptEngine::StringToMonoString(std::string(buffer)));
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer)) : val->SetValue(scriptInstance->GetMonoObject(), ScriptEngine::StringToMonoString(std::string(buffer)));
 						}
 						break;
 					}
@@ -502,10 +502,10 @@ namespace Engine
 						break;
 					case ScriptFieldType::Int:
 					{
-						int fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<int>() : val->GetValue<int>(scriptInstance);
+						int fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<int>() : val->GetValue<int>(scriptInstance->GetMonoObject());
 						if (ImGui::DragInt(("##" + key).c_str(), &fieldValue))
 						{
-							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<int>(fieldValue) : val->SetValue(scriptInstance, &fieldValue);
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<int>(fieldValue) : val->SetValue(scriptInstance->GetMonoObject(), &fieldValue);
 						}
 						break;
 					}
