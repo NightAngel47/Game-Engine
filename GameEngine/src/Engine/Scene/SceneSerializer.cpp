@@ -515,8 +515,11 @@ namespace Engine
 								ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
 								break;
 							case ScriptFieldType::Float:
-								script.ScriptFieldsData[fieldName] = &ScriptFieldData<float>(fields[fieldName].as<float>());
+							{
+								script.ScriptFieldsData[fieldName] = new ScriptFieldData<float>(fields[fieldName].as<float>());
+								ENGINE_CORE_TRACE("Deserialized float: {} = {}", fieldName, script.ScriptFieldsData.at(fieldName)->get<float>());
 								break;
+							}
 							case ScriptFieldType::Double:
 								ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
 								break;
@@ -527,8 +530,11 @@ namespace Engine
 								ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
 								break;
 							case ScriptFieldType::String:
-								script.ScriptFieldsData[fieldName] = &ScriptFieldData<std::string>(fields[fieldName].as<std::string>());
+							{
+								script.ScriptFieldsData[fieldName] = new ScriptFieldData<std::string>(fields[fieldName].as<std::string>());
+								ENGINE_CORE_TRACE("Deserialized string: {} = {}", fieldName, script.ScriptFieldsData.at(fieldName)->get<std::string>().c_str());
 								break;
+							}
 							case ScriptFieldType::Byte:
 								ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
 								break;
@@ -536,8 +542,11 @@ namespace Engine
 								ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
 								break;
 							case ScriptFieldType::Int:
-								script.ScriptFieldsData[fieldName] = &ScriptFieldData<int>(fields[fieldName].as<int>());
+							{
+								script.ScriptFieldsData[fieldName] = new ScriptFieldData<int>(fields[fieldName].as<int>());
+								ENGINE_CORE_TRACE("Deserialized int: {} = {}", fieldName, script.ScriptFieldsData.at(fieldName)->get<int>());
 								break;
+							}
 							case ScriptFieldType::Long:
 								ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
 								break;

@@ -438,7 +438,7 @@ namespace Engine
 			}
 
 			Ref<Engine::ScriptClass> scriptClass = Engine::ScriptEngine::GetEntityClasses().at(component.ScriptName);
-			Ref<Engine::ScriptInstance> scriptInstance = Engine::ScriptEngine::GetEntityInstance(entity.GetUUID());
+			Ref<Engine::ScriptInstance> scriptInstance = m_IsEditMode ? nullptr : Engine::ScriptEngine::GetEntityInstance(entity.GetUUID());
 
 			// TODO add more types
 			const auto& scriptFields = scriptClass->GetScriptFields();
@@ -462,10 +462,10 @@ namespace Engine
 						break;
 					case ScriptFieldType::Float:
 					{
-						float fieldValue = scriptInstance ? val->GetValue<float>(scriptInstance) : component.ScriptFieldsData.at(key)->get<float>();
+						float fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<float>() : val->GetValue<float>(scriptInstance);
 						if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
 						{
-							scriptInstance ? val->SetValue(scriptInstance, &fieldValue) : component.ScriptFieldsData.at(key)->setValue<float>(fieldValue);
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<float>(fieldValue) : val->SetValue(scriptInstance, &fieldValue);
 						}
 						break;
 					}
@@ -485,10 +485,10 @@ namespace Engine
 					{
 						char buffer[256];
 						memset(buffer, 0, sizeof(buffer));
-						strcpy_s(buffer, sizeof(buffer), scriptInstance ? ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstance)).c_str() : component.ScriptFieldsData.at(key)->get<std::string>().c_str());
+						strcpy_s(buffer, sizeof(buffer), m_IsEditMode ? component.ScriptFieldsData.at(key)->get<std::string>().c_str() : ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstance)).c_str());
 						if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 						{
-							scriptInstance ? val->SetValue(scriptInstance, ScriptEngine::StringToMonoString(std::string(buffer))) : component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer));
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer)) : val->SetValue(scriptInstance, ScriptEngine::StringToMonoString(std::string(buffer)));
 						}
 						break;
 					}
@@ -502,10 +502,10 @@ namespace Engine
 						break;
 					case ScriptFieldType::Int:
 					{
-						int fieldValue = scriptInstance ? val->GetValue<int>(scriptInstance) : component.ScriptFieldsData.at(key)->get<int>();
+						int fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<int>() : val->GetValue<int>(scriptInstance);
 						if (ImGui::DragInt(("##" + key).c_str(), &fieldValue))
 						{
-							scriptInstance ? val->SetValue(scriptInstance, &fieldValue) : component.ScriptFieldsData.at(key)->setValue<int>(fieldValue);
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<int>(fieldValue) : val->SetValue(scriptInstance, &fieldValue);
 						}
 						break;
 					}

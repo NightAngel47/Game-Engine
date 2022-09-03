@@ -638,6 +638,7 @@ namespace Engine
 		m_ActiveScene->OnRuntimeStart();
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetEditMode(false);
 	}
 
 	void EditorLayer::OnSceneSimulate()
@@ -673,13 +674,7 @@ namespace Engine
 		m_SceneState = SceneState::Edit;
 		m_ActiveScene = m_EditorScene;
 
-		//auto view = m_ActiveScene->GetAllEntitiesWith<IDComponent, ScriptComponent>();
-		//for (auto entity : view)
-		//{
-		//	auto [uuid, sc] = view.get<IDComponent, ScriptComponent>(entity);
-		//	ScriptEngine::CreateEntityInstance(uuid.ID, sc.ScriptName);
-		//}
-
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetEditMode(true);
 	}
 }
