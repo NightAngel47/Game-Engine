@@ -18,7 +18,7 @@ namespace Engine
 		while ((field = mono_class_get_fields(m_MonoClass, &itr)) != nullptr)
 		{
 			const char* fieldName = mono_field_get_name(field);
-			m_ScriptFields[fieldName] = new ScriptField(field);
+			m_ScriptFields[fieldName] = CreateRef<ScriptField>(field);
 			++i;
 		}
 	}

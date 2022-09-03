@@ -112,6 +112,7 @@ namespace Engine
 		ScriptComponent(const ScriptComponent&) = default;
 		ScriptComponent(const std::string& scriptName)
 			:ScriptName(scriptName) {}
+		~ScriptComponent() = default;
 	};
 
 	// Forward declaration
