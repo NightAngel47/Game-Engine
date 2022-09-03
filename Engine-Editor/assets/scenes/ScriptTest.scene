@@ -53,10 +53,6 @@ Entities:
       Color: [0.999990523, 1, 0.999989986, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
-    ScriptComponent:
-      ScriptName: Source.ExampleEntity
-      ScriptFields:
-        speed: 12.6999998
   - Entity: 3290987784417831286
     TagComponent:
       Tag: Camera
