@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using Engine.Core;
+using System.Runtime.InteropServices;
 
 namespace Engine.Math
 {
@@ -9,10 +10,13 @@ namespace Engine.Math
 
 		public Vector3(float x = 0.0f, float y = 0.0f, float z = 0.0f)
 		{
-			this.X = x;
-			this.Y = y;
-			this.Z = z;
+			X = x;
+			Y = y;
+			Z = z;
 		}
+
+		public float Magnitude => InternalCalls.Vector3_Magnitude(ref this);
+		public float sqrMagnitude => InternalCalls.Vector3_sqrMagnitude(ref this);
 
 		public static Vector3 operator +(Vector3 lhs, Vector3 rhs) => new Vector3(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z);
 		public static Vector3 operator -(Vector3 lhs, Vector3 rhs) => new Vector3(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z);

@@ -28,7 +28,7 @@ namespace InternalCalls
 		static void Log_Error(MonoString* message);
 		static void Log_Critical(MonoString* message);
 
-#pragma endregion
+#pragma endregion Log
 
 #pragma region Input
 
@@ -40,13 +40,49 @@ namespace InternalCalls
 		static float Input_GetMouseY();
 		static float Input_GetMouseX();
 
-#pragma endregion
+#pragma endregion Input
+
+#pragma region Random
+
+		static float Random_Float();
+		static float Random_Float_Seed(unsigned int seed);
+
+		static int Random_Int();
+		static int Random_Int_Seed(unsigned int seed);
+
+		static float Random_Range_Float(float min, float max);
+		static float Random_Range_Float_Seed(float min, float max, unsigned int seed);
+		static int Random_Range_Int(int min, int max);
+		static int Random_Range_Int_Seed(int min, int max, unsigned int seed);
+
+#pragma endregion Random
+
+#pragma region Vector2
+
+		static float Vector2_Magnitude(glm::vec2& vector2);
+		static float Vector2_sqrMagnitude(glm::vec2& vector2);
+
+#pragma endregion Vector2
+
+#pragma region Vector3
+
+		static float Vector3_Magnitude(glm::vec3& vector3);
+		static float Vector3_sqrMagnitude(glm::vec3& vector3);
+
+#pragma endregion Vector3
+
+#pragma region Vector4
+
+		static float Vector4_Magnitude(glm::vec4& vector4);
+		static float Vector4_sqrMagnitude(glm::vec4& vector4);
+
+#pragma endregion Vector4
 
 #pragma region Entity
 
 		static bool Entity_HasComponent(Engine::UUID entityID, MonoReflectionType* componentType);
 
-#pragma endregion
+#pragma endregion Entity
 
 #pragma region TransformComponent
 
@@ -59,7 +95,17 @@ namespace InternalCalls
 		static void TransformComponent_GetScale(Engine::UUID entityID, glm::vec3* scale);
 		static void TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale);
 
-#pragma endregion
+#pragma endregion TransformComponent
+
+#pragma region SpriteRendererComponent
+
+		static void SpriteRendererComponent_GetColor(Engine::UUID entityID, glm::vec4* color);
+		static void SpriteRendererComponent_SetColor(Engine::UUID entityID, glm::vec4& color);
+
+		static float SpriteRendererComponent_GetTiling(Engine::UUID entityID);
+		static void SpriteRendererComponent_SetTiling(Engine::UUID entityID, float tiling);
+
+#pragma endregion SpriteRendererComponent
 	};
 }
 

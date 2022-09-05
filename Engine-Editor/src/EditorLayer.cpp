@@ -6,28 +6,13 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#include "Engine/Debug/Instrumentor.h"
-#include "Engine/Scene/SceneSerializer.h"
-#include "Engine/Utils/PlatformUtils.h"
-#include "Engine/Math/Math.h"
-
-//#include "Engine/Scripting/ScriptGlue.h"
-
 namespace Engine
 {
 	// TODO REMOVE CAUSE TEMP
 	extern const std::filesystem::path g_AssetsPath;
-	
-	EditorLayer::EditorLayer()
-		: Layer("EditorLayer")
-	{
-		ENGINE_PROFILE_FUNCTION();
-	}
 
 	void EditorLayer::OnAttach()
 	{
-		ENGINE_PROFILE_FUNCTION();
-
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
 		m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
 		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
@@ -56,12 +41,12 @@ namespace Engine
 
 	void EditorLayer::OnDetach()
 	{
-		ENGINE_PROFILE_FUNCTION();
+		ENGINE_CORE_WARN("Not Implemented!");
 	}
 
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
-		ENGINE_PROFILE_FUNCTION();
+		m_FrameTime = ts.GetMilliseconds();
 
 		// Resize
 		if (FramebufferSpecification spec = m_Framebuffer->GetSpecification(); 
@@ -117,7 +102,6 @@ namespace Engine
 
 	void EditorLayer::OnImGuiRender()
 	{
-		ENGINE_PROFILE_FUNCTION();
 
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -208,6 +192,8 @@ namespace Engine
 			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
 		
+		ImGui::Text("Frametime: %fms", m_FrameTime);
+
 		auto stats = Renderer2D::GetStats();
 		ImGui::Text("Renderer2D Stats:");
 		ImGui::Text("Draw Calls: %d", stats.DrawCalls);
@@ -388,8 +374,6 @@ namespace Engine
 
 	void EditorLayer::OnEvent(Event& e)
 	{
-		ENGINE_PROFILE_FUNCTION();
-		
 		m_EditorCamera.OnEvent(e);
 
 		EventDispatcher dispatcher(e);
@@ -551,9 +535,9 @@ namespace Engine
 
 		m_EditorScene = CreateRef<Scene>(filenameString);
         m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_EditorScene);
 		m_EditorScenePath = path;
 		m_ActiveScene = m_EditorScene;
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 
 	void EditorLayer::OpenScene()
@@ -654,6 +638,7 @@ namespace Engine
 		m_ActiveScene->OnRuntimeStart();
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetEditMode(false);
 	}
 
 	void EditorLayer::OnSceneSimulate()
@@ -690,5 +675,6 @@ namespace Engine
 		m_ActiveScene = m_EditorScene;
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetEditMode(true);
 	}
 }

@@ -1,8 +1,6 @@
-﻿#include "enginepch.h"
-#include "ContentBrowserPanel.h"
+﻿#include "ContentBrowserPanel.h"
 
 #include <imgui/imgui.h>
-
 
 namespace Engine
 {

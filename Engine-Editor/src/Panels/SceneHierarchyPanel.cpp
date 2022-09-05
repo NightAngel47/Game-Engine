@@ -4,14 +4,17 @@
 #include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Engine/Scene/Components.h"
-#include "Engine/Scripting/ScriptEngine.h"
-
 #include <cstring>
-
 
 namespace Engine
 {
+	static void FieldTypeUnsupported(ScriptField* scriptField)
+	{
+		const char* typeName = scriptField->GetTypeName();
+		ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+		ImGui::Text(typeName);
+	}
+
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 	{
 		SetContext(context);
@@ -437,39 +440,118 @@ namespace Engine
 			if (!scriptClassExists)
 			{
 				ImGui::PopStyleColor();
+				return;
 			}
 
-			Ref<Engine::ScriptClass> scriptClass = Engine::ScriptEngine::GetEntityClasses().at(component.ScriptName);
-			Ref<Engine::ScriptInstance> scriptInstance = Engine::ScriptEngine::GetEntityInstance(entity.GetUUID());
+			Ref<ScriptInstance> scriptInstance = m_IsEditMode ? nullptr : ScriptEngine::GetEntityInstance(entity.GetUUID());
+			MonoObject* scriptInstanceMonoObject = m_IsEditMode ? nullptr : scriptInstance->GetMonoObject();
 
-			//TODO: Allow for modifying script fields for instances outside of play mode
-			auto scriptFields = scriptClass->GetScriptFields();
-			for (auto const& [key, val] : scriptFields)
+			// TODO add more types
+			const auto& scriptFields = ScriptEngine::GetEntityClasses().at(component.ScriptName)->GetScriptFields();
+			for (const auto& [key, val] : scriptFields)
 			{
 				if (val->IsPublic())
 				{
 					ImGui::Text(key.c_str());
 					ImGui::SameLine();
-					const std::string& typeName = val->GetTypeName();
-					if (typeName == "System.Single")
+
+					switch (val->GetType())
 					{
-						if (scriptInstance)
+					default:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::None:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::Float:
+					{
+						float fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<float>() : val->GetValue<float>(scriptInstanceMonoObject);
+						if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
 						{
-							float fieldValue;
-							val->GetValue(scriptInstance, &fieldValue);
-							if (ImGui::DragFloat(("##" + key).c_str(), &fieldValue, 0.1f))
-							{
-								val->SetValue(scriptInstance, &fieldValue);
-							}
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<float>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
 						}
-						else
-						{
-							ImGui::Text("Float Value");
-						}
+						break;
 					}
-					else
+					case ScriptFieldType::Double:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::Bool:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::Char:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::String:
 					{
-						ImGui::Text("Unsupported Value");
+						char buffer[256];
+						memset(buffer, 0, sizeof(buffer));
+						strcpy_s(buffer, sizeof(buffer), m_IsEditMode ? component.ScriptFieldsData.at(key)->get<std::string>().c_str() : val->GetValue<std::string>(scriptInstanceMonoObject).c_str());
+						if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
+						{
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer)) : val->SetValue(scriptInstanceMonoObject, &std::string(buffer));
+						}
+						break;
+					}
+					case ScriptFieldType::Byte:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::Short:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::Int:
+					{
+						int fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<int>() : val->GetValue<int>(scriptInstanceMonoObject);
+						if (ImGui::DragInt(("##" + key).c_str(), &fieldValue))
+						{
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<int>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
+						}
+						break;
+					}
+					case ScriptFieldType::Long:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::UByte:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::UShort:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::UInt:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::ULong:
+						FieldTypeUnsupported(val);
+						break;
+					case ScriptFieldType::Vector2:
+					{
+						glm::vec2 fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<glm::vec2>() : val->GetValue<glm::vec2>(scriptInstanceMonoObject);
+						if (ImGui::DragFloat2(("##" + key).c_str(), glm::value_ptr(fieldValue), 0.1f))
+						{
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<glm::vec2>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
+						}
+						break;
+					}
+					case ScriptFieldType::Vector3:
+					{
+						glm::vec3 fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<glm::vec3>() : val->GetValue<glm::vec3>(scriptInstanceMonoObject);
+						if (ImGui::DragFloat3(("##" + key).c_str(), glm::value_ptr(fieldValue), 0.1f))
+						{
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<glm::vec3>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
+						}
+						break;
+					}
+					case ScriptFieldType::Vector4:
+					{
+						glm::vec4 fieldValue = m_IsEditMode ? component.ScriptFieldsData.at(key)->get<glm::vec4>() : val->GetValue<glm::vec4>(scriptInstanceMonoObject);
+						if (ImGui::DragFloat4(("##" + key).c_str(), glm::value_ptr(fieldValue), 0.1f))
+						{
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<glm::vec4>(fieldValue) : val->SetValue(scriptInstanceMonoObject, &fieldValue);
+						}
+						break;
+					}
+					case ScriptFieldType::Entity:
+						FieldTypeUnsupported(val);
+						break;
 					}
 				}
 			}

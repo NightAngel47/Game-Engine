@@ -5,24 +5,13 @@
 #include "Engine/Utils/FileUtils.h"
 
 #include "Engine/Scene/Entity.h"
+#include "Engine/Scene/Components.h"
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
-#include <mono/metadata/assembly.h>
-#include <mono/metadata/object.h>
-#include <mono/metadata/debug-helpers.h>
 
 namespace Engine
 {
-	enum class Accessibility : uint8_t
-	{
-		None = 0,
-		Private = (1 << 0),
-		Internal = (1 << 1),
-		Protected = (1 << 2),
-		Public = (1 << 3)
-	};
-
 	struct ScriptEngineData
 	{
 		MonoDomain* RootDomain = nullptr;
@@ -32,7 +21,6 @@ namespace Engine
 		MonoAssembly* AppAssembly = nullptr;
 
 		MonoClass* EntityClass = nullptr;
-		MonoClass* TimestepClass = nullptr;
 
 		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
@@ -57,24 +45,6 @@ namespace Engine
 			mono_error_cleanup(&error);
 		}
 		return hasError;
-	}
-
-	static void HandleMonoException(MonoObject* ptrExObject)
-	{
-		// Report Exception
-		if (!ptrExObject) return;
-
-		MonoString* exString = mono_object_to_string(ptrExObject, nullptr);
-
-		MonoError error;
-		char* utf8 = mono_string_to_utf8_checked(exString, &error);
-		if (CheckMonoError(error))
-			return;
-
-		std::string result(utf8);
-		mono_free(utf8);
-
-		ENGINE_CORE_ERROR(result);
 	}
 
 	MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath)
@@ -146,6 +116,7 @@ namespace Engine
 
 		ShutdownMono();
 
+		s_ScriptEngineData->EntityInstances.clear();
 		delete s_ScriptEngineData;
 	}
 
@@ -178,7 +149,6 @@ namespace Engine
 
 		MonoImage* image = mono_assembly_get_image(s_ScriptEngineData->CoreAssembly);
 		s_ScriptEngineData->EntityClass = mono_class_from_name(image, "Engine.Scene", "Entity");
-		s_ScriptEngineData->TimestepClass = mono_class_from_name(image, "Engine.Core", "Timestep");
 	}
 
 	void ScriptEngine::LoadAppAssembly(const std::filesystem::path& assemblyPath)
@@ -224,8 +194,6 @@ namespace Engine
 	void ScriptEngine::OnRuntimeStop()
 	{
 		s_ScriptEngineData->SceneContext = nullptr;
-
-		s_ScriptEngineData->EntityInstances.clear();
 	}
 
 	MonoObject* ScriptEngine::InstantiateClass(MonoClass* monoClass)
@@ -264,6 +232,17 @@ namespace Engine
 		return s_ScriptEngineData->CoreAssembly;
 	}
 
+	MonoAssembly* ScriptEngine::GetAppAssembly()
+	{
+		ENGINE_CORE_ASSERT(s_ScriptEngineData->AppAssembly, "App Assembly not set.");
+		return s_ScriptEngineData->AppAssembly;
+	}
+
+	MonoClass* ScriptEngine::GetEntityClass()
+	{
+		return s_ScriptEngineData->EntityClass;
+	}
+
 	bool ScriptEngine::EntityClassExists(const std::string& className)
 	{
 		const auto& entityClasses = s_ScriptEngineData->EntityClasses;
@@ -272,24 +251,48 @@ namespace Engine
 			return true;
 		}
 
+		ENGINE_CORE_ERROR("Entity Class of " + className + " could not be found!");
 		return false;
 	}
 
-	void ScriptEngine::OnCreateEntity(Entity entity, const std::string& className)
+	Ref<ScriptInstance> ScriptEngine::CreateEntityInstance(const UUID& entityID, const std::string& scriptName, const ScriptComponent* sc)
 	{
-		if (EntityClassExists(className))
+		if (EntityClassExists(scriptName))
 		{
-			UUID entityUUID = entity.GetUUID();
-			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses[className];
+			if (EntityInstanceExists(entityID))
+			{
+				ENGINE_CORE_ERROR("Tried to Create Entity Instance for {}, but it already existed!", entityID);
+				return s_ScriptEngineData->EntityInstances.at(entityID);
+			}
 
-			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entity);
-			s_ScriptEngineData->EntityInstances[entityUUID] = instance;
+			Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClasses.at(scriptName);
+			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entityID, sc);
+			s_ScriptEngineData->EntityInstances[entityID] = instance;
 
-			instance->InvokeOnCreate();
+			return instance;
 		}
-		else
+
+		return nullptr;
+	}
+
+	void ScriptEngine::DeleteEntityInstance(Ref<ScriptInstance> instance, UUID entityID)
+	{
+		if (EntityInstanceExists(entityID))
 		{
-			ENGINE_CORE_WARN("Entity Class of " + className + " could not be found!");
+			s_ScriptEngineData->EntityInstances.erase(entityID);
+			instance = nullptr;
+		}
+	}
+
+	void ScriptEngine::OnCreateEntity(Entity entity, const ScriptComponent& sc)
+	{
+		if (EntityClassExists(sc.ScriptName))
+		{
+			UUID entityID = entity.GetUUID();
+			if (CreateEntityInstance(entityID, sc.ScriptName, &sc))
+			{
+				s_ScriptEngineData->EntityInstances.at(entityID)->InvokeOnCreate();
+			}
 		}
 	}
 
@@ -297,19 +300,14 @@ namespace Engine
 	{
 		if (EntityClassExists(className))
 		{
-			UUID entityUUID = entity.GetUUID();
-			if (EntityInstanceExists(entityUUID))
+			UUID entityID = entity.GetUUID();
+			if (EntityInstanceExists(entityID))
 			{
-				Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances[entityUUID];
+				Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances.at(entityID);
 				instance->InvokeOnDestroy();
 
-				s_ScriptEngineData->EntityInstances.erase(entityUUID);
-				instance = nullptr;
+				DeleteEntityInstance(instance, entityID);
 			}
-		}
-		else
-		{
-			ENGINE_CORE_WARN("Entity Class of " + className + " could not be found!");
 		}
 	}
 
@@ -317,19 +315,11 @@ namespace Engine
 	{
 		if (EntityClassExists(className))
 		{
-			UUID entityUUID = entity.GetUUID();
-			if (EntityInstanceExists(entityUUID))
+			UUID entityID = entity.GetUUID();
+			if (EntityInstanceExists(entityID))
 			{
-				s_ScriptEngineData->EntityInstances[entityUUID]->InvokeOnUpdate(ts);
+				s_ScriptEngineData->EntityInstances.at(entityID)->InvokeOnUpdate(ts);
 			}
-			else
-			{
-				OnCreateEntity(entity, className);
-			}
-		}
-		else
-		{
-			ENGINE_CORE_WARN("Entity Class of " + className + " could not be found!");
 		}
 	}
 
@@ -341,6 +331,7 @@ namespace Engine
 			return true;
 		}
 
+		ENGINE_CORE_ERROR("Entity Instance for {}, does not exists!", entityID);
 		return false;
 	}
 
@@ -350,8 +341,6 @@ namespace Engine
 		{
 			return s_ScriptEngineData->EntityInstances.at(entityID);
 		}
-
-		ENGINE_CORE_WARN("Entity Instances with UUID of " + std::to_string(entityID) + " could not be found!");
 
 		return nullptr;
 	}
@@ -480,6 +469,29 @@ namespace Engine
 		return accessibility;
 	}
 
+	void ScriptEngine::HandleMonoException(MonoObject* ptrExObject)
+	{
+		// Report Exception
+		if (!ptrExObject) return;
+
+		MonoString* exString = mono_object_to_string(ptrExObject, nullptr);
+
+		MonoError error;
+		char* utf8 = mono_string_to_utf8_checked(exString, &error);
+		if (CheckMonoError(error))
+			return;
+
+		std::string result(utf8);
+		mono_free(utf8);
+
+		ENGINE_CORE_ERROR(result);
+	}
+
+	MonoString* ScriptEngine::StringToMonoString(std::string string)
+	{
+		return mono_string_new(s_ScriptEngineData->AppDomain, string.c_str());
+	}
+
 	std::string ScriptEngine::MonoStringToUTF8(MonoString* monoString)
 	{
 		if (monoString == nullptr || mono_string_length(monoString) == 0)
@@ -495,126 +507,4 @@ namespace Engine
 
 		return result;
 	}
-
-	ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className)
-		: m_ClassNamespace(classNamespace), m_ClassName(className)
-	{
-		m_MonoClass = ScriptEngine::GetClassInAssembly(s_ScriptEngineData->AppAssembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
-
-		int i = 0;
-		void* itr = nullptr;
-		MonoClassField* field = nullptr;
-		while ((field = mono_class_get_fields(m_MonoClass, &itr)) != nullptr)
-		{
-			const char* fieldName = mono_field_get_name(field);
-			m_ScriptFields[fieldName] = CreateRef<ScriptField>(field);
-			++i;
-		}
-	}
-
-	MonoObject* ScriptClass::Instantiate()
-	{
-		return ScriptEngine::InstantiateClass(m_MonoClass);
-	}
-
-	MonoMethod* ScriptClass::GetMethod(const std::string& name, int parameterCount)
-	{
-		return mono_class_get_method_from_name(m_MonoClass, name.c_str(), parameterCount);
-	}
-
-	MonoObject* ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, void** params)
-	{
-		MonoObject* monoException = nullptr;
-		MonoObject* result = mono_runtime_invoke(method, instance, params, &monoException);
-
-		HandleMonoException(monoException);
-
-		return result;
-	}
-
-	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
-		: m_ScriptClass(scriptClass)
-	{
-		m_Instance = m_ScriptClass->Instantiate();
-
-		m_Constructor = mono_class_get_method_from_name(s_ScriptEngineData->EntityClass, ".ctor", 1);
-		{
-			UUID entityID = entity.GetUUID();
-			void* param = &entityID;
-			m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, &param);
-		}
-
-		MonoClass * monoClass = m_ScriptClass->GetMonoClass();
-
-		// setup onCreate method
-		MonoMethod* OnCreateMethodPtr = mono_class_get_method_from_name(monoClass, "OnCreate", 0);
-		ENGINE_CORE_ASSERT(OnCreateMethodPtr, "Could not find create method desc in class!");
-		OnCreateThunk = (OnCreate)mono_method_get_unmanaged_thunk(OnCreateMethodPtr);
-
-		// setup onDestroy method
-		MonoMethod* OnDestroyMethodPtr = mono_class_get_method_from_name(monoClass, "OnDestroy", 0);
-		ENGINE_CORE_ASSERT(OnDestroyMethodPtr, "Could not find destroy method desc in class!");
-		OnDestroyThunk = (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr);
-
-		// setup onUpdate method
-		MonoMethod* OnUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnUpdate", 1);
-		ENGINE_CORE_ASSERT(OnUpdateMethodPtr, "Could not find update method desc in class!");
-		OnUpdateThunk = (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr);
-	}
-
-	void ScriptInstance::InvokeOnCreate()
-	{
-		if (!OnCreateThunk) return; // handle script without OnCreate
-
-		MonoObject* ptrExObject = nullptr;
-		OnCreateThunk(m_Instance, &ptrExObject);
-		HandleMonoException(ptrExObject);
-	}
-
-	void ScriptInstance::InvokeOnDestroy()
-	{
-		if (!OnDestroyThunk) return; // handle script without OnDestroy
-
-		MonoObject* ptrExObject = nullptr;
-		OnDestroyThunk(m_Instance, &ptrExObject);
-		HandleMonoException(ptrExObject);
-	}
-
-	void ScriptInstance::InvokeOnUpdate(Timestep ts)
-	{
-		if (!OnUpdateThunk) return; // handle script without OnUpdate
-
-		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->TimestepClass, &ts);
-		MonoObject* ptrExObject = nullptr;
-		OnUpdateThunk(m_Instance, paramBox, &ptrExObject);
-		HandleMonoException(ptrExObject);
-	}
-
-	ScriptField::ScriptField(MonoClassField* monoField)
-		:m_MonoField(monoField)
-	{
-		m_Access = ScriptEngine::GetFieldAccessibility(m_MonoField);
-		MonoType* monoType = mono_field_get_type(m_MonoField);
-		m_TypeName = mono_type_get_name(monoType);
-		
-		// TODO remove/move to debug only
-		std::string name = mono_field_get_name(m_MonoField);
-		ENGINE_CORE_TRACE("Field: " + name + " Type: " + m_TypeName);
-	}
-
-	void ScriptField::GetValue(Ref<ScriptInstance> instance, void* value)
-	{
-		mono_field_get_value(instance->GetMonoObject(), m_MonoField, value);
-	}
-
-	void ScriptField::SetValue(Ref<ScriptInstance> instance, void* value)
-	{
-		mono_field_set_value(instance->GetMonoObject(), m_MonoField, value);
-	}
-
-	bool ScriptField::IsPublic()
-	{
-		return m_Access& (uint8_t)Accessibility::Public ? true : false;
-	}
-
 }

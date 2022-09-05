@@ -1,11 +1,11 @@
-﻿using System;
-using Engine.Core;
+﻿using Engine.Core;
 
 namespace Engine.Scene
 {
 	public abstract class Entity
 	{
 		public readonly ulong ID;
+		public TransformComponent Transform => GetComponent<TransformComponent>();
 
 		protected Entity() { ID = 0; }
 
@@ -15,13 +15,13 @@ namespace Engine.Scene
 			Log.Info($"Entity Created with ID: {ID}");
 		}
 
-		protected abstract void OnCreate();
-		protected abstract void OnDestroy();
-		protected abstract void OnUpdate(Timestep ts);
+		protected virtual void OnCreate() { }
+		protected virtual void OnDestroy() { }
+		protected virtual void OnUpdate(float ts) { }
 
 		public bool HasComponent<T>() where T : Component, new()
 		{
-			Type componentType = typeof(T);
+			System.Type componentType = typeof(T);
 			return InternalCalls.Entity_HasComponent(ID, componentType);
 		}
 

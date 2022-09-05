@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Engine.Math;
 
 namespace Engine.Core
@@ -23,7 +22,7 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Critical(string message);
 
-		#endregion
+		#endregion Log
 
 		#region Input
 
@@ -42,14 +41,72 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern float Input_GetMouseX();
 
-		#endregion
+		#endregion Input
+
+		#region Random
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Random_Float();
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Random_Float_Seed(uint seed);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern int Random_Int();
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern int Random_Int_Seed(uint seed);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Random_Range_Float(float min, float max);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Random_Range_Float_Seed(float min, float max, uint seed);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern int Random_Range_Int(int min, int max);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern int Random_Range_Int_Seed(int min, int max, uint seed);
+
+		#endregion Random
+
+		#region Vector2
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector2_Magnitude(ref Vector2 vector2);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector2_sqrMagnitude(ref Vector2 vector2);
+
+		#endregion Vector2
+
+		#region Vector3
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector3_Magnitude(ref Vector3 vector3);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector3_sqrMagnitude(ref Vector3 vector3);
+
+		#endregion Vector3
+
+		#region Vector4
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector4_Magnitude(ref Vector4 vector4);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector4_sqrMagnitude(ref Vector4 vector4);
+
+		#endregion Vector4
 
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern bool Entity_HasComponent(ulong entityID, Type componentType);
+		internal static extern bool Entity_HasComponent(ulong entityID, System.Type componentType);
 
-		#endregion
+		#endregion Entity
 
 		#region TransformComponent
 
@@ -71,6 +128,22 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void TransformComponent_SetScale(ulong entityID, ref Vector3 scale);
 
-		#endregion
+		#endregion TransformComponent
+
+		#region SpriteRendererComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void SpriteRendererComponent_GetColor(ulong entityID, out Vector4 color);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void SpriteRendererComponent_SetColor(ulong entityID, ref Vector4 color);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float SpriteRendererComponent_GetTiling(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void SpriteRendererComponent_SetTiling(ulong entityID, float tiling);
+
+		#endregion SpriteRendererComponent
 	}
 }
