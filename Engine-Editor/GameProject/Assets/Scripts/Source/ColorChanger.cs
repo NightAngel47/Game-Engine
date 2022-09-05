@@ -24,7 +24,8 @@ namespace GameProject.Source
 			timeElapsed += ts;
 			if (timeElapsed >= secondsBetween)
 			{
-				sprite.Color = new Vector4(Random.Float(), Random.Float(), Random.Float(), 1.0f);
+				color = new Vector4(Random.Float(), Random.Float(), Random.Float(), 1.0f);
+				sprite.Color = color;
 				sprite.Tiling = Random.Range(1, maxTilingAmount);
 				timeElapsed = 0;
 			}

@@ -4,6 +4,7 @@ extern "C"
 {
 	typedef struct _MonoClassField MonoClassField;
 	typedef struct _MonoObject MonoObject;
+	typedef struct _MonoString MonoString;
 }
 
 namespace Engine

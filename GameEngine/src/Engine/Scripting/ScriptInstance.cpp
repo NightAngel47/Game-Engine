@@ -172,7 +172,7 @@ namespace Engine
 					break;
 				case ScriptFieldType::Vector4:
 				{
-					glm::vec3 fieldValue = sc->ScriptFieldsData.at(key)->get<glm::vec3>();
+					glm::vec4 fieldValue = sc->ScriptFieldsData.at(key)->get<glm::vec4>();
 					val->SetValue(m_Instance, &fieldValue);
 					break;
 				}
