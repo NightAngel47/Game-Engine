@@ -96,10 +96,10 @@ namespace Engine
 	}
 
 	template<>
-	MonoString* ScriptField::GetValue(MonoObject* instance)
+	std::string ScriptField::GetValue(MonoObject* instance)
 	{
 		GetValueInternal(instance, s_FieldValueBuffer);
-		return *(MonoString**)s_FieldValueBuffer;
+		return ScriptEngine::MonoStringToUTF8((MonoString*)s_FieldValueBuffer);
 	}
 
 	template<>
@@ -142,9 +142,9 @@ namespace Engine
 	}
 
 	template<>
-	void ScriptField::SetValue(MonoObject* instance, MonoString* value)
+	void ScriptField::SetValue(MonoObject* instance, std::string* value)
 	{
-		SetValueInternal(instance, value);
+		SetValueInternal(instance, ScriptEngine::StringToMonoString(*value));
 	}
 
 	template<>

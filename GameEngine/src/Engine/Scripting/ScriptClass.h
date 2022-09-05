@@ -6,6 +6,7 @@ extern "C"
 	typedef struct _MonoClass MonoClass;
 	typedef struct _MonoObject MonoObject;
 	typedef struct _MonoMethod MonoMethod;
+	typedef struct _MonoClassField MonoClassField;
 }
 
 namespace Engine
@@ -23,15 +24,15 @@ namespace Engine
 		MonoMethod* GetMethod(const std::string& name, int parameterCount);
 		MonoObject* InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr);
 
-		Ref<ScriptField> GetScriptField(const std::string& fieldName) { return m_ScriptFields.at(fieldName); }
-		std::unordered_map<std::string, Ref<ScriptField>> GetScriptFields() { return m_ScriptFields; }
+		ScriptField* GetScriptField(const std::string& fieldName) { return m_ScriptFields.at(fieldName); }
+		std::unordered_map<std::string, ScriptField*> GetScriptFields() { return m_ScriptFields; }
 
 	private:
 		std::string m_ClassNamespace;
 		std::string m_ClassName;
 
 		MonoClass* m_MonoClass = nullptr;
-		std::unordered_map<std::string, Ref<ScriptField>> m_ScriptFields;
+		std::unordered_map<std::string, ScriptField*> m_ScriptFields;
 	};
 }
 

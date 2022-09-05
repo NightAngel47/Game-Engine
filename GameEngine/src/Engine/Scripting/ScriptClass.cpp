@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Scripting/ScriptClass.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scripting/ScriptField.h"
 
 #include <mono/metadata/object.h>
 #include <mono/metadata/debug-helpers.h>
@@ -18,7 +19,7 @@ namespace Engine
 		while ((field = mono_class_get_fields(m_MonoClass, &itr)) != nullptr)
 		{
 			const char* fieldName = mono_field_get_name(field);
-			m_ScriptFields[fieldName] = CreateRef<ScriptField>(field);
+			m_ScriptFields[fieldName] = new ScriptField(field);
 			++i;
 		}
 	}

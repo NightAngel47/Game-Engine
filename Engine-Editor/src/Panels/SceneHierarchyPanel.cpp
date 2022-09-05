@@ -8,6 +8,13 @@
 
 namespace Engine
 {
+	static void FieldTypeUnsupported(ScriptField* scriptField)
+	{
+		const char* typeName = scriptField->GetTypeName();
+		ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+		ImGui::Text(typeName);
+	}
+
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 	{
 		SetContext(context);
@@ -436,29 +443,25 @@ namespace Engine
 				return;
 			}
 
-			Ref<ScriptClass> scriptClass = ScriptEngine::GetEntityClasses().at(component.ScriptName);
 			Ref<ScriptInstance> scriptInstance = m_IsEditMode ? nullptr : ScriptEngine::GetEntityInstance(entity.GetUUID());
 			MonoObject* scriptInstanceMonoObject = m_IsEditMode ? nullptr : scriptInstance->GetMonoObject();
 
 			// TODO add more types
-			const auto& scriptFields = scriptClass->GetScriptFields();
-			for (auto const& [key, val] : scriptFields)
+			const auto& scriptFields = ScriptEngine::GetEntityClasses().at(component.ScriptName)->GetScriptFields();
+			for (const auto& [key, val] : scriptFields)
 			{
 				if (val->IsPublic())
 				{
 					ImGui::Text(key.c_str());
 					ImGui::SameLine();
-					const char* typeName = val->GetTypeName();
 
 					switch (val->GetType())
 					{
 					default:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::None:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::Float:
 					{
@@ -470,35 +473,30 @@ namespace Engine
 						break;
 					}
 					case ScriptFieldType::Double:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::Bool:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::Char:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::String:
 					{
 						char buffer[256];
 						memset(buffer, 0, sizeof(buffer));
-						strcpy_s(buffer, sizeof(buffer), m_IsEditMode ? component.ScriptFieldsData.at(key)->get<std::string>().c_str() : ScriptEngine::MonoStringToUTF8(val->GetValue<MonoString*>(scriptInstanceMonoObject)).c_str());
+						strcpy_s(buffer, sizeof(buffer), m_IsEditMode ? component.ScriptFieldsData.at(key)->get<std::string>().c_str() : val->GetValue<std::string>(scriptInstanceMonoObject).c_str());
 						if (ImGui::InputText(("##" + key).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 						{
-							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer)) : val->SetValue(scriptInstanceMonoObject, ScriptEngine::StringToMonoString(std::string(buffer)));
+							m_IsEditMode ? component.ScriptFieldsData.at(key)->setValue<std::string>(std::string(buffer)) : val->SetValue(scriptInstanceMonoObject, &std::string(buffer));
 						}
 						break;
 					}
 					case ScriptFieldType::Byte:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::Short:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::Int:
 					{
@@ -510,24 +508,19 @@ namespace Engine
 						break;
 					}
 					case ScriptFieldType::Long:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::UByte:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::UShort:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::UInt:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::ULong:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					case ScriptFieldType::Vector2:
 					{
@@ -557,8 +550,7 @@ namespace Engine
 						break;
 					}
 					case ScriptFieldType::Entity:
-						ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
-						ImGui::Text(typeName);
+						FieldTypeUnsupported(val);
 						break;
 					}
 				}

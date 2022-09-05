@@ -5,6 +5,8 @@
 #include "Engine/Scene/Components.h"
 
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scripting/ScriptClass.h"
+#include "Engine/Scripting/ScriptField.h"
 #include "Engine/Scripting/ScriptFieldData.h"
 
 #include <yaml-cpp/yaml.h>
@@ -89,6 +91,11 @@ namespace YAML
 
 namespace Engine
 {
+	static void FeildTypeUnsupported(ScriptField* scriptField, bool isSerialization = false)
+	{
+		ENGINE_CORE_ERROR("Script Field Type {} does not support {}!", scriptField->GetTypeName(), isSerialization ? "deserialization" : "serialization");
+	}
+
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& vec)
 	{
 		out << YAML::Flow;
@@ -260,49 +267,49 @@ namespace Engine
 					switch (val->GetType())
 					{
 					default:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::None:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::Float:
 						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<float>();
 						break;
 					case ScriptFieldType::Double:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::Bool:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::Char:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::String:
 						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<std::string>();
 						break;
 					case ScriptFieldType::Byte:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::Short:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::Int:
 						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<int>();
 						break;
 					case ScriptFieldType::Long:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::UByte:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::UShort:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::UInt:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::ULong:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					case ScriptFieldType::Vector2:
 						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<glm::vec2>();
@@ -314,7 +321,7 @@ namespace Engine
 						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<glm::vec4>();
 						break;
 					case ScriptFieldType::Entity:
-						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", val->GetTypeName());
+						FeildTypeUnsupported(val, true);
 						break;
 					}
 				}
@@ -499,73 +506,72 @@ namespace Engine
 
 					Ref<ScriptInstance> instance = ScriptEngine::CreateEntityInstance(uuid, script.ScriptName);
 					MonoObject* instanceMonoObject = instance->GetMonoObject();
-					auto& scriptFields = ScriptEngine::GetEntityClasses().at(script.ScriptName)->GetScriptFields();
+					const auto& scriptFields = ScriptEngine::GetEntityClasses().at(script.ScriptName)->GetScriptFields();
 					auto& serializedFields = scriptComponent["ScriptFields"];
 
-					for (auto const& scriptField : scriptFields)
+					for (const auto& [key, val] : scriptFields)
 					{
-						std::string fieldName = scriptField.first;
-						bool isSerialized = scriptFields.find(fieldName) != scriptFields.end();
+						// get serialized field if present, used as null ref check as well
+						auto serializedValue = serializedFields[key]; 
 
-						Ref<ScriptField> scriptField = scriptFields.at(fieldName);
-						switch (scriptField->GetType())
+						switch (val->GetType())
 						{
 						default:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::None:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::Float:
-							script.ScriptFieldsData[fieldName] = new ScriptFieldData<float>(isSerialized ? serializedFields[fieldName].as<float>() : scriptField->GetValue<float>(instanceMonoObject));
+							script.ScriptFieldsData[key] = new ScriptFieldData<float>(serializedValue ? serializedValue.as<float>() : val->GetValue<float>(instanceMonoObject));
 							break;
 						case ScriptFieldType::Double:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::Bool:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::Char:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::String:
-							script.ScriptFieldsData[fieldName] = new ScriptFieldData<std::string>(isSerialized ? serializedFields[fieldName].as<std::string>() : scriptField->GetValue<std::string>(instanceMonoObject));
+							script.ScriptFieldsData[key] = new ScriptFieldData<std::string>(serializedValue ? serializedValue.as<std::string>() : val->GetValue<std::string>(instanceMonoObject));
 							break;
 						case ScriptFieldType::Byte:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::Short:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::Int:
-							script.ScriptFieldsData[fieldName] = new ScriptFieldData<int>(isSerialized ? serializedFields[fieldName].as<int>() : scriptField->GetValue<int>(instanceMonoObject));
+							script.ScriptFieldsData[key] = new ScriptFieldData<int>(serializedValue ? serializedValue.as<int>() : val->GetValue<int>(instanceMonoObject));
 							break;
 						case ScriptFieldType::Long:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::UByte:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::UShort:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::UInt:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::ULong:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						case ScriptFieldType::Vector2:
-							script.ScriptFieldsData[fieldName] = new ScriptFieldData<glm::vec2>(isSerialized ? serializedFields[fieldName].as<glm::vec2>() : scriptField->GetValue<glm::vec2>(instanceMonoObject));
+							script.ScriptFieldsData[key] = new ScriptFieldData<glm::vec2>(serializedValue ? serializedValue.as<glm::vec2>() : val->GetValue<glm::vec2>(instanceMonoObject));
 							break;
 						case ScriptFieldType::Vector3:
-							script.ScriptFieldsData[fieldName] = new ScriptFieldData<glm::vec3>(isSerialized ? serializedFields[fieldName].as<glm::vec3>() : scriptField->GetValue<glm::vec3>(instanceMonoObject));
+							script.ScriptFieldsData[key] = new ScriptFieldData<glm::vec3>(serializedValue ? serializedValue.as<glm::vec3>() : val->GetValue<glm::vec3>(instanceMonoObject));
 							break;
 						case ScriptFieldType::Vector4:
-							script.ScriptFieldsData[fieldName] = new ScriptFieldData<glm::vec4>(isSerialized ? serializedFields[fieldName].as<glm::vec4>() : scriptField->GetValue<glm::vec4>(instanceMonoObject));
+							script.ScriptFieldsData[key] = new ScriptFieldData<glm::vec4>(serializedValue ? serializedValue.as<glm::vec4>() : val->GetValue<glm::vec4>(instanceMonoObject));
 							break;
 						case ScriptFieldType::Entity:
-							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", scriptField->GetTypeName());
+							FeildTypeUnsupported(val);
 							break;
 						}
 					}

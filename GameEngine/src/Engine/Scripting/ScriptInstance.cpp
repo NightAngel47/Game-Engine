@@ -8,6 +8,11 @@
 
 namespace Engine
 {
+	static void FeildTypeUnsupported(ScriptField* scriptField)
+	{
+		ENGINE_CORE_ERROR("Script Field Type {} not supported in Script Instance!", scriptField->GetTypeName());
+	}
+
 	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, const UUID& entityID, const ScriptComponent* sc)
 		: m_ScriptClass(scriptClass)
 	{
@@ -94,15 +99,13 @@ namespace Engine
 		{
 			if (val->IsPublic())
 			{
-				const char* typeName = val->GetTypeName();
-
 				switch (val->GetType())
 				{
 				default:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::None:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::Float:
 				{
@@ -111,27 +114,27 @@ namespace Engine
 					break;
 				}
 				case ScriptFieldType::Double:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::Bool:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::Char:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::String:
 				{
 					char buffer[256];
 					memset(buffer, 0, sizeof(buffer));
 					strcpy_s(buffer, sizeof(buffer), sc->ScriptFieldsData.at(key)->get<std::string>().c_str());
-					val->SetValue(m_Instance, ScriptEngine::StringToMonoString(std::string(buffer)));
+					val->SetValue(m_Instance, &std::string(buffer));
 					break;
 				}
 				case ScriptFieldType::Byte:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::Short:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::Int:
 				{
@@ -140,19 +143,19 @@ namespace Engine
 					break;
 				}
 				case ScriptFieldType::Long:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::UByte:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::UShort:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::UInt:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::ULong:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				case ScriptFieldType::Vector2:
 				{
@@ -175,7 +178,7 @@ namespace Engine
 				}
 					break;
 				case ScriptFieldType::Entity:
-					ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
+					FeildTypeUnsupported(val);
 					break;
 				}
 			}
