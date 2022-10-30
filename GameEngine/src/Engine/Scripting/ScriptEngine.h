@@ -1,6 +1,4 @@
 #pragma once
-#include "Engine/Scripting/ScriptInstance.h"
-#include "Engine/Scripting/ScriptClass.h"
 #include "Engine/Core/Timestep.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Components.h"
@@ -18,10 +16,163 @@ extern "C"
 	typedef struct _MonoString MonoString;
 }
 
+typedef void(*OnCreate) (MonoObject* obj, MonoObject** exp);
+typedef void(*OnDestroy) (MonoObject* obj, MonoObject** exp);
+typedef void(*OnUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
+
 // Created with help from this guide (Mono Embedding for Game Engines): https://peter1745.github.io/introduction.html
 
 namespace Engine
 {
+	enum class ScriptFieldType
+	{
+		None = -1,
+		Float, Double,
+		Bool, Char, String,
+		Byte, Short, Int, Long,
+		UByte, UShort, UInt, ULong,
+		Vector2, Vector3, Vector4,
+		Entity
+	};
+
+	enum class Accessibility : uint8_t
+	{
+		None = 0,
+		Private = (1 << 0),
+		Internal = (1 << 1),
+		Protected = (1 << 2),
+		Public = (1 << 3)
+	};
+
+	struct ScriptField
+	{
+		ScriptFieldType Type;
+		uint8_t Access;
+
+		MonoClassField* ClassField;
+
+		bool ScriptField::IsPublic()
+		{
+			return Access & (uint8_t)Accessibility::Public ? true : false;
+		}
+	};
+
+	// ScriptField + Data Storage
+	struct ScriptFieldInstance
+	{
+		ScriptField Field;
+
+		ScriptFieldInstance()
+		{
+			memset(m_Buffer, 0, sizeof(m_Buffer));
+		}
+
+		template<typename T>
+		T GetValue()
+		{
+			static_assert(sizeof(T) <= 16, "Type too large!");
+			return *(T*)m_Buffer;
+		}
+
+		template<typename T>
+		void SetValue(T value)
+		{
+			static_assert(sizeof(T) <= 16, "Type too large!");
+			memcpy(m_Buffer, &value, sizeof(T));
+		}
+
+	private:
+		uint16_t m_Buffer[16];
+
+		friend class ScriptEngine;
+		friend class ScriptInstance;
+	};
+
+	using ScriptFieldMap = std::unordered_map<std::string, ScriptFieldInstance>;
+
+	class ScriptClass
+	{
+	public:
+		ScriptClass() = default;
+		ScriptClass(const std::string& classNamespace, const std::string& className);
+		~ScriptClass() = default;
+
+		MonoObject* Instantiate();
+
+		MonoClass* GetMonoClass() { return m_MonoClass; }
+
+		MonoMethod* GetMethod(const std::string& name, int parameterCount);
+		MonoObject* InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr);
+
+		ScriptField GetScriptField(const std::string& fieldName) { return m_ScriptFields.at(fieldName); }
+		std::unordered_map<std::string, ScriptField>& GetScriptFields() { return m_ScriptFields; }
+
+	private:
+		std::string m_ClassNamespace;
+		std::string m_ClassName;
+
+		MonoClass* m_MonoClass = nullptr;
+
+		std::unordered_map<std::string, ScriptField> m_ScriptFields;
+
+		friend class ScriptEngine;
+	};
+
+	class ScriptInstance
+	{
+	public:
+		ScriptInstance() = default;
+		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
+		~ScriptInstance() = default;
+
+		Ref<ScriptClass> GetScriptClass() { return m_ScriptClass; }
+
+		template<typename T>
+		T GetFieldValue(const std::string& name)
+		{
+			static_assert(sizeof(T) <= 16, "Type too large!");
+
+			bool success = GetFieldValueInternal(name, s_FieldValueBuffer);
+			if (!success)
+			{
+				return T();
+			}
+
+			return *(T*)s_FieldValueBuffer;
+		}
+
+		template<typename T>
+		void SetFieldValue(const std::string& name, T value)
+		{
+			static_assert(sizeof(T) <= 16, "Type too large!");
+
+			SetFieldValueInternal(name, &value);
+		}
+
+		void InvokeOnCreate();
+		void InvokeOnDestroy();
+		void InvokeOnUpdate(float ts);
+
+	private:
+		bool GetFieldValueInternal(const std::string& name, void* buffer);
+		bool SetFieldValueInternal(const std::string& name, const void* value);
+
+	private:
+		Ref<ScriptClass> m_ScriptClass;
+
+		MonoObject* m_Instance = nullptr;
+
+		MonoMethod* m_Constructor = nullptr;
+		OnCreate OnCreateThunk = nullptr;
+		OnDestroy OnDestroyThunk = nullptr;
+		OnUpdate OnUpdateThunk = nullptr;
+
+		inline static char s_FieldValueBuffer[16];
+
+		friend class ScriptEngine;
+		friend class ScriptFieldInstance;
+	};
+
 	class ScriptEngine
 	{
 	public:
@@ -34,24 +185,22 @@ namespace Engine
 		static void OnRuntimeStop();
 
 		static std::unordered_map<std::string, Ref<ScriptClass>> GetEntityClasses();
+		static ScriptFieldMap& GetScriptFieldMap(Entity entity);
 		static Scene* GetSceneContext();
-		
-		static bool EntityClassExists(const std::string& className);
-		static Ref<ScriptInstance> CreateEntityInstance(const UUID& entityID, const std::string& scriptName, const ScriptComponent* sc = nullptr);
-		static void DeleteEntityInstance(Ref<ScriptInstance> instance, UUID entityID);
 
-		static void OnCreateEntity(Entity entity, const ScriptComponent& sc);
-		static void OnDestroyEntity(Entity entity, const std::string& className);
-		static void OnUpdateEntity(Entity entity, const std::string& className, Timestep ts);
-
-		static bool EntityInstanceExists(const UUID& entityID);
-		static Ref<ScriptInstance> GetEntityInstance(const UUID& entityID);
-
-		static MonoDomain* GetRootDomain();
-		static MonoDomain* GetAppDomain();
 		static MonoAssembly* GetCoreAssembly();
-		static MonoAssembly* GetAppAssembly();
-		static MonoClass* GetEntityClass();
+		
+		static Ref<ScriptClass> GetEntityClass(const std::string& name);
+		static bool EntityClassExists(const std::string& className);
+		static Ref<ScriptInstance> CreateEntityInstance(Entity entity, const std::string& scriptName);
+		static void DeleteEntityInstance(Ref<ScriptInstance> instance, Entity entity);
+
+		static void OnCreateEntity(Entity entity);
+		static void OnDestroyEntity(Entity entity);
+		static void OnUpdateEntity(Entity entity, Timestep ts);
+
+		static bool EntityInstanceExists(Entity& entity);
+		static Ref<ScriptInstance> GetEntityInstance(Entity entity);
 
 		static MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className);
 		static uint8_t GetFieldAccessibility(MonoClassField* field);
@@ -60,26 +209,73 @@ namespace Engine
 		static void HandleMonoException(MonoObject* ptrExObject);
 		static MonoString* StringToMonoString(std::string string);
 		static std::string MonoStringToUTF8(MonoString* monoString);
-
-		enum class Accessibility : uint8_t
-		{
-			None = 0,
-			Private = (1 << 0),
-			Internal = (1 << 1),
-			Protected = (1 << 2),
-			Public = (1 << 3)
-		};
-
+	
 	private:
 		static void InitMono();
 		static void ShutdownMono();
 
 		static void LoadCoreAssembly(const std::filesystem::path& assemblyPath);
 		static void LoadAppAssembly(const std::filesystem::path& assemblyPath);
+
 		static void LoadEntityClasses(MonoAssembly* assembly);
 		static MonoObject* InstantiateClass(MonoClass* monoClass);
 
 		friend class ScriptClass;
-		friend class ScriptInstance;
+		friend class ScriptGlue;
 	};
+
+	namespace Utils
+	{
+		inline const char* ScriptFieldTypeToString(ScriptFieldType fieldType)
+		{
+			switch (fieldType)
+			{
+			case ScriptFieldType::None:		return "None";
+			case ScriptFieldType::Float:	return "Float";
+			case ScriptFieldType::Double:	return "Double";
+			case ScriptFieldType::Bool:		return "Bool";
+			case ScriptFieldType::Char:		return "Char";
+			case ScriptFieldType::String:	return "Char";
+			case ScriptFieldType::Byte:		return "Byte";
+			case ScriptFieldType::Short:	return "Short";
+			case ScriptFieldType::Int:		return "Int";
+			case ScriptFieldType::Long:		return "Long";
+			case ScriptFieldType::UByte:	return "UByte";
+			case ScriptFieldType::UShort:	return "UShort";
+			case ScriptFieldType::UInt:		return "UInt";
+			case ScriptFieldType::ULong:	return "ULong";
+			case ScriptFieldType::Vector2:	return "Vector2";
+			case ScriptFieldType::Vector3:	return "Vector3";
+			case ScriptFieldType::Vector4:	return "Vector4";
+			case ScriptFieldType::Entity:	return "Entity";
+			}
+			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
+			return "None";
+		}
+
+		inline ScriptFieldType ScriptFieldTypeFromString(std::string_view fieldType)
+		{
+			if (fieldType == "None")	return ScriptFieldType::None;
+			if (fieldType == "Float")	return ScriptFieldType::Float;
+			if (fieldType == "Double")	return ScriptFieldType::Double;
+			if (fieldType == "Bool")	return ScriptFieldType::Bool;
+			if (fieldType == "Char")	return ScriptFieldType::Char;
+			if (fieldType == "String")	return ScriptFieldType::String;
+			if (fieldType == "Byte")	return ScriptFieldType::Byte;
+			if (fieldType == "Short")	return ScriptFieldType::Short;
+			if (fieldType == "Int")		return ScriptFieldType::Int;
+			if (fieldType == "Long")	return ScriptFieldType::Long;
+			if (fieldType == "UByte")	return ScriptFieldType::UByte;
+			if (fieldType == "UShort")	return ScriptFieldType::UShort;
+			if (fieldType == "UInt")	return ScriptFieldType::UInt;
+			if (fieldType == "ULong")	return ScriptFieldType::ULong;
+			if (fieldType == "Vector2")	return ScriptFieldType::Vector2;
+			if (fieldType == "Vector3")	return ScriptFieldType::Vector3;
+			if (fieldType == "Vector4")	return ScriptFieldType::Vector4;
+			if (fieldType == "Entity")	return ScriptFieldType::Entity;
+
+			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
+			return ScriptFieldType::None;
+		}
+	}
 }

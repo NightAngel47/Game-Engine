@@ -40,6 +40,8 @@ namespace Engine
 		void OnViewportResize(uint32_t width, uint32_t height);
 		Entity GetPrimaryCameraEntity();
 
+		bool IsRunning() const { return m_IsRunning; }
+
 		void DuplicateEntity(Entity entity);
 		Entity GetEntityWithUUID(UUID uuid);
 
@@ -69,6 +71,8 @@ namespace Engine
 
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 		std::string m_Name;
+		
+		bool m_IsRunning = false;
 
 		// Physics
 		float m_Accumulator = 0.0f;

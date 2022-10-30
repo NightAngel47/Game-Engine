@@ -14,7 +14,6 @@ namespace Engine
 		void OnImGuiRender();
 		Entity GetSelectedEntity() const { return m_SelectionContext; }
 		void SetSelectedEntity(Entity entity);
-		void SetEditMode(bool mode) { m_IsEditMode = mode; }
 	private:
 		template<typename T>
 		void DisplayAddComponentEntry(const std::string& entryName);
@@ -24,6 +23,5 @@ namespace Engine
 	private:
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
-		bool m_IsEditMode = true;
 	};
 }

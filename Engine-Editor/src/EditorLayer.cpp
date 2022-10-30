@@ -638,7 +638,6 @@ namespace Engine
 		m_ActiveScene->OnRuntimeStart();
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-		m_SceneHierarchyPanel.SetEditMode(false);
 	}
 
 	void EditorLayer::OnSceneSimulate()
@@ -675,6 +674,5 @@ namespace Engine
 		m_ActiveScene = m_EditorScene;
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-		m_SceneHierarchyPanel.SetEditMode(true);
 	}
 }

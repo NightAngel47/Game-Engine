@@ -1,0 +1,40 @@
+Scene: ScriptRefactor.scene
+Entities:
+  - Entity: 7107252291814812743
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: Orthographic
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 10398681689273445825
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Path: ""
+      Tiling: 1
+    ScriptComponent:
+      ClassName: GameProject.Source.Player
+      ScriptFields:
+        - Name: moveSpeed
+          Type: Float
+          Data: 7.80000019
+        - Name: rotSpeeed
+          Type: Float
+          Data: 3.5999999

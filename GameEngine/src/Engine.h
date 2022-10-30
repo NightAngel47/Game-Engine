@@ -31,10 +31,6 @@
 #include "Engine/Scene/SceneSerializer.h"
 
 #include "Engine/Scripting/ScriptEngine.h"
-#include "Engine/Scripting/ScriptClass.h"
-#include "Engine/Scripting/ScriptInstance.h"
-#include "Engine/Scripting/ScriptField.h"
-#include "Engine/Scripting/ScriptFieldData.h"
 
 // ---Renderer------------------------------
 #include "Engine/Renderer/Renderer.h"
