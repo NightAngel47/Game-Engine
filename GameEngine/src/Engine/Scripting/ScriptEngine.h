@@ -70,19 +70,19 @@ namespace Engine
 		template<typename T>
 		T GetValue()
 		{
-			static_assert(sizeof(T) <= 16, "Type too large!");
+			static_assert(sizeof(T) <= 64, "Type too large!");
 			return *(T*)m_Buffer;
 		}
 
 		template<typename T>
 		void SetValue(T value)
 		{
-			static_assert(sizeof(T) <= 16, "Type too large!");
+			static_assert(sizeof(T) <= 64, "Type too large!");
 			memcpy(m_Buffer, &value, sizeof(T));
 		}
 
 	private:
-		uint16_t m_Buffer[16];
+		uint16_t m_Buffer[64];
 
 		friend class ScriptEngine;
 		friend class ScriptInstance;
@@ -116,61 +116,6 @@ namespace Engine
 		std::unordered_map<std::string, ScriptField> m_ScriptFields;
 
 		friend class ScriptEngine;
-	};
-
-	class ScriptInstance
-	{
-	public:
-		ScriptInstance() = default;
-		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
-		~ScriptInstance() = default;
-
-		Ref<ScriptClass> GetScriptClass() { return m_ScriptClass; }
-
-		template<typename T>
-		T GetFieldValue(const std::string& name)
-		{
-			static_assert(sizeof(T) <= 16, "Type too large!");
-
-			bool success = GetFieldValueInternal(name, s_FieldValueBuffer);
-			if (!success)
-			{
-				return T();
-			}
-
-			return *(T*)s_FieldValueBuffer;
-		}
-
-		template<typename T>
-		void SetFieldValue(const std::string& name, T value)
-		{
-			static_assert(sizeof(T) <= 16, "Type too large!");
-
-			SetFieldValueInternal(name, &value);
-		}
-
-		void InvokeOnCreate();
-		void InvokeOnDestroy();
-		void InvokeOnUpdate(float ts);
-
-	private:
-		bool GetFieldValueInternal(const std::string& name, void* buffer);
-		bool SetFieldValueInternal(const std::string& name, const void* value);
-
-	private:
-		Ref<ScriptClass> m_ScriptClass;
-
-		MonoObject* m_Instance = nullptr;
-
-		MonoMethod* m_Constructor = nullptr;
-		OnCreate OnCreateThunk = nullptr;
-		OnDestroy OnDestroyThunk = nullptr;
-		OnUpdate OnUpdateThunk = nullptr;
-
-		inline static char s_FieldValueBuffer[16];
-
-		friend class ScriptEngine;
-		friend class ScriptFieldInstance;
 	};
 
 	class ScriptEngine
@@ -224,6 +169,83 @@ namespace Engine
 		friend class ScriptGlue;
 	};
 
+	class ScriptInstance
+	{
+	public:
+		ScriptInstance() = default;
+		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
+		~ScriptInstance() = default;
+
+		Ref<ScriptClass> GetScriptClass() { return m_ScriptClass; }
+
+		template<typename T>
+		T GetFieldValue(const std::string& name)
+		{
+			static_assert(sizeof(T) <= 64, "Type too large!");
+
+			bool success = GetFieldValueInternal(name, s_FieldValueBuffer);
+			if (!success)
+			{
+				return T();
+			}
+
+			return *(T*)s_FieldValueBuffer;
+		}
+
+		template<>
+		std::string GetFieldValue(const std::string& name)
+		{
+			static_assert(sizeof(std::string) <= 64, "Type too large!");
+
+			bool success = GetFieldValueInternal(name, s_FieldValueBuffer);
+			if (!success)
+			{
+				return "";
+			}
+
+			return ScriptEngine::MonoStringToUTF8(*(MonoString**)s_FieldValueBuffer);
+		}
+
+		template<typename T>
+		void SetFieldValue(const std::string& name, T value)
+		{
+			static_assert(sizeof(T) <= 64, "Type too large!");
+
+			SetFieldValueInternal(name, &value);
+		}
+
+		template<>
+		void SetFieldValue(const std::string& name, std::string value)
+		{
+			static_assert(sizeof(std::string) <= 64, "Type too large!");
+
+			SetFieldValueInternal(name, ScriptEngine::StringToMonoString(value));
+		}
+
+		void InvokeOnCreate();
+		void InvokeOnDestroy();
+		void InvokeOnUpdate(float ts);
+
+	private:
+		bool GetFieldValueInternal(const std::string& name, void* buffer);
+		bool SetFieldValueInternal(const std::string& name, const void* value);
+
+	private:
+		Ref<ScriptClass> m_ScriptClass;
+
+		MonoObject* m_Instance = nullptr;
+
+		MonoMethod* m_Constructor = nullptr;
+		OnCreate OnCreateThunk = nullptr;
+		OnDestroy OnDestroyThunk = nullptr;
+		OnUpdate OnUpdateThunk = nullptr;
+
+		inline static char s_FieldValueBuffer[16];
+
+		friend class ScriptEngine;
+		friend class ScriptFieldInstance;
+	};
+
 	namespace Utils
 	{
 		inline const char* ScriptFieldTypeToString(ScriptFieldType fieldType)
@@ -235,7 +257,7 @@ namespace Engine
 			case ScriptFieldType::Double:	return "Double";
 			case ScriptFieldType::Bool:		return "Bool";
 			case ScriptFieldType::Char:		return "Char";
-			case ScriptFieldType::String:	return "Char";
+			case ScriptFieldType::String:	return "String";
 			case ScriptFieldType::Byte:		return "Byte";
 			case ScriptFieldType::Short:	return "Short";
 			case ScriptFieldType::Int:		return "Int";

@@ -18,24 +18,24 @@ namespace Engine
 {
 	static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
 	{
-		{ "System.Single", ScriptFieldType::Float },
-		{ "System.Double", ScriptFieldType::Double },
-		{ "System.Boolean", ScriptFieldType::Bool },
-		{ "System.Char", ScriptFieldType::Char },
-		{ "System.String", ScriptFieldType::String },
-		{ "System.Int16", ScriptFieldType::Short },
-		{ "System.Int32", ScriptFieldType::Int },
-		{ "System.Int64", ScriptFieldType::Long },
-		{ "System.Byte", ScriptFieldType::Byte },
-		{ "System.UInt16", ScriptFieldType::UShort },
-		{ "System.UInt32", ScriptFieldType::UInt },
-		{ "System.UInt64", ScriptFieldType::ULong },
+		{ "System.Single",			ScriptFieldType::Float },
+		{ "System.Double",			ScriptFieldType::Double },
+		{ "System.Boolean",			ScriptFieldType::Bool },
+		{ "System.Char",			ScriptFieldType::Char },
+		{ "System.String",			ScriptFieldType::String },
+		{ "System.Int16",			ScriptFieldType::Short },
+		{ "System.Int32",			ScriptFieldType::Int },
+		{ "System.Int64",			ScriptFieldType::Long },
+		{ "System.Byte",			ScriptFieldType::Byte },
+		{ "System.UInt16",			ScriptFieldType::UShort },
+		{ "System.UInt32",			ScriptFieldType::UInt },
+		{ "System.UInt64",			ScriptFieldType::ULong },
 
-		{ "Engine.Math.Vector2", ScriptFieldType::Vector2 },
-		{ "Engine.Math.Vector3", ScriptFieldType::Vector3 },
-		{ "Engine.Math.Vector4", ScriptFieldType::Vector4 },
+		{ "Engine.Math.Vector2",	ScriptFieldType::Vector2 },
+		{ "Engine.Math.Vector3",	ScriptFieldType::Vector3 },
+		{ "Engine.Math.Vector4",	ScriptFieldType::Vector4 },
 
-		{ "Engine.Scene.Entity", ScriptFieldType::Entity }
+		{ "Engine.Scene.Entity",	ScriptFieldType::Entity }
 	};
 
 	namespace Utils
@@ -239,6 +239,8 @@ namespace Engine
 				const char* fieldName = mono_field_get_name(field);
 				uint8_t fieldAccess = GetFieldAccessibility(field);
 				ScriptFieldType fieldType = Utils::MonoTypeToScriptFieldType(mono_field_get_type(field));
+
+				ENGINE_CORE_TRACE("Field: {} ScriptFieldType: {} MonoType: {}", fieldName, Utils::ScriptFieldTypeToString(fieldType), mono_type_get_name(mono_field_get_type(field)));
 
 				ScriptField scriptField = { fieldType, fieldAccess, field };
 				if (scriptField.IsPublic()) // tracking only public fields for now, want others for debug later

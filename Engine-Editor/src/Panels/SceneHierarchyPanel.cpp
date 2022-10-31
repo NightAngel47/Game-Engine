@@ -487,7 +487,7 @@ namespace Engine
 						data = fieldExists ? scriptField.GetValue<float>() : 0.0f;
 					}
 
-					if (ImGui::DragFloat(name.c_str(), &data, 0.1f))
+					if (ImGui::DragFloat(("##" + name).c_str(), &data, 0.1f))
 					{
 						sceneRunning ? scriptInstance->SetFieldValue(name, data) : scriptField.SetValue(data);
 					}
@@ -503,8 +503,33 @@ namespace Engine
 					FieldTypeUnsupported(field.Type);
 					break;
 				case ScriptFieldType::String:
-					FieldTypeUnsupported(field.Type);
+				{
+					char buffer[64];
+					memset(buffer, 0, sizeof(buffer));
+
+					bool fieldExists = entityFields.find(name) != entityFields.end(); // TODO make entity fields exists func
+					ScriptFieldInstance& scriptField = fieldExists ? entityFields.at(name) : entityFields[name];
+
+					if (sceneRunning)
+					{
+						strcpy_s(buffer, sizeof(buffer), scriptInstance->GetFieldValue<std::string>(name).c_str());
+					}
+					else
+					{
+						if (!fieldExists)
+						{
+							scriptField.Field = field;
+						}
+
+						strcpy_s(buffer, sizeof(buffer), fieldExists ? scriptField.GetValue<std::string>().c_str() : "");
+					}
+
+					if (ImGui::InputText(("##" + name).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
+					{
+						sceneRunning ? scriptInstance->SetFieldValue(name, std::string(buffer)) : scriptField.SetValue(std::string(buffer));
+					}
 					break;
+				}
 				case ScriptFieldType::Byte:
 					FieldTypeUnsupported(field.Type);
 					break;
