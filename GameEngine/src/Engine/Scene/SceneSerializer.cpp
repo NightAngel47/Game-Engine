@@ -517,7 +517,7 @@ namespace Engine
 
 							ScriptFieldInstance& fieldInstance = entityFields[name];
 
-							ENGINE_CORE_ASSERT(fields.find(name) != fields.end());
+							//ENGINE_CORE_ASSERT(fields.find(name) != fields.end()); // extra field in saved file
 
 							if (fields.find(name) == fields.end())
 								continue;

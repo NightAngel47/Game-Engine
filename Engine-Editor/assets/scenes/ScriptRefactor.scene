@@ -1,6 +1,6 @@
 Scene: ScriptRefactor.scene
 Entities:
-  - Entity: 16974105125014717025
+  - Entity: 8127551402100051837
     TagComponent:
       Tag: Camera
     TransformComponent:
@@ -34,10 +34,10 @@ Entities:
       ScriptFields:
         - Name: moveSpeed
           Type: Float
-          Data: 7.80000019
+          Data: 6.69999981
         - Name: rotSpeeed
           Type: Float
-          Data: 3.5999999
+          Data: 1.5
         - Name: exampleString
           Type: String
-          Data: Testing Words
+          Data: Blah Blah!!!

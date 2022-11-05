@@ -82,7 +82,7 @@ namespace Engine
 		}
 
 	private:
-		uint16_t m_Buffer[64];
+		char m_Buffer[64];
 
 		friend class ScriptEngine;
 		friend class ScriptInstance;
@@ -152,7 +152,7 @@ namespace Engine
 		static uint8_t GetPropertyAccessbility(MonoProperty* property);
 
 		static void HandleMonoException(MonoObject* ptrExObject);
-		static MonoString* StringToMonoString(std::string string);
+		static MonoString* StringToMonoString(const std::string& string);
 		static std::string MonoStringToUTF8(MonoString* monoString);
 	
 	private:
@@ -200,26 +200,26 @@ namespace Engine
 			bool success = GetFieldValueInternal(name, s_FieldValueBuffer);
 			if (!success)
 			{
-				return "";
+				return {};
 			}
 
 			return ScriptEngine::MonoStringToUTF8(*(MonoString**)s_FieldValueBuffer);
 		}
 
 		template<typename T>
-		void SetFieldValue(const std::string& name, T value)
+		void SetFieldValue(const std::string& name, T* value)
 		{
 			static_assert(sizeof(T) <= 64, "Type too large!");
 
-			SetFieldValueInternal(name, &value);
+			SetFieldValueInternal(name, value);
 		}
 
 		template<>
-		void SetFieldValue(const std::string& name, std::string value)
+		void SetFieldValue(const std::string& name, std::string* value)
 		{
 			static_assert(sizeof(std::string) <= 64, "Type too large!");
 
-			SetFieldValueInternal(name, ScriptEngine::StringToMonoString(value));
+			SetFieldValueInternal(name, ScriptEngine::StringToMonoString(*value));
 		}
 
 		void InvokeOnCreate();
@@ -240,7 +240,7 @@ namespace Engine
 		OnDestroy OnDestroyThunk = nullptr;
 		OnUpdate OnUpdateThunk = nullptr;
 
-		inline static char s_FieldValueBuffer[16];
+		inline static char s_FieldValueBuffer[64];
 
 		friend class ScriptEngine;
 		friend class ScriptFieldInstance;

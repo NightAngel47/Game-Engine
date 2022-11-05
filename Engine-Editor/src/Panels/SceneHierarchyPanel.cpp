@@ -489,7 +489,7 @@ namespace Engine
 
 					if (ImGui::DragFloat(("##" + name).c_str(), &data, 0.1f))
 					{
-						sceneRunning ? scriptInstance->SetFieldValue(name, data) : scriptField.SetValue(data);
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					}
 					break;
 				}
@@ -526,7 +526,7 @@ namespace Engine
 
 					if (ImGui::InputText(("##" + name).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 					{
-						sceneRunning ? scriptInstance->SetFieldValue(name, std::string(buffer)) : scriptField.SetValue(std::string(buffer));
+						sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(buffer)) : scriptField.SetValue(std::string(buffer));
 					}
 					break;
 				}

@@ -357,7 +357,14 @@ namespace Engine
 				const ScriptFieldMap& fieldMap = s_ScriptEngineData->EntityScriptFields.at(entityID);
 				for (const auto& [name, fieldInstance] : fieldMap)
 				{
-					instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);
+					if (fieldInstance.Field.Type == ScriptFieldType::String)
+					{
+						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(*(std::string*)fieldInstance.m_Buffer));
+					}
+					else
+					{
+						instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);
+					}
 				}
 			}
 
@@ -389,7 +396,7 @@ namespace Engine
 		{
 			if (EntityInstanceExists(entity))
 			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnUpdate(ts);
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnUpdate((float)ts);
 			}
 		}
 	}
@@ -683,7 +690,7 @@ namespace Engine
 		ENGINE_CORE_ERROR(result);
 	}
 
-	MonoString* ScriptEngine::StringToMonoString(std::string string)
+	MonoString* ScriptEngine::StringToMonoString(const std::string& string)
 	{
 		return mono_string_new(s_ScriptEngineData->AppDomain, string.c_str());
 	}

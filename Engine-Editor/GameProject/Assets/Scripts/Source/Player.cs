@@ -16,6 +16,8 @@ namespace GameProject.Source
 
 		protected override void OnCreate()
 		{
+			Log.Trace($"Move Speed: {moveSpeed}");
+			Log.Trace($"Rotation Speed: {rotSpeeed}");
 
 			Vector3 pos = Transform.Position;
 			rotation = Transform.Rotation;
@@ -32,6 +34,8 @@ namespace GameProject.Source
 
 		protected override void OnUpdate(float ts)
 		{
+			Log.Trace($"Timestep: {ts}");
+
 			if (Input.IsMouseButtonPressed(MouseCode.ButtonMiddle))
 			{
 				Vector2 curMousePos = Input.GetMousePosition();
@@ -78,9 +82,13 @@ namespace GameProject.Source
 			if (movement.sqrMagnitude > 0)
 			{
 				Transform.Position += new Vector3(movement.X, movement.Y, 0.0f);
+				Log.Trace($"Movement: ({movement.X}, {movement.Y})");
 			}
 
-			Log.Warn($"This is my example string: {exampleString}");
+			if (Input.IsKeyPressed(KeyCode.Space))
+			{
+				Log.Warn($"This is my example string: {exampleString}");
+			}
 		}
 	}
 }
