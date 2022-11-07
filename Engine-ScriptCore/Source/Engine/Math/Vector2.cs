@@ -14,6 +14,14 @@ namespace Engine.Math
 			Y = y;
 		}
 
+		public static implicit operator Vector2(Vector3 vec3) => new Vector2(vec3.X, vec3.Y);
+		public static implicit operator Vector2(Vector4 vec4) => new Vector2(vec4.X, vec4.Y);
+
+		public override string ToString()
+		{
+			return $"({X}, {Y})";
+		}
+
 		public float Magnitude => InternalCalls.Vector2_Magnitude(ref this);
 		public float sqrMagnitude => InternalCalls.Vector2_sqrMagnitude(ref this);
 

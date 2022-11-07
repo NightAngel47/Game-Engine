@@ -44,6 +44,7 @@ namespace Engine
 
 		void DuplicateEntity(Entity entity);
 		Entity GetEntityWithUUID(UUID uuid);
+		Entity FindEntityByName(const std::string_view& entityName);
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()

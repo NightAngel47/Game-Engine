@@ -323,8 +323,9 @@ namespace Engine
 
 					out << YAML::EndMap; // ScriptFields
 				}
-			}
 
+				out << YAML::EndSeq;
+			}
 
 			out << YAML::EndMap; // ScriptComponent
 		}

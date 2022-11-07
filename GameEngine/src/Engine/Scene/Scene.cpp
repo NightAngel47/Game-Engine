@@ -249,6 +249,19 @@ namespace Engine
 		return { m_EntityMap.at(uuid), this };
 	}
 
+	Entity Scene::FindEntityByName(const std::string_view& entityName)
+	{
+		auto view = m_Registry.view<TagComponent>();
+		for (auto entity : view)
+		{
+			const TagComponent& tc = view.get<TagComponent>(entity);
+			if (tc.Tag == entityName)
+				return Entity{ entity, this };
+		}
+
+		return {};
+	}
+
 	void Scene::OnPhysics2DStart()
 	{
 		m_PhysicsWorld = new b2World({ 0.0f, -9.8f });

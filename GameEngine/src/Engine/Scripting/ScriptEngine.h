@@ -226,6 +226,8 @@ namespace Engine
 		void InvokeOnDestroy();
 		void InvokeOnUpdate(float ts);
 
+		MonoObject* GetMonoObject() { return m_Instance; }
+
 	private:
 		bool GetFieldValueInternal(const std::string& name, void* buffer);
 		bool SetFieldValueInternal(const std::string& name, const void* value);

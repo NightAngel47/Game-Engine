@@ -6,37 +6,26 @@ namespace GameProject.Source
 {
 	public class Camera : Entity
 	{
-		public float moveSpeed = 5.0f;
-		public float rotSpeeed = 5.0f;
+		public float DistanceFromPlayer = 5.0f;
 
-		public Vector2 movement;
+		Entity player;
+
+		protected override void OnCreate()
+		{
+			player = FindEntityByName("Player");
+		}
 
 		protected override void OnUpdate(float ts)
 		{
-
-			movement = new Vector2(0.0f, 0.0f);
-
-			if (Input.IsKeyPressed(KeyCode.A))
+			if (player != null)
 			{
-				movement.X += -1.0f * moveSpeed * ts;
+				Vector2 playerPos = player.Position;
+				Position = new Vector3(playerPos.X, playerPos.Y, DistanceFromPlayer);
 			}
-
-			if (Input.IsKeyPressed(KeyCode.D))
+			else
 			{
-				movement.X += 1.0f * moveSpeed * ts;
+				Log.Error($"Player is null!");
 			}
-
-			if (Input.IsKeyPressed(KeyCode.S))
-			{
-				movement.Y += -1.0f * moveSpeed * ts;
-			}
-
-			if (Input.IsKeyPressed(KeyCode.W))
-			{
-				movement.Y += 1.0f * moveSpeed * ts;
-			}
-
-			Transform.Position += new Vector3(movement.X, movement.Y, 0.0f);
 		}
 	}
 }

@@ -2,8 +2,8 @@
 #include "Engine/Scripting/ScriptGlue.h"
 #include "Engine/Scripting/ScriptEngine.h"
 
-#include "Engine/Scene/Entity.h"
 #include "Engine/Scene/Scene.h"
+#include "Engine/Scene/Entity.h"
 #include "Engine/Scene/Components.h"
 #include "Engine/Math/Random.h"
 
@@ -17,6 +17,15 @@ namespace InternalCalls
 		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
 		Engine::Entity entity = scene->GetEntityWithUUID(entityID);
 		ENGINE_CORE_ASSERT(entity, "Entity with UUID: " + std::to_string(entityID) + " was not found in Scene!");
+		return entity;
+	}
+
+	static Engine::Entity GetEntityFromScene(std::string entityName)
+	{
+		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
+		Engine::Entity entity = scene->FindEntityByName(entityName);
+		ENGINE_CORE_ASSERT(entity, "Entity with name: " + entityName + " was not found in Scene!");
 		return entity;
 	}
 
@@ -59,6 +68,8 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector4_sqrMagnitude);
 
 		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
+		ENGINE_ADD_INTERNAL_CALL(Entity_FindEntityByName);
+		ENGINE_ADD_INTERNAL_CALL(Entity_GetScriptInstance);
 
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetPosition);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetPosition);
@@ -256,6 +267,28 @@ namespace InternalCalls
 		MonoType* managedType = mono_reflection_type_get_type(componentType);
 		ENGINE_CORE_ASSERT(s_EntityHasComponentFuncs.find(managedType) != s_EntityHasComponentFuncs.end());
 		return s_EntityHasComponentFuncs.at(managedType)(entity);
+	}
+
+	uint64_t ScriptGlue::Entity_FindEntityByName(MonoString* name)
+	{
+		std::string entityName = Engine::ScriptEngine::MonoStringToUTF8(name);
+		Engine::Entity entity = GetEntityFromScene(entityName);
+
+		if (!entity)
+		{
+			return 0;
+		}
+
+		return entity.GetUUID();
+	}
+
+	MonoObject* ScriptGlue::Entity_GetScriptInstance(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+
+		auto& instance = Engine::ScriptEngine::GetEntityInstance(entity);
+
+		return instance->GetMonoObject();
 	}
 
 #pragma endregion Entity
