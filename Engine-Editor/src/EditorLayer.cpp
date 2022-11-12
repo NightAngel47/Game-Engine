@@ -179,6 +179,18 @@ namespace Engine
 	        	
 	            ImGui::EndMenu();
 	        }
+			
+			if (ImGui::BeginMenu("Script"))
+	        {
+	            // Disabling fullscreen would allow the window to be moved to the front of other windows,
+	            // which we can't undo at the moment without finer window depth/z control.
+	            //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
+
+	        	if (ImGui::MenuItem("Reload Assembly", "Crtl+R"))
+					ScriptEngine::ReloadAssembly();
+
+	            ImGui::EndMenu();
+	        }
 
 	        ImGui::EndMenuBar();
 	    }
@@ -394,23 +406,23 @@ namespace Engine
 			// Scenes
 			case Key::N:
 			{
-				if(control)
+				if (control)
 					NewScene();
 		
 				break;
 			}
 			case Key::O:
 			{
-				if(control)
+				if (control)
 					OpenScene();
 		
 				break;
 			}
 			case Key::S:
 			{
-				if(control && shift)
+				if (control && shift)
 					SaveSceneAs();
-				else if(control && !shift)
+				else if (control && !shift)
 					SaveScene();
 		
 				break;
@@ -419,26 +431,33 @@ namespace Engine
 			// Gizmos
 			case Key::Q:
 			{
-				if(!m_IsGizmoInUse)
+				if (!m_IsGizmoInUse)
 					m_GizmoType = -1;
 				break;
 			}
 			case Key::W:
 			{
-				if(!m_IsGizmoInUse)
+				if (!m_IsGizmoInUse)
 					m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
 				break;
 			}
 			case Key::E:
 			{
-				if(!m_IsGizmoInUse)
+				if (!m_IsGizmoInUse)
 					m_GizmoType = ImGuizmo::OPERATION::ROTATE;
 				break;
 			}
 			case Key::R:
 			{
-				if(!m_IsGizmoInUse)
-					m_GizmoType = ImGuizmo::OPERATION::SCALE;
+				if (control)
+				{
+					ScriptEngine::ReloadAssembly();
+				}
+				else
+				{
+					if (!m_IsGizmoInUse)
+						m_GizmoType = ImGuizmo::OPERATION::SCALE;
+				}
 				break;
 			}
 

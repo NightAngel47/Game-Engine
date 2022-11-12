@@ -17,7 +17,6 @@ namespace GameProject.Source
 
 		protected override void OnCreate()
 		{
-
 			Log.Trace($"Move Speed: {moveSpeed}");
 			Log.Trace($"Rotation Speed: {rotSpeeed}");
 			Log.Trace($"Zoom Speed: {zoomSpeed}");
@@ -30,11 +29,11 @@ namespace GameProject.Source
 
 		protected override void OnUpdate(float ts)
 		{
-			//Log.Trace($"Timestep: {ts}");
+			Log.Trace($"Timestep: {ts}");
 
 			camera ??= FindEntityByName("Camera").As<Camera>();
 
-			if (Input.IsMouseButtonPressed(MouseCode.ButtonMiddle))
+			if (Input.IsMouseButtonPressed(MouseCode.ButtonRight))
 			{
 				Vector2 curMousePos = Input.GetMousePosition();
 
@@ -97,11 +96,6 @@ namespace GameProject.Source
 			else
 			{
 				Log.Error("Camera is null!");
-			}
-
-			if (Input.IsKeyPressed(KeyCode.Space))
-			{
-				Log.Warn($"This is my example string: {exampleString}");
 			}
 		}
 	}

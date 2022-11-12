@@ -63,6 +63,9 @@ namespace Engine
 		MonoAssembly* CoreAssembly = nullptr;
 		MonoAssembly* AppAssembly = nullptr;
 
+		std::filesystem::path CoreAssemblyPath;
+		std::filesystem::path AppAssemblyPath;
+
 		MonoClass* EntityClass = nullptr;
 
 		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
@@ -162,6 +165,8 @@ namespace Engine
 		ShutdownMono();
 
 		s_ScriptEngineData->EntityInstances.clear();
+		s_ScriptEngineData->EntityClasses.clear();
+		s_ScriptEngineData->EntityScriptFields.clear();
 		delete s_ScriptEngineData;
 	}
 
@@ -176,11 +181,16 @@ namespace Engine
 
 	void ScriptEngine::ShutdownMono()
 	{
+		mono_domain_set(s_ScriptEngineData->RootDomain, false);
+
+		mono_domain_unload(s_ScriptEngineData->AppDomain);
+		s_ScriptEngineData->AppDomain = nullptr;
+
 		s_ScriptEngineData->CoreAssembly = nullptr;
 		s_ScriptEngineData->AppAssembly = nullptr;
-
-		s_ScriptEngineData->AppDomain = nullptr;
+		
 		mono_jit_cleanup(s_ScriptEngineData->RootDomain);
+		s_ScriptEngineData->RootDomain = nullptr;
 	}
 
 	void ScriptEngine::LoadCoreAssembly(const std::filesystem::path& assemblyPath)
@@ -189,6 +199,7 @@ namespace Engine
 		ENGINE_CORE_ASSERT(s_ScriptEngineData->AppDomain, "App Domain could not be initialized!");
 		mono_domain_set(s_ScriptEngineData->AppDomain, true);
 
+		s_ScriptEngineData->CoreAssemblyPath = assemblyPath;
 		s_ScriptEngineData->CoreAssembly = LoadMonoAssembly(assemblyPath);
 		//PrintAssemblyTypes(s_ScriptEngineData->CoreAssembly);
 
@@ -198,8 +209,33 @@ namespace Engine
 
 	void ScriptEngine::LoadAppAssembly(const std::filesystem::path& assemblyPath)
 	{
+		s_ScriptEngineData->AppAssemblyPath = assemblyPath;
 		s_ScriptEngineData->AppAssembly = LoadMonoAssembly(assemblyPath);
 		PrintAssemblyTypes(s_ScriptEngineData->AppAssembly);
+	}
+
+	void ScriptEngine::ReloadAssembly()
+	{
+		ENGINE_CORE_TRACE("Reloading Assemblies!");
+
+		// shutdown mono
+		mono_domain_set(s_ScriptEngineData->RootDomain, false);
+
+		mono_domain_unload(s_ScriptEngineData->AppDomain);
+		s_ScriptEngineData->AppDomain = nullptr;
+
+		s_ScriptEngineData->CoreAssembly = nullptr;
+		s_ScriptEngineData->AppAssembly = nullptr;
+
+		// clear s_ScriptEngineData
+		s_ScriptEngineData->EntityInstances.clear();
+		s_ScriptEngineData->EntityClasses.clear();
+		s_ScriptEngineData->EntityScriptFields.clear();
+
+		// reload assemblies
+		LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll");
+		LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll");
+		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 	}
 
 	void ScriptEngine::LoadEntityClasses(MonoAssembly* assembly)
