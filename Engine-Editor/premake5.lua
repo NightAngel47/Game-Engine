@@ -20,6 +20,7 @@ project "Engine-Editor"
 		"%{wks.location}/GameEngine/vendor",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
+		"%{IncludeDir.filewatch}",
 		"%{IncludeDir.ImGuizmo}"
 	}
 

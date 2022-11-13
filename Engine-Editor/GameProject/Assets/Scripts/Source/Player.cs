@@ -29,7 +29,7 @@ namespace GameProject.Source
 
 		protected override void OnUpdate(float ts)
 		{
-			Log.Trace($"Timestep: {ts}");
+			// Log.Trace($"Timestep: {ts}");
 
 			camera ??= FindEntityByName("Camera").As<Camera>();
 
@@ -83,12 +83,12 @@ namespace GameProject.Source
 
 			if (camera != null)
 			{
-				if (Input.IsKeyPressed(KeyCode.Up))
+				if (Input.IsKeyPressed(KeyCode.Left))
 				{
 					camera.DistanceFromPlayer -= zoomSpeed * ts;
 				}
 
-				if (Input.IsKeyPressed(KeyCode.Down))
+				if (Input.IsKeyPressed(KeyCode.Right))
 				{
 					camera.DistanceFromPlayer += zoomSpeed * ts;
 				}

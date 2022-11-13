@@ -4,6 +4,7 @@
 
 #include "Engine/Utils/FileUtils.h"
 
+#include "Engine/Core/Application.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Scene/Entity.h"
 
@@ -13,6 +14,8 @@
 #include <mono/metadata/debug-helpers.h>
 
 #include <glm/glm.hpp>
+
+#include <FileWatch.hpp>
 
 namespace Engine
 {
@@ -73,6 +76,9 @@ namespace Engine
 		std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
 
 		Scene* SceneContext;
+
+		Scope<filewatch::FileWatch<std::filesystem::path>> AppAssemblyFileWatcher;
+		bool AssemblyReloadPending = false;
 	};
 
 	static ScriptEngineData* s_ScriptEngineData = nullptr;
@@ -93,6 +99,20 @@ namespace Engine
 			mono_error_cleanup(&error);
 		}
 		return hasError;
+	}
+
+	static void OnAppAssemblyFileSystemEvent(const std::filesystem::path& path, const filewatch::Event change_type)
+	{
+		if (!s_ScriptEngineData->AssemblyReloadPending && change_type == filewatch::Event::modified)
+		{
+			s_ScriptEngineData->AssemblyReloadPending = true;
+
+			Application::Get().SubmitToMainThread([]()
+			{
+				s_ScriptEngineData->AppAssemblyFileWatcher.reset();
+				ScriptEngine::ReloadAssembly();
+			});
+		}
 	}
 
 	MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath)
@@ -212,6 +232,9 @@ namespace Engine
 		s_ScriptEngineData->AppAssemblyPath = assemblyPath;
 		s_ScriptEngineData->AppAssembly = LoadMonoAssembly(assemblyPath);
 		PrintAssemblyTypes(s_ScriptEngineData->AppAssembly);
+
+		s_ScriptEngineData->AppAssemblyFileWatcher = CreateScope<filewatch::FileWatch<std::filesystem::path>>(assemblyPath, OnAppAssemblyFileSystemEvent);
+		s_ScriptEngineData->AssemblyReloadPending = false;
 	}
 
 	void ScriptEngine::ReloadAssembly()
@@ -236,6 +259,8 @@ namespace Engine
 		LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll");
 		LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll");
 		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
+
+		InternalCalls::ScriptGlue::RegisterComponentTypes();
 	}
 
 	void ScriptEngine::LoadEntityClasses(MonoAssembly* assembly)
