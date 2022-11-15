@@ -155,11 +155,14 @@ namespace Engine
 
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
-		// Update scripts
-		OnScriptsUpdate(ts);
+		if (!m_IsPaused || m_StepFrames-- > 0)
+		{
+			// Update scripts
+			OnScriptsUpdate(ts);
 
-		// Physics
-		OnPhysics2DUpdate(ts);
+			// Physics
+			OnPhysics2DUpdate(ts);
+		}
 		
 		// Render 2D
 		Camera* mainCamera = nullptr;
@@ -191,7 +194,8 @@ namespace Engine
 
 	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
 	{
-		OnPhysics2DUpdate(ts);
+		if (!m_IsPaused || m_StepFrames-- > 0)
+			OnPhysics2DUpdate(ts);
 
 		Renderer2D::BeginScene(camera);
 
@@ -235,6 +239,11 @@ namespace Engine
 		}
 
 		return {};
+	}
+
+	void Scene::Step(int frames)
+	{
+		m_StepFrames = frames;
 	}
 
 	void Scene::DuplicateEntity(Entity entity)

@@ -41,6 +41,11 @@ namespace Engine
 		Entity GetPrimaryCameraEntity();
 
 		bool IsRunning() const { return m_IsRunning; }
+		bool IsPaused() const { return m_IsPaused; }
+
+		void SetPaused(bool paused) { m_IsPaused = paused; }
+
+		void Step(int frames = 1);
 
 		void DuplicateEntity(Entity entity);
 		Entity GetEntityWithUUID(UUID uuid);
@@ -74,6 +79,8 @@ namespace Engine
 		std::string m_Name;
 		
 		bool m_IsRunning = false;
+		bool m_IsPaused = false;
+		int m_StepFrames = 0;
 
 		// Physics
 		float m_Accumulator = 0.0f;

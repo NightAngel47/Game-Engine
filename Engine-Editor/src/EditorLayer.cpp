@@ -14,6 +14,8 @@ namespace Engine
 	void EditorLayer::OnAttach()
 	{
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
+		m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");
+		m_IconStep = Texture2D::Create("Resources/Icons/StepButton.png");
 		m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
 		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
 
@@ -348,34 +350,60 @@ namespace Engine
 		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 		float size = ImGui::GetWindowHeight() - 8.0f;
+		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+
+		// play button
+		if (m_SceneState != SceneState::Simulate)
 		{
-			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate) ? m_IconPlay : m_IconStop;
-			ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+			Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconPlay : m_IconStop;
 			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 			{
 				if (m_SceneState == SceneState::Play)
-				{
 					OnSceneStop();
-				}
 				else
-				{
 					OnScenePlay();
-				}
 			}
 		}
-		ImGui::SameLine();
+
+		// simulate button
+		if (m_SceneState != SceneState::Play)
 		{
-			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play) ? m_IconSimulate : m_IconStop;
-			//ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+			if (m_SceneState == SceneState::Edit)
+				ImGui::SameLine();
+
+			Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconSimulate : m_IconStop;
 			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 			{
 				if (m_SceneState == SceneState::Simulate)
-				{
 					OnSceneStop();
-				}
 				else
-				{
 					OnSceneSimulate();
+			}
+		}
+
+		if (m_SceneState != SceneState::Edit)
+		{
+			// pause button
+			ImGui::SameLine();
+			{
+				Ref<Texture2D> icon = m_IconPause;
+				ImVec4 tintColor = m_ActiveScene->IsPaused() ? ImVec4(0.25f, 0.25f, 1, 1) : ImVec4(1, 1, 1, 1);
+				if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0), tintColor))
+				{
+					m_ActiveScene->SetPaused(!m_ActiveScene->IsPaused());
+				}
+			}
+			
+			// step button
+			if (m_ActiveScene->IsPaused())
+			{
+				ImGui::SameLine();
+				{
+					Ref<Texture2D> icon = m_IconStep;
+					if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+					{
+						m_ActiveScene->Step();
+					}
 				}
 			}
 		}
@@ -647,9 +675,7 @@ namespace Engine
 	void EditorLayer::OnScenePlay()
 	{
 		if (m_SceneState == SceneState::Simulate)
-		{
 			OnSceneStop();
-		}
 
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
 		m_SceneState = SceneState::Play;
@@ -663,9 +689,7 @@ namespace Engine
 	void EditorLayer::OnSceneSimulate()
 	{
 		if (m_SceneState == SceneState::Play)
-		{
 			OnSceneStop();
-		}
 
 		ENGINE_CORE_TRACE("SceneState changed to Simulate.");
 		m_SceneState = SceneState::Simulate;
@@ -681,18 +705,17 @@ namespace Engine
 		ENGINE_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
 
 		if (m_SceneState == SceneState::Play)
-		{
 			m_ActiveScene->OnRuntimeStop();
-		}
 		else if (m_SceneState == SceneState::Simulate)
-		{
 			m_ActiveScene->OnSimulationStop();
-		}
+
 
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
 		m_SceneState = SceneState::Edit;
+		m_ActiveScene->SetPaused(false);
 		m_ActiveScene = m_EditorScene;
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
+
 }
