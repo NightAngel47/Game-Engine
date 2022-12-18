@@ -77,6 +77,8 @@ namespace Engine::Math
 			outRotation.x = atan2(Row[2][0], Row[1][1]);
 			outRotation.z = 0;
 		}
+
+		return true;
 	}
 
 	glm::mat4 GenTransform(const glm::vec3& position, const float rotation, const glm::vec2& size)

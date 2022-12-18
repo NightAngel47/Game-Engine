@@ -247,7 +247,7 @@ namespace Engine
 		inline static char s_FieldValueBuffer[64];
 
 		friend class ScriptEngine;
-		friend class ScriptFieldInstance;
+		friend struct ScriptFieldInstance;
 	};
 
 	namespace Utils

@@ -2,7 +2,7 @@
 #include "Engine/Scripting/ScriptEngine.h"
 #include "Engine/Scripting/ScriptGlue.h"
 
-#include "Engine/Utils/FileUtils.h"
+#include "Engine/Utils/FileSystem.h"
 
 #include "Engine/Core/Application.h"
 #include "Engine/Core/UUID.h"
@@ -117,12 +117,13 @@ namespace Engine
 
 	MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath)
 	{
-		uint32_t fileSize = 0;
-		char* fileData = FileUtils::ReadBytes(assemblyPath, &fileSize);
+		ScopedBuffer fileBuffer = FileSystem::ReadFileBinary(assemblyPath);
+
+		ENGINE_CORE_ASSERT(fileBuffer, "Assembly Data could not be loaded!");
 
 		// NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
 		MonoImageOpenStatus status;
-		MonoImage* image = mono_image_open_from_data_full(fileData, fileSize, 1, &status, 0);
+		MonoImage* image = mono_image_open_from_data_full(fileBuffer.As<char>(), fileBuffer.Size(), 1, &status, 0);
 
 		if (status != MONO_IMAGE_OK)
 		{
@@ -135,9 +136,6 @@ namespace Engine
 		std::string pathString = assemblyPath.string();
 		MonoAssembly* assembly = mono_assembly_load_from_full(image, pathString.c_str(), &status, 0);
 		mono_image_close(image);
-
-		// Don't forget to free the file data
-		delete[] fileData;
 
 		return assembly;
 	}
