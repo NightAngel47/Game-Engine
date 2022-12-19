@@ -25,6 +25,10 @@ namespace Engine
 
 		void OnOverlayRender();
 
+		void NewProject();
+		void OpenProject(const std::filesystem::path& path);
+		void SaveProject();
+
 		void NewScene(const std::filesystem::path& path = std::string());
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
@@ -76,7 +80,7 @@ namespace Engine
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
-		ContentBrowserPanel m_ContentBrowserPanel;
+		Scope<ContentBrowserPanel> m_ContentBrowserPanel;
 
 		// Editor Resources
 		Ref<Texture2D> m_IconPlay, m_IconPause, m_IconStep, m_IconSimulate, m_IconStop;

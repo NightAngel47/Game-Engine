@@ -3,6 +3,7 @@
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Core/UUID.h"
+#include "Engine/Project/Project.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -12,9 +13,6 @@
 
 namespace Engine
 {
-	// TODO REMOVE CAUSE TEMP
-	extern const std::filesystem::path g_AssetsPath;
-
 	struct IDComponent 
 	{
 		UUID ID;
@@ -59,19 +57,19 @@ namespace Engine
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
 		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
-		std::string Path;
+		std::filesystem::path Path = "";
 	
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
 		
-		void LoadTexture(const std::filesystem::path& path = "")
+		void LoadTexture(const std::filesystem::path& path)
 		{
 			if(!path.empty())
 			{
-				Path = path.string();
-				Texture = Ref<Texture2D>()->Create(std::filesystem::path(g_AssetsPath / Path).string());
+				Path = path;
+				Texture = Texture2D::Create(Project::GetAssetFileSystemPath(path).string());
 			}
 		}
 	};

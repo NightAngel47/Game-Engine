@@ -10,7 +10,7 @@ namespace Engine
 	{
 	public:
 		OpenGLTexture2D(uint32_t width, uint32_t height);
-		OpenGLTexture2D(const std::string& path);
+		OpenGLTexture2D(const std::filesystem::path& path);
 		virtual ~OpenGLTexture2D();
 
 		virtual uint32_t GetWidth() const override { return m_Width; }
@@ -27,7 +27,7 @@ namespace Engine
 		}
 
 	private:
-		std::string m_Path;
+		std::filesystem::path m_Path;
 		uint32_t m_Width, m_Height;
 		uint32_t m_RendererID{};
 		GLenum m_InternalFormat, m_DataFormat;

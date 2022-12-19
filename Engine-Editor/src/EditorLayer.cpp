@@ -8,9 +8,6 @@
 
 namespace Engine
 {
-	// TODO REMOVE CAUSE TEMP
-	extern const std::filesystem::path g_AssetsPath;
-
 	void EditorLayer::OnAttach()
 	{
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
@@ -31,10 +28,13 @@ namespace Engine
 		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
 		{
-			auto sceneFilePath = commandLineArgs[1];
-			OpenScene(sceneFilePath);
-			//SceneSerializer serializer(m_ActiveScene);
-			//serializer.Deserialize(sceneFilePath);
+			auto projectFilePath = commandLineArgs[1];
+			OpenProject(projectFilePath);
+		}
+		else
+		{
+			// TODO prompt to make new project
+			NewProject();
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
@@ -198,7 +198,7 @@ namespace Engine
 	    }
 
 		m_SceneHierarchyPanel.OnImGuiRender();
-		m_ContentBrowserPanel.OnImGuiRender();
+		m_ContentBrowserPanel->OnImGuiRender();
 
 		ImGui::Begin("Stats");
 
@@ -254,7 +254,7 @@ namespace Engine
 				{
 					if (std::wcscmp(fileExtension, L".scene") == 0)
 					{
-						OpenScene(std::filesystem::path(g_AssetsPath / path));
+						OpenScene(path);
 					}
 					else
 					{
@@ -579,6 +579,30 @@ namespace Engine
 		Renderer2D::EndScene();
 	}
 
+	void EditorLayer::NewProject()
+	{
+		Project::New();
+	}
+
+	void EditorLayer::OpenProject(const std::filesystem::path& path)
+	{
+		if (Project::Load(path))
+		{
+			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
+			ScriptEngine::Init();
+			OpenScene(Project::GetActive()->GetConfig().StartScene);
+		}
+		else
+		{
+			// TODO prompt for new project
+		}
+	}
+
+	void EditorLayer::SaveProject()
+	{
+		//Project::Save();
+	}
+
 	void EditorLayer::NewScene(const std::filesystem::path& path)
 	{
 		std::string filenameString = path.empty() ? "Untitled" : path.filename().string();
@@ -595,7 +619,8 @@ namespace Engine
 		std::string filepath = FileDialogs::OpenFile("Game Scene (*.scene)\0*.scene\0");
 		if (!filepath.empty())
 		{
-			OpenScene(filepath);
+			auto relativePath = std::filesystem::relative(filepath, Project::GetAssetDirectory());
+			OpenScene(relativePath);
 		}	
 	}
 
@@ -610,10 +635,9 @@ namespace Engine
 		if (m_SceneState != SceneState::Edit) OnSceneStop();
 
 		NewScene(path);
-			
-		m_EditorScenePath = path.string();
+
 		SceneSerializer serializer(m_ActiveScene);
-		serializer.Deserialize(path.string());
+		serializer.Deserialize(path);
 	}
 
 	void EditorLayer::SaveSceneAs()

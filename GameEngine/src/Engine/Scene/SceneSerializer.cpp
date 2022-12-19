@@ -251,7 +251,7 @@ namespace Engine
 
 			auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
 			out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
-			out << YAML::Key << "Path" << YAML::Value << spriteRendererComponent.Path;
+			out << YAML::Key << "Path" << YAML::Value << spriteRendererComponent.Path.string();
 			out << YAML::Key << "Tiling" << YAML::Value << spriteRendererComponent.Tiling;
 
 			out << YAML::EndMap; // SpriteRendererComponent
@@ -377,7 +377,7 @@ namespace Engine
 		out << YAML::EndMap; // Entity
 	}
 
-	void SceneSerializer::Serialize(const std::string& filepath)
+	void SceneSerializer::Serialize(const std::filesystem::path& filepath)
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap; // Scene
@@ -394,22 +394,22 @@ namespace Engine
 		out << YAML::EndSeq;
 		out << YAML::EndMap; // Scene
 
-		std::ofstream fout(filepath);
+		std::ofstream fout(Project::GetAssetFileSystemPath(filepath).string());
 		fout << out.c_str();
 	}
 
-	void SceneSerializer::SerializeRuntime(const std::string& filepath)
+	void SceneSerializer::SerializeRuntime(const std::filesystem::path& filepath)
 	{
 		// Not implemented yet
 		ENGINE_CORE_ASSERT(false, "Not implemented yet");
 	}
 
-	bool SceneSerializer::Deserialize(const std::string& filepath)
+	bool SceneSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
 		YAML::Node data;
 		try
 		{
-			data = YAML::LoadFile(filepath);
+			data = YAML::LoadFile(Project::GetAssetFileSystemPath(filepath).string());
 		}
 		catch (YAML::ParserException e)
 		{
@@ -481,9 +481,8 @@ namespace Engine
 					auto& spriteRenderer = deserializedEntity.AddComponent<SpriteRendererComponent>();
 					spriteRenderer.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 					spriteRenderer.Path = spriteRendererComponent["Path"].as<std::string>();
+					spriteRenderer.LoadTexture(spriteRenderer.Path);
 					spriteRenderer.Tiling = spriteRendererComponent["Tiling"].as<float>();
-
-					if(!spriteRenderer.Path.empty()) spriteRenderer.LoadTexture(spriteRenderer.Path);
 				}
 
 				auto circleRendererComponent = entity["CircleRendererComponent"];
@@ -595,7 +594,7 @@ namespace Engine
 		return true;
 	}
 
-	bool SceneSerializer::DeserializeRuntime(const std::string& filepath)
+	bool SceneSerializer::DeserializeRuntime(const std::filesystem::path& filepath)
 	{
 		// Not implemented yet
 		ENGINE_CORE_ASSERT(false, "Not implemented yet");

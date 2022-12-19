@@ -336,7 +336,7 @@ namespace Engine
 			ImGui::Text("Texture");
 			ImGui::SameLine();
 
-			std::string textureName = component.Path.empty() ? "None" : component.Path;
+			std::string textureName = component.Path.empty() ? "None" : component.Path.string();
 			ImGui::Button(textureName.c_str(), buttonSize);
 
 			if (ImGui::BeginDragDropTarget())
@@ -444,12 +444,21 @@ namespace Engine
 			}
 
 			// Fields
+			Ref<ScriptInstance> scriptInstance = nullptr;
+			std::unordered_map<std::string, ScriptField> fields = {};
+
 			bool sceneRunning = m_Context->IsRunning();
+			if (sceneRunning)
+			{
+				scriptInstance = ScriptEngine::GetEntityInstance(entity);
+				fields = scriptInstance->GetScriptClass()->GetScriptFields();
+			}
+			else
+			{
+				fields = ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
+			}
 
-			Ref<ScriptInstance> scriptInstance = ScriptEngine::GetEntityInstance(entity);
 			auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
-
-			auto& fields = sceneRunning ? scriptInstance->GetScriptClass()->GetScriptFields() : ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
 			for (auto& [name, field] : fields)
 			{
 				if (!field.IsPublic())
