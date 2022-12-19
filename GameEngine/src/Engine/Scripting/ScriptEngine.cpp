@@ -50,7 +50,7 @@ namespace Engine
 			auto it = s_ScriptFieldTypeMap.find(typeName);
 			if (it == s_ScriptFieldTypeMap.end())
 			{
-				ENGINE_CORE_ERROR("Unknown type: {}", typeName);
+				ENGINE_CORE_WARN("Unknown Script Field Type: {}", typeName);
 				return ScriptFieldType::None;
 			}
 
@@ -119,7 +119,11 @@ namespace Engine
 	{
 		ScopedBuffer fileBuffer = FileSystem::ReadFileBinary(assemblyPath);
 
-		ENGINE_CORE_ASSERT(fileBuffer, "Assembly Data could not be loaded!");
+		if (!fileBuffer)
+		{
+			ENGINE_CORE_ERROR("Assembly Data could not be loaded!");
+			return {};
+		}
 
 		// NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
 		MonoImageOpenStatus status;
@@ -168,8 +172,8 @@ namespace Engine
 
 		InitMono();
 
-		LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll");
-		LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll");
+		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
+		if (!LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll")) return;
 		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 
 		InternalCalls::ScriptGlue::RegisterComponentTypes();
@@ -211,7 +215,7 @@ namespace Engine
 		s_ScriptEngineData->RootDomain = nullptr;
 	}
 
-	void ScriptEngine::LoadCoreAssembly(const std::filesystem::path& assemblyPath)
+	bool ScriptEngine::LoadCoreAssembly(const std::filesystem::path& assemblyPath)
 	{
 		s_ScriptEngineData->AppDomain = mono_domain_create_appdomain("EngineScriptRuntime", nullptr);
 		ENGINE_CORE_ASSERT(s_ScriptEngineData->AppDomain, "App Domain could not be initialized!");
@@ -219,20 +223,32 @@ namespace Engine
 
 		s_ScriptEngineData->CoreAssemblyPath = assemblyPath;
 		s_ScriptEngineData->CoreAssembly = LoadMonoAssembly(assemblyPath);
-		//PrintAssemblyTypes(s_ScriptEngineData->CoreAssembly);
+		if (s_ScriptEngineData->CoreAssembly == nullptr)
+		{
+			ENGINE_CORE_ERROR("Core Assembly could not be loaded!");
+			return false;
+		}
 
 		MonoImage* image = mono_assembly_get_image(s_ScriptEngineData->CoreAssembly);
 		s_ScriptEngineData->EntityClass = mono_class_from_name(image, "Engine.Scene", "Entity");
+
+		return true;
 	}
 
-	void ScriptEngine::LoadAppAssembly(const std::filesystem::path& assemblyPath)
+	bool ScriptEngine::LoadAppAssembly(const std::filesystem::path& assemblyPath)
 	{
 		s_ScriptEngineData->AppAssemblyPath = assemblyPath;
 		s_ScriptEngineData->AppAssembly = LoadMonoAssembly(assemblyPath);
-		PrintAssemblyTypes(s_ScriptEngineData->AppAssembly);
+		if (s_ScriptEngineData->AppAssembly == nullptr)
+		{
+			ENGINE_CORE_ERROR("App Assembly could not be loaded!");
+			return false;
+		}
 
 		s_ScriptEngineData->AppAssemblyFileWatcher = CreateScope<filewatch::FileWatch<std::filesystem::path>>(assemblyPath, OnAppAssemblyFileSystemEvent);
 		s_ScriptEngineData->AssemblyReloadPending = false;
+
+		return true;
 	}
 
 	void ScriptEngine::ReloadAssembly()
@@ -254,8 +270,8 @@ namespace Engine
 		s_ScriptEngineData->EntityScriptFields.clear();
 
 		// reload assemblies
-		LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll");
-		LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll");
+		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
+		if (!LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll")) return;
 		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 
 		InternalCalls::ScriptGlue::RegisterComponentTypes();
@@ -366,7 +382,7 @@ namespace Engine
 			return true;
 		}
 
-		//ENGINE_CORE_ERROR("Entity Class of " + className + " could not be found!");
+		ENGINE_CORE_ERROR("Entity Class of " + className + " could not be found!");
 		return false;
 	}
 
@@ -468,7 +484,7 @@ namespace Engine
 			return true;
 		}
 
-		//ENGINE_CORE_ERROR("Entity Instance for {}, does not exists!", entity.GetUUID());
+		ENGINE_CORE_ERROR("Entity Instance for {}, does not exists!", entity.GetUUID());
 		return false;
 	}
 

@@ -161,8 +161,8 @@ namespace Engine
 		static void InitMono();
 		static void ShutdownMono();
 
-		static void LoadCoreAssembly(const std::filesystem::path& assemblyPath);
-		static void LoadAppAssembly(const std::filesystem::path& assemblyPath);
+		static bool LoadCoreAssembly(const std::filesystem::path& assemblyPath);
+		static bool LoadAppAssembly(const std::filesystem::path& assemblyPath);
 
 		static void LoadEntityClasses(MonoAssembly* assembly);
 		static MonoObject* InstantiateClass(MonoClass* monoClass);

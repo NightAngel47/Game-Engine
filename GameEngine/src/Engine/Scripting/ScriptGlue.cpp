@@ -97,7 +97,7 @@ namespace InternalCalls
 			MonoType* managedType = mono_reflection_type_from_name(managedTypeName.data(), mono_assembly_get_image(Engine::ScriptEngine::GetCoreAssembly()));
 			if (!managedType)
 			{
-				ENGINE_CORE_ERROR("Could not register component: {} for scripting!", managedTypeName);
+				ENGINE_CORE_WARN("Could not register component: {} for scripting!", managedTypeName);
 				return;
 			}
 			s_EntityHasComponentFuncs[managedType] = [](Engine::Entity entity) { return entity.HasComponent<Component>(); };

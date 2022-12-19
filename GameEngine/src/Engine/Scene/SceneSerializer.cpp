@@ -506,7 +506,12 @@ namespace Engine
 					if (scriptFields)
 					{
 						Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(sc.ClassName);
-						ENGINE_CORE_ASSERT(entityClass, "Entity Class does not exists for given script component!");
+						if (entityClass == nullptr)
+						{
+							ENGINE_CORE_ERROR("Entity Class does not exists for given script component!");
+							continue;
+						}
+
 						const auto& fields = entityClass->GetScriptFields();
 						auto& entityFields = ScriptEngine::GetScriptFieldMap(deserializedEntity);
 
