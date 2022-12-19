@@ -16,6 +16,30 @@ namespace Engine.Math
 			W = w;
 		}
 
+		public Vector4(Vector2 xy, float z = 0.0f, float w = 0.0f)
+		{
+			X = xy.X;
+			Y = xy.Y;
+			Z = z;
+			W = w;
+		}
+
+		public Vector4(Vector3 xyz, float w = 0.0f)
+		{
+			X = xyz.X;
+			Y = xyz.Y;
+			Z = xyz.Z;
+			W = w;
+		}
+
+		public static implicit operator Vector4(Vector2 vec2) => new Vector4(vec2.X, vec2.Y);
+		public static implicit operator Vector4(Vector3 vec3) => new Vector4(vec3.X, vec3.Y, vec3.Z);
+
+		public override string ToString()
+		{
+			return $"({X}, {Y}, {Z}, {W})";
+		}
+
 		public float Magnitude => InternalCalls.Vector4_Magnitude(ref this);
 		public float sqrMagnitude => InternalCalls.Vector4_sqrMagnitude(ref this);
 

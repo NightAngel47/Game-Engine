@@ -79,7 +79,7 @@ namespace Engine
 		ContentBrowserPanel m_ContentBrowserPanel;
 
 		// Editor Resources
-		Ref<Texture2D> m_IconPlay, m_IconSimulate, m_IconStop;
+		Ref<Texture2D> m_IconPlay, m_IconPause, m_IconStep, m_IconSimulate, m_IconStop;
 	};
 
 }

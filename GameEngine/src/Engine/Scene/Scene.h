@@ -40,8 +40,16 @@ namespace Engine
 		void OnViewportResize(uint32_t width, uint32_t height);
 		Entity GetPrimaryCameraEntity();
 
+		bool IsRunning() const { return m_IsRunning; }
+		bool IsPaused() const { return m_IsPaused; }
+
+		void SetPaused(bool paused) { m_IsPaused = paused; }
+
+		void Step(int frames = 1);
+
 		void DuplicateEntity(Entity entity);
 		Entity GetEntityWithUUID(UUID uuid);
+		Entity FindEntityByName(const std::string_view& entityName);
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -69,6 +77,10 @@ namespace Engine
 
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 		std::string m_Name;
+		
+		bool m_IsRunning = false;
+		bool m_IsPaused = false;
+		int m_StepFrames = 0;
 
 		// Physics
 		float m_Accumulator = 0.0f;

@@ -43,6 +43,7 @@ project "GameEngine"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.box2d}",
+		"%{IncludeDir.filewatch}",
 		"%{IncludeDir.mono}"
 	}
 
@@ -90,7 +91,7 @@ project "GameEngine"
 	filter "configurations:Release"
 		defines "ENGINE_RELEASE"
 		runtime "Release"
-		optimize "on"
+		optimize "off" -- HACK: Bug with Optimization On and Mono
 
 		links
 		{

@@ -123,6 +123,8 @@ namespace Engine
 
 	void Scene::OnRuntimeStart()
 	{
+		m_IsRunning = true;
+
 		// Create Physics Objects
 		OnPhysics2DStart();
 
@@ -137,6 +139,8 @@ namespace Engine
 
 	void Scene::OnRuntimeStop()
 	{
+		m_IsRunning = false;
+
 		// Scripts On Destroy
 		OnScriptsStop();
 
@@ -151,11 +155,14 @@ namespace Engine
 
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
-		// Update scripts
-		OnScriptsUpdate(ts);
+		if (!m_IsPaused || m_StepFrames-- > 0)
+		{
+			// Update scripts
+			OnScriptsUpdate(ts);
 
-		// Physics
-		OnPhysics2DUpdate(ts);
+			// Physics
+			OnPhysics2DUpdate(ts);
+		}
 		
 		// Render 2D
 		Camera* mainCamera = nullptr;
@@ -187,7 +194,8 @@ namespace Engine
 
 	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
 	{
-		OnPhysics2DUpdate(ts);
+		if (!m_IsPaused || m_StepFrames-- > 0)
+			OnPhysics2DUpdate(ts);
 
 		Renderer2D::BeginScene(camera);
 
@@ -233,6 +241,11 @@ namespace Engine
 		return {};
 	}
 
+	void Scene::Step(int frames)
+	{
+		m_StepFrames = frames;
+	}
+
 	void Scene::DuplicateEntity(Entity entity)
 	{
 		Entity newEntity = CreateEntity(entity.GetName());
@@ -243,6 +256,19 @@ namespace Engine
 	{
 		ENGINE_CORE_ASSERT(m_EntityMap.find(uuid) != m_EntityMap.end(), "Could not find Entity with UUID: " + std::to_string(uuid) + " in Scene: " + m_Name);
 		return { m_EntityMap.at(uuid), this };
+	}
+
+	Entity Scene::FindEntityByName(const std::string_view& entityName)
+	{
+		auto view = m_Registry.view<TagComponent>();
+		for (auto entity : view)
+		{
+			const TagComponent& tc = view.get<TagComponent>(entity);
+			if (tc.Tag == entityName)
+				return Entity{ entity, this };
+		}
+
+		return {};
 	}
 
 	void Scene::OnPhysics2DStart()
@@ -308,11 +334,12 @@ namespace Engine
 		ScriptEngine::OnRuntimeStart(this);
 
 		// Start Scripts
-		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
+		auto view = m_Registry.view<ScriptComponent>();
+		for (auto e : view)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnCreateEntity(entity, sc);
-		});
+			ScriptEngine::OnCreateEntity(entity);
+		}
 
 		// Start Native Scripts
 		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
@@ -334,11 +361,12 @@ namespace Engine
 
 	void Scene::OnScriptsStop()
 	{
-		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
+		auto view = m_Registry.view<ScriptComponent>();
+		for (auto e : view)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnDestroyEntity(entity, sc.ScriptName);
-		});
+			ScriptEngine::OnDestroyEntity(entity);
+		}
 
 		ScriptEngine::OnRuntimeStop();
 	}
@@ -388,11 +416,12 @@ namespace Engine
 	void Scene::OnScriptsUpdate(Timestep ts)
 	{
 		// Update Scripts
-		m_Registry.view<ScriptComponent>().each([=](auto e, auto& sc)
+		auto view = m_Registry.view<ScriptComponent>();
+		for (auto e : view)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnUpdateEntity(entity, sc.ScriptName, ts);
-		});
+			ScriptEngine::OnUpdateEntity(entity, ts);
+		}
 
 		// Update Native Scripts
 		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)

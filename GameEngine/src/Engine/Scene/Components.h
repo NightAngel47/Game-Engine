@@ -104,15 +104,10 @@ namespace Engine
 
 	struct ScriptComponent
 	{
-		std::string ScriptName;
-
-		std::unordered_map <std::string, ScriptFieldDataBase*> ScriptFieldsData;
+		std::string ClassName;
 
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;
-		ScriptComponent(const std::string& scriptName)
-			:ScriptName(scriptName) {}
-		~ScriptComponent() = default;
 	};
 
 	// Forward declaration

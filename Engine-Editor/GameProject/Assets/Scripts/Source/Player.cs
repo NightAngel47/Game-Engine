@@ -8,21 +8,18 @@ namespace GameProject.Source
 	{
 		public float moveSpeed = 5.0f;
 		public float rotSpeeed = 5.0f;
+		public Vector2 movement = new Vector2();
 
-		public Vector2 movement;
-		public Vector3 rotation;
+		public float zoomSpeed = 1.0f;
+		public Camera camera = null;
 
 		public string exampleString = "Example";
 
 		protected override void OnCreate()
 		{
-
-			Vector3 pos = Transform.Position;
-			rotation = Transform.Rotation;
-			Vector3 scale = Transform.Scale;
-			Log.Info($"Position: ({pos.X}, {pos.Y}, {pos.Z})");
-			Log.Info($"Rotation: ({rotation.X}, {rotation.Y}, {rotation.Z})");
-			Log.Info($"Scale: ({scale.X}, {scale.Y}, {scale.Z})");
+			Log.Trace($"Move Speed: {moveSpeed}");
+			Log.Trace($"Rotation Speed: {rotSpeeed}");
+			Log.Trace($"Zoom Speed: {zoomSpeed}");
 		}
 
 		protected override void OnDestroy()
@@ -32,14 +29,18 @@ namespace GameProject.Source
 
 		protected override void OnUpdate(float ts)
 		{
-			if (Input.IsMouseButtonPressed(MouseCode.ButtonMiddle))
+			// Log.Trace($"Timestep: {ts}");
+
+			camera ??= FindEntityByName("Camera").As<Camera>();
+
+			if (Input.IsMouseButtonPressed(MouseCode.ButtonRight))
 			{
 				Vector2 curMousePos = Input.GetMousePosition();
 
-				Log.Trace($"Current Mouse Pos: ({curMousePos.X}, {curMousePos.Y})");
+				Log.Trace($"Current Mouse Pos: {curMousePos}");
 			}
 
-			movement = new Vector2(0.0f, 0.0f);
+			movement = new Vector2();
 
 			if (Input.IsKeyPressed(KeyCode.A))
 			{
@@ -60,27 +61,42 @@ namespace GameProject.Source
 			{
 				movement.Y += 1.0f * moveSpeed * ts;
 			}
+			
+			if (movement.sqrMagnitude > 0)
+			{
+				Position += new Vector3(movement.X, movement.Y, 0.0f);
+			}
 
 			if (Input.IsKeyPressed(KeyCode.Q))
 			{
-				rotation = Transform.Rotation;
+				Vector3 rotation = Transform.Rotation;
 				rotation.Z += 1.0f * rotSpeeed * ts;
 				Transform.Rotation = rotation;
 			}
 
 			if (Input.IsKeyPressed(KeyCode.E))
 			{
-				rotation = Transform.Rotation;
+				Vector3 rotation = Transform.Rotation;
 				rotation.Z += -1.0f * rotSpeeed * ts;
 				Transform.Rotation = rotation;
 			}
 
-			if (movement.sqrMagnitude > 0)
+			if (camera != null)
 			{
-				Transform.Position += new Vector3(movement.X, movement.Y, 0.0f);
-			}
+				if (Input.IsKeyPressed(KeyCode.Left))
+				{
+					camera.DistanceFromPlayer -= zoomSpeed * ts;
+				}
 
-			Log.Warn($"This is my example string: {exampleString}");
+				if (Input.IsKeyPressed(KeyCode.Right))
+				{
+					camera.DistanceFromPlayer += zoomSpeed * ts;
+				}
+			}
+			else
+			{
+				Log.Error("Camera is null!");
+			}
 		}
 	}
 }

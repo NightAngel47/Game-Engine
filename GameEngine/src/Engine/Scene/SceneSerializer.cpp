@@ -5,9 +5,6 @@
 #include "Engine/Scene/Components.h"
 
 #include "Engine/Scripting/ScriptEngine.h"
-#include "Engine/Scripting/ScriptClass.h"
-#include "Engine/Scripting/ScriptField.h"
-#include "Engine/Scripting/ScriptFieldData.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -87,14 +84,40 @@ namespace YAML
 			return true;
 		}
 	};
+
+	template<>
+	struct convert<Engine::UUID>
+	{
+		static Node encode(const Engine::UUID& uuid)
+		{
+			Node node;
+			node.push_back((uint64_t)uuid);
+			return node;
+		}
+
+		static bool decode(const Node& node, Engine::UUID& uuid)
+		{
+			uuid = node[0].as<float>();
+			return true;
+		}
+	};
 }
 
 namespace Engine
 {
-	static void FeildTypeUnsupported(ScriptField* scriptField, bool isSerialization = false)
-	{
-		ENGINE_CORE_ERROR("Script Field Type {} does not support {}!", scriptField->GetTypeName(), isSerialization ? "deserialization" : "serialization");
-	}
+
+#define WRITE_SCRIPT_FIELD(FieldType, Type)			\
+	case ScriptFieldType::FieldType:				\
+		out << scriptField.GetValue<Type>();		\
+		break;										\
+
+#define READ_SCRIPT_FIELD(FieldType, Type)			\
+	case ScriptFieldType::FieldType:				\
+	{												\
+		Type data = scriptField["Data"].as<Type>();	\
+		fieldInstance.SetValue(data);				\
+		break;										\
+	}												\
 
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& vec)
 	{
@@ -254,80 +277,55 @@ namespace Engine
 			out << YAML::BeginMap; // ScriptComponent
 
 			auto& scriptComponent = entity.GetComponent<ScriptComponent>();
-			out << YAML::Key << "ScriptName" << YAML::Value << scriptComponent.ScriptName;
-			out << YAML::Key << "ScriptFields";
-			out << YAML::BeginMap; // ScriptFields
+			out << YAML::Key << "ClassName" << YAML::Value << scriptComponent.ClassName;
 
-			// TODO add more types
-			auto scriptFields = ScriptEngine::GetEntityClasses().at(scriptComponent.ScriptName)->GetScriptFields();
-			for (auto const& [key, val] : scriptFields)
+			// Fields
+			const auto& scriptFields = ScriptEngine::GetEntityClasses().at(scriptComponent.ClassName)->GetScriptFields();
+			if (scriptFields.size() > 0)
 			{
-				if (val->IsPublic())
+				out << YAML::Key << "ScriptFields" << YAML::Value;
+				auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
+				out << YAML::BeginSeq;
+				for (auto const& [name, field] : scriptFields)
 				{
-					switch (val->GetType())
-					{
-					default:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::None:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::Float:
-						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<float>();
-						break;
-					case ScriptFieldType::Double:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::Bool:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::Char:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::String:
-						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<std::string>();
-						break;
-					case ScriptFieldType::Byte:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::Short:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::Int:
-						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<int>();
-						break;
-					case ScriptFieldType::Long:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::UByte:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::UShort:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::UInt:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::ULong:
-						FeildTypeUnsupported(val, true);
-						break;
-					case ScriptFieldType::Vector2:
-						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<glm::vec2>();
-						break;
-					case ScriptFieldType::Vector3:
-						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<glm::vec3>();
-						break;
-					case ScriptFieldType::Vector4:
-						out << YAML::Key << key << YAML::Value << scriptComponent.ScriptFieldsData.at(key)->get<glm::vec4>();
-						break;
-					case ScriptFieldType::Entity:
-						FeildTypeUnsupported(val, true);
-						break;
-					}
-				}
-			}
+					if (entityFields.find(name) == entityFields.end())
+						continue;
 
-			out << YAML::EndMap; // ScriptFields
+					out << YAML::BeginMap; // ScriptField
+					out << YAML::Key << "Name" << YAML::Value << name;
+					out << YAML::Key << "Type" << YAML::Value << Utils::ScriptFieldTypeToString(field.Type);
+
+					out << YAML::Key << "Data" << YAML::Value;
+					ScriptFieldInstance& scriptField = entityFields.at(name);
+
+					switch (field.Type)
+					{
+						WRITE_SCRIPT_FIELD(Float,	float		);
+						WRITE_SCRIPT_FIELD(Double,	double		);
+						WRITE_SCRIPT_FIELD(Bool,	bool		);
+						WRITE_SCRIPT_FIELD(Char,	char		);
+						WRITE_SCRIPT_FIELD(String,	std::string	);
+						WRITE_SCRIPT_FIELD(Byte,	int8_t		);
+						WRITE_SCRIPT_FIELD(Short,	int16_t		);
+						WRITE_SCRIPT_FIELD(Int,		int32_t		);
+						WRITE_SCRIPT_FIELD(Long,	int64_t		);
+						WRITE_SCRIPT_FIELD(UByte,	uint8_t		);
+						WRITE_SCRIPT_FIELD(UShort,	uint16_t	);
+						WRITE_SCRIPT_FIELD(UInt,	uint32_t	);
+						WRITE_SCRIPT_FIELD(ULong,	uint64_t	);
+						WRITE_SCRIPT_FIELD(Vector2,	glm::vec2	);
+						WRITE_SCRIPT_FIELD(Vector3,	glm::vec3	);
+						WRITE_SCRIPT_FIELD(Vector4,	glm::vec4	);
+						WRITE_SCRIPT_FIELD(Entity,	UUID		);
+					default:
+						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(field.Type));
+					}
+
+					out << YAML::EndMap; // ScriptFields
+				}
+
+				out << YAML::EndSeq;
+			}
 
 			out << YAML::EndMap; // ScriptComponent
 		}
@@ -501,82 +499,61 @@ namespace Engine
 				auto scriptComponent = entity["ScriptComponent"];
 				if (scriptComponent)
 				{
-					auto& script = deserializedEntity.AddComponent<ScriptComponent>();
-					script.ScriptName = scriptComponent["ScriptName"].as<std::string>();
+					auto& sc = deserializedEntity.AddComponent<ScriptComponent>();
+					sc.ClassName = scriptComponent["ClassName"].as<std::string>();
 
-					Ref<ScriptInstance> instance = ScriptEngine::CreateEntityInstance(uuid, script.ScriptName);
-					MonoObject* instanceMonoObject = instance->GetMonoObject();
-					const auto& scriptFields = ScriptEngine::GetEntityClasses().at(script.ScriptName)->GetScriptFields();
-					auto& serializedFields = scriptComponent["ScriptFields"];
-
-					for (const auto& [key, val] : scriptFields)
+					auto scriptFields = scriptComponent["ScriptFields"];
+					if (scriptFields)
 					{
-						// get serialized field if present, used as null ref check as well
-						auto serializedValue = serializedFields[key]; 
-
-						switch (val->GetType())
+						Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(sc.ClassName);
+						if (entityClass == nullptr)
 						{
-						default:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::None:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::Float:
-							script.ScriptFieldsData[key] = new ScriptFieldData<float>(serializedValue ? serializedValue.as<float>() : val->GetValue<float>(instanceMonoObject));
-							break;
-						case ScriptFieldType::Double:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::Bool:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::Char:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::String:
-							script.ScriptFieldsData[key] = new ScriptFieldData<std::string>(serializedValue ? serializedValue.as<std::string>() : val->GetValue<std::string>(instanceMonoObject));
-							break;
-						case ScriptFieldType::Byte:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::Short:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::Int:
-							script.ScriptFieldsData[key] = new ScriptFieldData<int>(serializedValue ? serializedValue.as<int>() : val->GetValue<int>(instanceMonoObject));
-							break;
-						case ScriptFieldType::Long:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::UByte:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::UShort:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::UInt:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::ULong:
-							FeildTypeUnsupported(val);
-							break;
-						case ScriptFieldType::Vector2:
-							script.ScriptFieldsData[key] = new ScriptFieldData<glm::vec2>(serializedValue ? serializedValue.as<glm::vec2>() : val->GetValue<glm::vec2>(instanceMonoObject));
-							break;
-						case ScriptFieldType::Vector3:
-							script.ScriptFieldsData[key] = new ScriptFieldData<glm::vec3>(serializedValue ? serializedValue.as<glm::vec3>() : val->GetValue<glm::vec3>(instanceMonoObject));
-							break;
-						case ScriptFieldType::Vector4:
-							script.ScriptFieldsData[key] = new ScriptFieldData<glm::vec4>(serializedValue ? serializedValue.as<glm::vec4>() : val->GetValue<glm::vec4>(instanceMonoObject));
-							break;
-						case ScriptFieldType::Entity:
-							FeildTypeUnsupported(val);
-							break;
+							ENGINE_CORE_ERROR("Entity Class does not exists for given script component!");
+							continue;
+						}
+
+						const auto& fields = entityClass->GetScriptFields();
+						auto& entityFields = ScriptEngine::GetScriptFieldMap(deserializedEntity);
+
+						for (auto scriptField : scriptFields)
+						{
+							std::string name = scriptField["Name"].as<std::string>();
+							std::string typeString = scriptField["Type"].as<std::string>();
+							ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
+
+							ScriptFieldInstance& fieldInstance = entityFields[name];
+
+							//ENGINE_CORE_ASSERT(fields.find(name) != fields.end()); // extra field in saved file
+
+							if (fields.find(name) == fields.end())
+								continue;
+
+							fieldInstance.Field = fields.at(name);
+
+							switch (type)
+							{
+								READ_SCRIPT_FIELD(Float,	float		);
+								READ_SCRIPT_FIELD(Double,	double		);
+								READ_SCRIPT_FIELD(Bool,		bool		);
+								READ_SCRIPT_FIELD(Char,		char		);
+								READ_SCRIPT_FIELD(String,	std::string	);
+								READ_SCRIPT_FIELD(Byte,		int8_t		);
+								READ_SCRIPT_FIELD(Short,	int16_t		);
+								READ_SCRIPT_FIELD(Int,		int32_t		);
+								READ_SCRIPT_FIELD(Long,		int64_t		);
+								READ_SCRIPT_FIELD(UByte,	uint8_t		);
+								READ_SCRIPT_FIELD(UShort,	uint16_t	);
+								READ_SCRIPT_FIELD(UInt,		uint32_t	);
+								READ_SCRIPT_FIELD(ULong,	uint64_t	);
+								READ_SCRIPT_FIELD(Vector2,	glm::vec2	);
+								READ_SCRIPT_FIELD(Vector3,	glm::vec3	);
+								READ_SCRIPT_FIELD(Vector4,	glm::vec4	);
+								READ_SCRIPT_FIELD(Entity,	UUID		);
+							default:
+								ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", Utils::ScriptFieldTypeToString(type));
+							}
 						}
 					}
-
-					ScriptEngine::DeleteEntityInstance(instance, uuid);
 				}
 
 				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

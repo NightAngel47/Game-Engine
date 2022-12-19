@@ -14,6 +14,8 @@ namespace Engine
 	void EditorLayer::OnAttach()
 	{
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
+		m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");
+		m_IconStep = Texture2D::Create("Resources/Icons/StepButton.png");
 		m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
 		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
 
@@ -30,8 +32,9 @@ namespace Engine
 		if (commandLineArgs.Count > 1)
 		{
 			auto sceneFilePath = commandLineArgs[1];
-			SceneSerializer serializer(m_ActiveScene);
-			serializer.Deserialize(sceneFilePath);
+			OpenScene(sceneFilePath);
+			//SceneSerializer serializer(m_ActiveScene);
+			//serializer.Deserialize(sceneFilePath);
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
@@ -48,6 +51,8 @@ namespace Engine
 	{
 		m_FrameTime = ts.GetMilliseconds();
 
+		m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+		
 		// Resize
 		if (FramebufferSpecification spec = m_Framebuffer->GetSpecification(); 
 			m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && 
@@ -55,7 +60,6 @@ namespace Engine
 		{
 			m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 			m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 		}
 		
 		// Render
@@ -102,7 +106,6 @@ namespace Engine
 
 	void EditorLayer::OnImGuiRender()
 	{
-
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
 	    bool opt_fullscreen = opt_fullscreen_persistant;
@@ -178,6 +181,18 @@ namespace Engine
 	        	
 	            ImGui::EndMenu();
 	        }
+			
+			if (ImGui::BeginMenu("Script"))
+	        {
+	            // Disabling fullscreen would allow the window to be moved to the front of other windows,
+	            // which we can't undo at the moment without finer window depth/z control.
+	            //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
+
+	        	if (ImGui::MenuItem("Reload Assembly", "Crtl+R"))
+					ScriptEngine::ReloadAssembly();
+
+	            ImGui::EndMenu();
+	        }
 
 	        ImGui::EndMenuBar();
 	    }
@@ -226,7 +241,7 @@ namespace Engine
 		m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 		
 		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-		ImGui::Image((void*)textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
+		ImGui::Image((void*)(uint64_t)textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
 
 		if (ImGui::BeginDragDropTarget())
 		{
@@ -335,34 +350,60 @@ namespace Engine
 		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 		float size = ImGui::GetWindowHeight() - 8.0f;
+		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+
+		// play button
+		if (m_SceneState != SceneState::Simulate)
 		{
-			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate) ? m_IconPlay : m_IconStop;
-			ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
-			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+			Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconPlay : m_IconStop;
+			if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 			{
 				if (m_SceneState == SceneState::Play)
-				{
 					OnSceneStop();
-				}
 				else
-				{
 					OnScenePlay();
-				}
 			}
 		}
-		ImGui::SameLine();
+
+		// simulate button
+		if (m_SceneState != SceneState::Play)
 		{
-			Ref<Texture2D> icon = (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play) ? m_IconSimulate : m_IconStop;
-			//ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
-			if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+			if (m_SceneState == SceneState::Edit)
+				ImGui::SameLine();
+
+			Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconSimulate : m_IconStop;
+			if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 			{
 				if (m_SceneState == SceneState::Simulate)
-				{
 					OnSceneStop();
-				}
 				else
-				{
 					OnSceneSimulate();
+			}
+		}
+
+		if (m_SceneState != SceneState::Edit)
+		{
+			// pause button
+			ImGui::SameLine();
+			{
+				Ref<Texture2D> icon = m_IconPause;
+				ImVec4 tintColor = m_ActiveScene->IsPaused() ? ImVec4(0.25f, 0.25f, 1, 1) : ImVec4(1, 1, 1, 1);
+				if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0), tintColor))
+				{
+					m_ActiveScene->SetPaused(!m_ActiveScene->IsPaused());
+				}
+			}
+			
+			// step button
+			if (m_ActiveScene->IsPaused())
+			{
+				ImGui::SameLine();
+				{
+					Ref<Texture2D> icon = m_IconStep;
+					if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+					{
+						m_ActiveScene->Step();
+					}
 				}
 			}
 		}
@@ -393,23 +434,23 @@ namespace Engine
 			// Scenes
 			case Key::N:
 			{
-				if(control)
+				if (control)
 					NewScene();
 		
 				break;
 			}
 			case Key::O:
 			{
-				if(control)
+				if (control)
 					OpenScene();
 		
 				break;
 			}
 			case Key::S:
 			{
-				if(control && shift)
+				if (control && shift)
 					SaveSceneAs();
-				else if(control && !shift)
+				else if (control && !shift)
 					SaveScene();
 		
 				break;
@@ -418,26 +459,33 @@ namespace Engine
 			// Gizmos
 			case Key::Q:
 			{
-				if(!m_IsGizmoInUse)
+				if (!m_IsGizmoInUse)
 					m_GizmoType = -1;
 				break;
 			}
 			case Key::W:
 			{
-				if(!m_IsGizmoInUse)
+				if (!m_IsGizmoInUse)
 					m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
 				break;
 			}
 			case Key::E:
 			{
-				if(!m_IsGizmoInUse)
+				if (!m_IsGizmoInUse)
 					m_GizmoType = ImGuizmo::OPERATION::ROTATE;
 				break;
 			}
 			case Key::R:
 			{
-				if(!m_IsGizmoInUse)
-					m_GizmoType = ImGuizmo::OPERATION::SCALE;
+				if (control)
+				{
+					ScriptEngine::ReloadAssembly();
+				}
+				else
+				{
+					if (!m_IsGizmoInUse)
+						m_GizmoType = ImGuizmo::OPERATION::SCALE;
+				}
 				break;
 			}
 
@@ -450,6 +498,8 @@ namespace Engine
 				break;
 			}
 		}
+
+		return false;
 	}
 
 	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
@@ -627,9 +677,7 @@ namespace Engine
 	void EditorLayer::OnScenePlay()
 	{
 		if (m_SceneState == SceneState::Simulate)
-		{
 			OnSceneStop();
-		}
 
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
 		m_SceneState = SceneState::Play;
@@ -638,15 +686,12 @@ namespace Engine
 		m_ActiveScene->OnRuntimeStart();
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-		m_SceneHierarchyPanel.SetEditMode(false);
 	}
 
 	void EditorLayer::OnSceneSimulate()
 	{
 		if (m_SceneState == SceneState::Play)
-		{
 			OnSceneStop();
-		}
 
 		ENGINE_CORE_TRACE("SceneState changed to Simulate.");
 		m_SceneState = SceneState::Simulate;
@@ -662,19 +707,17 @@ namespace Engine
 		ENGINE_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
 
 		if (m_SceneState == SceneState::Play)
-		{
 			m_ActiveScene->OnRuntimeStop();
-		}
 		else if (m_SceneState == SceneState::Simulate)
-		{
 			m_ActiveScene->OnSimulationStop();
-		}
+
 
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
 		m_SceneState = SceneState::Edit;
+		m_ActiveScene->SetPaused(false);
 		m_ActiveScene = m_EditorScene;
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-		m_SceneHierarchyPanel.SetEditMode(true);
 	}
+
 }

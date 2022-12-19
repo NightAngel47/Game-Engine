@@ -106,6 +106,12 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern bool Entity_HasComponent(ulong entityID, System.Type componentType);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern ulong Entity_FindEntityByName(string name);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern object Entity_GetScriptInstance(ulong entityID);
+
 		#endregion Entity
 
 		#region TransformComponent
