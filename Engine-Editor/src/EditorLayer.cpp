@@ -33,8 +33,14 @@ namespace Engine
 		}
 		else
 		{
-			// TODO prompt to make new project
-			NewProject();
+			// TODO make project UI (new, open, etc)
+			// NewProject();
+
+			if (!OpenProject())
+			{
+				ENGINE_CORE_ERROR("Didn't load valid project, closing editor.");
+				Application::Get().Close();
+			}
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
@@ -111,8 +117,6 @@ namespace Engine
 	    bool opt_fullscreen = opt_fullscreen_persistant;
 	    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-	    // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-	    // because it would be confusing to have two docking targets within each others.
 	    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 	    if (opt_fullscreen)
 	    {
@@ -126,16 +130,9 @@ namespace Engine
 	        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 	    }
 
-	    // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-	    // and handle the pass-thru hole, so we ask Begin() to not render a background.
 	    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
 	        window_flags |= ImGuiWindowFlags_NoBackground;
 
-	    // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-	    // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-	    // all active windows docked into it will lose their parent and become undocked.
-	    // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-	    // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
 	    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	    ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
 	    ImGui::PopStyleVar();
@@ -160,20 +157,18 @@ namespace Engine
 	    {
 	        if (ImGui::BeginMenu("File"))
 	        {
-	            // Disabling fullscreen would allow the window to be moved to the front of other windows,
-	            // which we can't undo at the moment without finer window depth/z control.
-	            //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
+	        	if (ImGui::MenuItem("Open Project...", "Ctrl+O)"))
+					OpenProject();
 
-	        	if (ImGui::MenuItem("New", "Ctrl+N)"))
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("New Scene", "Ctrl+N)"))
 					NewScene();
 
-	        	if (ImGui::MenuItem("Open...", "Ctrl+O)"))
-	        		OpenScene();
-
-	            if (ImGui::MenuItem("Save", "Ctrl+S)"))
+	            if (ImGui::MenuItem("Save Scene", "Ctrl+S)"))
 					SaveScene();
 
-	            if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S)"))
+	            if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S)"))
 					SaveSceneAs();
 
 	            if (ImGui::MenuItem("Exit"))
@@ -184,9 +179,6 @@ namespace Engine
 			
 			if (ImGui::BeginMenu("Script"))
 	        {
-	            // Disabling fullscreen would allow the window to be moved to the front of other windows,
-	            // which we can't undo at the moment without finer window depth/z control.
-	            //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
 
 	        	if (ImGui::MenuItem("Reload Assembly", "Crtl+R"))
 					ScriptEngine::ReloadAssembly();
@@ -280,14 +272,6 @@ namespace Engine
 			ImGuizmo::SetDrawlist();
 			
 			ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
-
-			// Camera
-			
-			// Runtime Camera
-			// auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
-			// const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-			// const glm::mat4& cameraProjection = camera.GetProjection();
-			// glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
 
 			// Editor Camera
 			const glm::mat4& cameraProjection = m_EditorCamera.GetProjection();
@@ -431,7 +415,6 @@ namespace Engine
 		bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
 		switch (e.GetKeyCode())
 		{
-			// Scenes
 			case Key::N:
 			{
 				if (control)
@@ -442,7 +425,7 @@ namespace Engine
 			case Key::O:
 			{
 				if (control)
-					OpenScene();
+					OpenProject();
 		
 				break;
 			}
@@ -584,6 +567,16 @@ namespace Engine
 		Project::New();
 	}
 
+	bool EditorLayer::OpenProject()
+	{
+		std::string filepath = FileDialogs::OpenFile("Game Project (*.gameproj)\0*.gameproj\0");
+		if (filepath.empty())
+			return false;
+
+		OpenProject(filepath);
+		return true;
+	}
+
 	void EditorLayer::OpenProject(const std::filesystem::path& path)
 	{
 		if (Project::Load(path))
@@ -621,7 +614,7 @@ namespace Engine
 		{
 			auto relativePath = std::filesystem::relative(filepath, Project::GetAssetDirectory());
 			OpenScene(relativePath);
-		}	
+		}
 	}
 
 	void EditorLayer::OpenScene(const std::filesystem::path& path)

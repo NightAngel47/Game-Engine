@@ -183,6 +183,7 @@ namespace Engine
 	void ScriptEngine::Shutdown()
 	{
 		ENGINE_PROFILE_FUNCTION();
+		if (!s_ScriptEngineData) return;
 
 		ShutdownMono();
 
@@ -203,7 +204,10 @@ namespace Engine
 
 	void ScriptEngine::ShutdownMono()
 	{
-		mono_domain_set(s_ScriptEngineData->RootDomain, false);
+		if (!s_ScriptEngineData) return;
+
+		if (s_ScriptEngineData->RootDomain)
+			mono_domain_set(s_ScriptEngineData->RootDomain, false);
 
 		if (s_ScriptEngineData->AppDomain)
 		{ 
@@ -213,8 +217,10 @@ namespace Engine
 
 		s_ScriptEngineData->CoreAssembly = nullptr;
 		s_ScriptEngineData->AppAssembly = nullptr;
-		
-		mono_jit_cleanup(s_ScriptEngineData->RootDomain);
+
+		if (s_ScriptEngineData->RootDomain)
+			mono_jit_cleanup(s_ScriptEngineData->RootDomain);
+
 		s_ScriptEngineData->RootDomain = nullptr;
 	}
 

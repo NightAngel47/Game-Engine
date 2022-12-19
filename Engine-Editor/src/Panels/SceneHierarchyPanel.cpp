@@ -1,5 +1,7 @@
 #include "SceneHierarchyPanel.h"
 
+#include "Engine/UI/UI.h"
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -427,21 +429,15 @@ namespace Engine
 			memset(buffer, 0, sizeof(buffer));
 			strcpy_s(buffer, sizeof(buffer), component.ClassName.c_str());
 
-			if (!scriptClassExists)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
-			}
+			UI::ScopedStyleColor textColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f), !scriptClassExists);
 
 			if (ImGui::InputText("ScriptName", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 			{
 				component.ClassName = std::string(buffer);
-			}
-
-			if (!scriptClassExists)
-			{
-				ImGui::PopStyleColor();
 				return;
 			}
+
+			if (!scriptClassExists) return;
 
 			// Fields
 			Ref<ScriptInstance> scriptInstance = nullptr;
