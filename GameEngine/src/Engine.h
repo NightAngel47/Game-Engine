@@ -33,6 +33,8 @@
 
 #include "Engine/Scripting/ScriptEngine.h"
 
+#include "Engine/Project/Project.h"
+
 // ---Renderer------------------------------
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Renderer/Renderer2D.h"

@@ -7,6 +7,8 @@
 #include "Engine/Scene/Components.h"
 #include "Engine/Math/Random.h"
 
+#include <box2d/b2_body.h>
+
 namespace InternalCalls
 {
 	static std::unordered_map < MonoType*, std::function<bool(Engine::Entity) >> s_EntityHasComponentFuncs;
@@ -82,6 +84,9 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_SetColor);
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_GetTiling);
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_SetTiling);
+
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulse);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
 	}
 
 	template<typename... Component>
@@ -305,6 +310,13 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		entity.GetComponent<Engine::TransformComponent>().Position = position;
+
+		// updated attached Rigidbody2D
+		if (entity.HasComponent<Engine::Rigidbody2DComponent>())
+		{
+			b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+			body->SetTransform({ position.x, position.y }, body->GetAngle());
+		}
 	}
 
 	void ScriptGlue::TransformComponent_GetRotation(Engine::UUID entityID, glm::vec3* rotation)
@@ -317,6 +329,13 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		entity.GetComponent<Engine::TransformComponent>().Rotation = rotation;
+
+		// updated attached Rigidbody2D
+		if (entity.HasComponent<Engine::Rigidbody2DComponent>())
+		{
+			b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+			body->SetTransform(body->GetPosition(), rotation.z);
+		}
 	}
 
 	void ScriptGlue::TransformComponent_GetScale(Engine::UUID entityID, glm::vec3* scale)
@@ -360,4 +379,22 @@ namespace InternalCalls
 	}
 
 #pragma endregion SpriteRendererComponent
+
+#pragma region Rigidbody2DComponent
+
+	void ScriptGlue::Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		body->ApplyLinearImpulse(b2Vec2(impulse.x, impulse.y), b2Vec2(worldPosition.x, worldPosition.y), wake);
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_ApplyLinearImpulseToCenter(Engine::UUID entityID, glm::vec2& impulse, bool wake)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		body->ApplyLinearImpulseToCenter(b2Vec2(impulse.x, impulse.y), wake);
+	}
+
+#pragma endregion Rigidbody2DComponent
 }

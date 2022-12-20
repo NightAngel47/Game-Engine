@@ -33,26 +33,27 @@ Entities:
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [0, 1, 0.607594967, 1]
-      Path: ""
+      Path: Textures\shipGreen_manned.png
       Tiling: 1
     ScriptComponent:
       ClassName: GameProject.Source.Player
       ScriptFields:
         - Name: moveSpeed
           Type: Float
-          Data: 5
+          Data: 50
         - Name: rotSpeeed
           Type: Float
-          Data: 5
+          Data: 2.20000005
         - Name: zoomSpeed
           Type: Float
-          Data: 5
+          Data: 8.60000038
         - Name: exampleString
           Type: String
-          Data: Hello
+          Data: Chicken
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -74,6 +75,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]

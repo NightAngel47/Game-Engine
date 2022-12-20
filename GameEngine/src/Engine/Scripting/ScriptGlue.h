@@ -108,6 +108,13 @@ namespace InternalCalls
 		static void SpriteRendererComponent_SetTiling(Engine::UUID entityID, float tiling);
 
 #pragma endregion SpriteRendererComponent
+
+#pragma region Rigidbody2DComponent
+
+		static void Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake);
+		static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(Engine::UUID entityID, glm::vec2& impulse, bool wake);
+
+#pragma endregion Rigidbody2DComponent
 	};
 }
 

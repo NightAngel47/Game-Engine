@@ -173,9 +173,9 @@ namespace Engine
 		InitMono();
 
 		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
-		if (!LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll")) return;
+		if (!LoadAppAssembly(Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().ScriptModulePath))) return;
 		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
-
+		
 		InternalCalls::ScriptGlue::RegisterComponentTypes();
 		InternalCalls::ScriptGlue::RegisterInternalCalls();
 	}
@@ -183,6 +183,7 @@ namespace Engine
 	void ScriptEngine::Shutdown()
 	{
 		ENGINE_PROFILE_FUNCTION();
+		if (!s_ScriptEngineData) return;
 
 		ShutdownMono();
 
@@ -203,15 +204,23 @@ namespace Engine
 
 	void ScriptEngine::ShutdownMono()
 	{
-		mono_domain_set(s_ScriptEngineData->RootDomain, false);
+		if (!s_ScriptEngineData) return;
 
-		mono_domain_unload(s_ScriptEngineData->AppDomain);
-		s_ScriptEngineData->AppDomain = nullptr;
+		if (s_ScriptEngineData->RootDomain)
+			mono_domain_set(s_ScriptEngineData->RootDomain, false);
+
+		if (s_ScriptEngineData->AppDomain)
+		{ 
+			mono_domain_unload(s_ScriptEngineData->AppDomain);
+			s_ScriptEngineData->AppDomain = nullptr;
+		}
 
 		s_ScriptEngineData->CoreAssembly = nullptr;
 		s_ScriptEngineData->AppAssembly = nullptr;
-		
-		mono_jit_cleanup(s_ScriptEngineData->RootDomain);
+
+		if (s_ScriptEngineData->RootDomain)
+			mono_jit_cleanup(s_ScriptEngineData->RootDomain);
+
 		s_ScriptEngineData->RootDomain = nullptr;
 	}
 
@@ -258,8 +267,11 @@ namespace Engine
 		// shutdown mono
 		mono_domain_set(s_ScriptEngineData->RootDomain, false);
 
-		mono_domain_unload(s_ScriptEngineData->AppDomain);
-		s_ScriptEngineData->AppDomain = nullptr;
+		if (s_ScriptEngineData->AppDomain)
+		{
+			mono_domain_unload(s_ScriptEngineData->AppDomain);
+			s_ScriptEngineData->AppDomain = nullptr;
+		}
 
 		s_ScriptEngineData->CoreAssembly = nullptr;
 		s_ScriptEngineData->AppAssembly = nullptr;
@@ -271,7 +283,7 @@ namespace Engine
 
 		// reload assemblies
 		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
-		if (!LoadAppAssembly("GameProject/Assets/Scripts/Binaries/GameProject.dll")) return;
+		if (!LoadAppAssembly(Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().ScriptModulePath))) return;
 		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 
 		InternalCalls::ScriptGlue::RegisterComponentTypes();
@@ -349,7 +361,7 @@ namespace Engine
 		return s_ScriptEngineData->EntityClasses;
 	}
 
-	Engine::ScriptFieldMap& ScriptEngine::GetScriptFieldMap(Entity entity)
+	ScriptFieldMap& ScriptEngine::GetScriptFieldMap(Entity entity)
 	{
 		ENGINE_CORE_ASSERT(entity, "Entity doesn't exists!");
 
@@ -366,7 +378,7 @@ namespace Engine
 		return s_ScriptEngineData->CoreAssembly;
 	}
 
-	Engine::Ref<Engine::ScriptClass> ScriptEngine::GetEntityClass(const std::string& name)
+	Ref<ScriptClass> ScriptEngine::GetEntityClass(const std::string& name)
 	{
 		if (!EntityClassExists(name))
 			return nullptr;

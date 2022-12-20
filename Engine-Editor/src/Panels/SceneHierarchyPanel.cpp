@@ -1,5 +1,7 @@
 #include "SceneHierarchyPanel.h"
 
+#include "Engine/UI/UI.h"
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -336,7 +338,7 @@ namespace Engine
 			ImGui::Text("Texture");
 			ImGui::SameLine();
 
-			std::string textureName = component.Path.empty() ? "None" : component.Path;
+			std::string textureName = component.Path.empty() ? "None" : component.Path.string();
 			ImGui::Button(textureName.c_str(), buttonSize);
 
 			if (ImGui::BeginDragDropTarget())
@@ -374,13 +376,13 @@ namespace Engine
 		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
 		{
 			const char* bodyTypeStrings[3] = { "Static", "Dynamic", "Kinematic" };
-			const char* currentTypeString = bodyTypeStrings[(int)component.Type];
+			const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
 
-			if (ImGui::BeginCombo("Body Type", currentTypeString))
+			if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
 			{
 				for (int i = 0; i < 3; ++i)
 				{
-					bool isSelected = currentTypeString == bodyTypeStrings[i];
+					bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
 					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
 					{
 						component.Type = (Rigidbody2DComponent::BodyType)i;
@@ -395,6 +397,27 @@ namespace Engine
 			}
 
 			ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+
+			const char* smoothTypeStrings[3] = { "None", "Interpolation", "Extrapolation" };
+			const char* currentsmoothTypeString = smoothTypeStrings[(int)component.Smoothing];
+
+			if (ImGui::BeginCombo("Smoothing", currentsmoothTypeString))
+			{
+				for (int i = 0; i < 3; ++i)
+				{
+					bool isSelected = currentsmoothTypeString == smoothTypeStrings[i];
+					if (ImGui::Selectable(smoothTypeStrings[i], isSelected))
+					{
+						component.Smoothing = (Rigidbody2DComponent::SmoothingType)i;
+					}
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGui::EndCombo();
+			}
 		});
 		
 		DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
@@ -427,29 +450,32 @@ namespace Engine
 			memset(buffer, 0, sizeof(buffer));
 			strcpy_s(buffer, sizeof(buffer), component.ClassName.c_str());
 
-			if (!scriptClassExists)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
-			}
+			UI::ScopedStyleColor textColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f), !scriptClassExists);
 
 			if (ImGui::InputText("ScriptName", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 			{
 				component.ClassName = std::string(buffer);
-			}
-
-			if (!scriptClassExists)
-			{
-				ImGui::PopStyleColor();
 				return;
 			}
 
+			if (!scriptClassExists) return;
+
 			// Fields
+			Ref<ScriptInstance> scriptInstance = nullptr;
+			std::unordered_map<std::string, ScriptField> fields = {};
+
 			bool sceneRunning = m_Context->IsRunning();
+			if (sceneRunning)
+			{
+				scriptInstance = ScriptEngine::GetEntityInstance(entity);
+				fields = scriptInstance->GetScriptClass()->GetScriptFields();
+			}
+			else
+			{
+				fields = ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
+			}
 
-			Ref<ScriptInstance> scriptInstance = ScriptEngine::GetEntityInstance(entity);
 			auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
-
-			auto& fields = sceneRunning ? scriptInstance->GetScriptClass()->GetScriptFields() : ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
 			for (auto& [name, field] : fields)
 			{
 				if (!field.IsPublic())

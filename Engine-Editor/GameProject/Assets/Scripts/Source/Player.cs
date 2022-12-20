@@ -15,8 +15,12 @@ namespace GameProject.Source
 
 		public string exampleString = "Example";
 
+		private Rigidbody2DComponent rb2d = null;
+
 		protected override void OnCreate()
 		{
+			rb2d = GetComponent<Rigidbody2DComponent>();
+
 			Log.Trace($"Move Speed: {moveSpeed}");
 			Log.Trace($"Rotation Speed: {rotSpeeed}");
 			Log.Trace($"Zoom Speed: {zoomSpeed}");
@@ -44,27 +48,27 @@ namespace GameProject.Source
 
 			if (Input.IsKeyPressed(KeyCode.A))
 			{
-				movement.X += -1.0f * moveSpeed * ts;
+				movement.X += -1.0f;
 			}
 
 			if (Input.IsKeyPressed(KeyCode.D))
 			{
-				movement.X += 1.0f * moveSpeed * ts;
+				movement.X += 1.0f;
 			}
 
 			if (Input.IsKeyPressed(KeyCode.S))
 			{
-				movement.Y += -1.0f * moveSpeed * ts;
+				movement.Y += -1.0f;
 			}
 
 			if (Input.IsKeyPressed(KeyCode.W))
 			{
-				movement.Y += 1.0f * moveSpeed * ts;
+				movement.Y += 1.0f;
 			}
 			
 			if (movement.sqrMagnitude > 0)
 			{
-				Position += new Vector3(movement.X, movement.Y, 0.0f);
+				rb2d.ApplyLinearImpulse(movement * moveSpeed * ts, true);
 			}
 
 			if (Input.IsKeyPressed(KeyCode.Q))

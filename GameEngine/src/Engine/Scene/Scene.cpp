@@ -274,6 +274,7 @@ namespace Engine
 	void Scene::OnPhysics2DStart()
 	{
 		m_PhysicsWorld = new b2World({ 0.0f, -9.8f });
+		m_PhysicsWorld->SetAutoClearForces(false);
 
 		auto view = m_Registry.view<Rigidbody2DComponent>();
 		for (auto e : view)
@@ -286,6 +287,9 @@ namespace Engine
 			bodyDef.type = Rigidbody2DTypeToBox2DBodyType(rb2d.Type);
 			bodyDef.position.Set(transform.Position.x, transform.Position.y);
 			bodyDef.angle = transform.Rotation.z;
+
+			rb2d.previousPosition = transform.Position;
+			rb2d.previousAngle = transform.Rotation.z;
 
 			b2Body* body = m_PhysicsWorld->CreateBody(&bodyDef);
 
@@ -371,45 +375,105 @@ namespace Engine
 		ScriptEngine::OnRuntimeStop();
 	}
 
+	// Fixed timestep guide: 
+	// Original Article: https://gafferongames.com/post/fix_your_timestep/
+	// Box2d Specific: https://www.unagames.com/blog/daniele/2010/06/fixed-time-step-implementation-box2d#:~:text=If%20you%20are%20interested%20in,with%20a%20variable%20frame%2Drate.
 	void Scene::OnPhysics2DUpdate(Timestep ts)
 	{
+		const int maxSteps = 5;
 		m_Accumulator += ts;
-		while (m_Accumulator >= m_PhysicsTimestep)
+		const int nSteps = std::floor(m_Accumulator / m_PhysicsTimestep);
+		if (nSteps > 0)
 		{
-			// update transform
-			{
-				auto view = m_Registry.view<Rigidbody2DComponent>();
-				for (auto e : view)
-				{
-					Entity entity = { e, this };
-					auto& transform = entity.GetComponent<TransformComponent>();
-					auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+			m_Accumulator -= nSteps * m_PhysicsTimestep;
+		}
+		m_AccumulatorRatio = m_Accumulator / m_PhysicsTimestep;
 
-					b2Body* body = (b2Body*)rb2d.RuntimeBody;
-					body->SetTransform({ transform.Position.x, transform.Position.y }, transform.Rotation.z);
+		auto view = m_Registry.view<Rigidbody2DComponent>();
+
+		const int nStepsClamped = std::min(nSteps, maxSteps);
+		for (int i = 0; i < nStepsClamped; ++i)
+		{
+			// reset smoothing
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+
+				b2Body* body = (b2Body*)rb2d.RuntimeBody;
+				if (body->GetType() == b2_staticBody)
+				{
+					continue;
+				}
+
+				auto& transform = entity.GetComponent<TransformComponent>();
+				switch (rb2d.Smoothing)
+				{
+					case Rigidbody2DComponent::SmoothingType::Interpolation:
+					{
+						auto& position = body->GetPosition();
+						transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+						rb2d.previousPosition = glm::vec2(position.x, position.y);
+						transform.Rotation.z = rb2d.previousAngle = body->GetAngle();
+						break;
+					}
+					case Rigidbody2DComponent::SmoothingType::Extrapolation:
+					case Rigidbody2DComponent::SmoothingType::None:
+					default:
+					{
+						auto& position = body->GetPosition();
+						transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+						transform.Rotation.z = body->GetAngle();
+						break;
+					}
 				}
 			}
 
 			m_PhysicsWorld->Step(m_PhysicsTimestep, m_VelocityIteractions, m_PositionIteractions);
+		}
 
-			// Retrieve transform from box2d
+		m_PhysicsWorld->ClearForces();
+
+		// apply smoothing
+		const float oneMinusRatio = 1.0f - m_AccumulatorRatio;
+
+		for (auto e : view)
+		{
+			Entity entity = { e, this };
+			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+
+			b2Body* body = (b2Body*)rb2d.RuntimeBody;
+			if (body->GetType() == b2_staticBody)
 			{
-				auto view = m_Registry.view<Rigidbody2DComponent>();
-				for (auto e : view)
-				{
-					Entity entity = { e, this };
-					auto& transform = entity.GetComponent<TransformComponent>();
-					auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-
-					b2Body* body = (b2Body*)rb2d.RuntimeBody;
-					auto& position = body->GetPosition();
-					transform.Position.x = position.x;
-					transform.Position.y = position.y;
-					transform.Rotation.z = body->GetAngle();
-				}
+				continue;
 			}
 
-			m_Accumulator -= m_PhysicsTimestep;
+			auto& transform = entity.GetComponent<TransformComponent>();
+			switch (rb2d.Smoothing)
+			{
+				case Rigidbody2DComponent::SmoothingType::Interpolation:
+				{
+					auto& position = m_AccumulatorRatio * body->GetPosition() + oneMinusRatio * b2Vec2(rb2d.previousPosition.x, rb2d.previousPosition.y);
+					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+					transform.Rotation.z = m_AccumulatorRatio * body->GetAngle() + oneMinusRatio * rb2d.previousAngle;
+					break;
+				}
+				case Rigidbody2DComponent::SmoothingType::Extrapolation:
+				{
+					auto& position = body->GetPosition() + ts * body->GetLinearVelocity();
+					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+					transform.Rotation.z = body->GetAngle() + ts * body->GetAngularVelocity();
+					break;
+				}
+				case Rigidbody2DComponent::SmoothingType::None:
+				default:
+				{
+					auto& position = body->GetPosition();
+					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+					transform.Rotation.z = body->GetAngle();
+					break;
+				}
+			}
 		}
 	}
 

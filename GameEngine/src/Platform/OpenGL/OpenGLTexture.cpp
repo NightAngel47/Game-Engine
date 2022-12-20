@@ -23,7 +23,7 @@ namespace Engine
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
+	OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path)
 		: m_Path(path)
 	{
 		ENGINE_PROFILE_FUNCTION();
@@ -34,7 +34,7 @@ namespace Engine
 		{
 			ENGINE_PROFILE_SCOPE("stbi_load - OpenGLTexture2D::OpenGLTexture2D(const std::string& path)");
 			
-			data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+			data = stbi_load(path.string().c_str(), &width, &height, &channels, 0);
 		}
 		ENGINE_CORE_ASSERT(data, "Failed to load image!");
 		m_Width = width;

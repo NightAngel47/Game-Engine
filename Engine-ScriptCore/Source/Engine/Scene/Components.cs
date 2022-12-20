@@ -63,14 +63,18 @@ namespace Engine.Scene
 
 			set => InternalCalls.SpriteRendererComponent_SetTiling(Entity.ID, value);
 		}
+	}
 
-		public SpriteRendererComponent()
+	public class Rigidbody2DComponent : Component
+	{
+		public void ApplyLinearImpulse(Vector2 impulse, Vector2 worldPosition, bool wake)
 		{
+			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulse(Entity.ID, ref impulse, ref worldPosition, wake);
 		}
 
-		public SpriteRendererComponent(Entity entity)
+		public void ApplyLinearImpulse(Vector2 impulse, bool wake)
 		{
-			Entity = entity;
+			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
 		}
 	}
 }

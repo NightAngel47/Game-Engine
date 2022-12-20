@@ -1,0 +1,5 @@
+Project:
+  Name: GameProject
+  StartScene: Scenes/ScriptRefactor.scene
+  AssetDirectory: Assets
+  ScriptModulePath: Scripts/Binaries/GameProject.dll

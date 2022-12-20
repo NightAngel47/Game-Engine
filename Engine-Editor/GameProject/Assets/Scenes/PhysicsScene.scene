@@ -32,6 +32,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -53,6 +54,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -74,6 +76,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -95,6 +98,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -116,6 +120,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -137,6 +142,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -158,6 +164,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -179,6 +186,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -200,6 +208,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -221,6 +230,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -242,6 +252,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -263,6 +274,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -284,6 +296,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
@@ -305,6 +318,7 @@ Entities:
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
+      Smoothing: Interpolation
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]

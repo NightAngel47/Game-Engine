@@ -1,0 +1,31 @@
+Scene: NewProjectTestScene.scene
+Entities:
+  - Entity: 3797763953371755923
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: Orthographic
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 13191038749641955080
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [0, 1, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
