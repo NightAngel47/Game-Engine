@@ -1,62 +1,5 @@
 Scene: ScriptRefactor.scene
 Entities:
-  - Entity: 17908196038695326210
-    TagComponent:
-      Tag: Ground
-    TransformComponent:
-      Position: [-3.06509781, -1.70000005, 0]
-      Rotation: [0, 0, 0]
-      Scale: [15, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [0, 0.421940923, 0.416917831, 1]
-      Path: ""
-      Tiling: 1
-    Rigidbody2DComponent:
-      Type: Static
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 11764441337374806066
-    TagComponent:
-      Tag: Player
-    TransformComponent:
-      Position: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0, 1, 0.607594967, 1]
-      Path: Textures\shipGreen_manned.png
-      Tiling: 1
-    ScriptComponent:
-      ClassName: GameProject.Source.Player
-      ScriptFields:
-        - Name: moveSpeed
-          Type: Float
-          Data: 9.60000038
-        - Name: rotSpeeed
-          Type: Float
-          Data: 2.20000005
-        - Name: zoomSpeed
-          Type: Float
-          Data: 8.60000038
-        - Name: exampleString
-          Type: String
-          Data: Chicken
-    Rigidbody2DComponent:
-      Type: Dynamic
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
   - Entity: 4439650569278229468
     TagComponent:
       Tag: Camera
@@ -81,3 +24,62 @@ Entities:
         - Name: DistanceFromPlayer
           Type: Float
           Data: 5
+  - Entity: 11764441337374806066
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0, 1, 0.607594967, 1]
+      Path: Textures\shipGreen_manned.png
+      Tiling: 1
+    ScriptComponent:
+      ClassName: GameProject.Source.Player
+      ScriptFields:
+        - Name: moveSpeed
+          Type: Float
+          Data: 50
+        - Name: rotSpeeed
+          Type: Float
+          Data: 2.20000005
+        - Name: zoomSpeed
+          Type: Float
+          Data: 8.60000038
+        - Name: exampleString
+          Type: String
+          Data: Chicken
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      Smoothing: Interpolation
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 17908196038695326210
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Position: [-3.06509781, -1.70000005, 0]
+      Rotation: [0, 0, 0]
+      Scale: [15, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [0, 0.421940923, 0.416917831, 1]
+      Path: ""
+      Tiling: 1
+    Rigidbody2DComponent:
+      Type: Static
+      FixedRotation: false
+      Smoothing: Interpolation
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5

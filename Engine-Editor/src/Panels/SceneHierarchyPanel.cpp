@@ -376,13 +376,13 @@ namespace Engine
 		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
 		{
 			const char* bodyTypeStrings[3] = { "Static", "Dynamic", "Kinematic" };
-			const char* currentTypeString = bodyTypeStrings[(int)component.Type];
+			const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
 
-			if (ImGui::BeginCombo("Body Type", currentTypeString))
+			if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
 			{
 				for (int i = 0; i < 3; ++i)
 				{
-					bool isSelected = currentTypeString == bodyTypeStrings[i];
+					bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
 					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
 					{
 						component.Type = (Rigidbody2DComponent::BodyType)i;
@@ -397,6 +397,27 @@ namespace Engine
 			}
 
 			ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+
+			const char* smoothTypeStrings[3] = { "None", "Interpolation", "Extrapolation" };
+			const char* currentsmoothTypeString = smoothTypeStrings[(int)component.Smoothing];
+
+			if (ImGui::BeginCombo("Smoothing", currentsmoothTypeString))
+			{
+				for (int i = 0; i < 3; ++i)
+				{
+					bool isSelected = currentsmoothTypeString == smoothTypeStrings[i];
+					if (ImGui::Selectable(smoothTypeStrings[i], isSelected))
+					{
+						component.Smoothing = (Rigidbody2DComponent::SmoothingType)i;
+					}
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGui::EndCombo();
+			}
 		});
 		
 		DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)

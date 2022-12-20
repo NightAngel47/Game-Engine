@@ -184,6 +184,29 @@ namespace Engine
 		return Rigidbody2DComponent::BodyType::Static;
 	}
 
+	static std::string Rigidbody2DSmoothingTypeToString(Rigidbody2DComponent::SmoothingType smoothingType)
+	{
+		switch (smoothingType)
+		{
+			case Rigidbody2DComponent::SmoothingType::None:				return "None";
+			case Rigidbody2DComponent::SmoothingType::Interpolation:	return "Interpolation";
+			case Rigidbody2DComponent::SmoothingType::Extrapolation:	return "Extrapolation";
+		}
+
+		ENGINE_CORE_ASSERT(false, "Unknown smoothing type!");
+		return {};
+	}
+
+	static Rigidbody2DComponent::SmoothingType Rigidbody2DSmoothingTypeFromString(const std::string& smoothingTypeString)
+	{
+		if (smoothingTypeString == "None")			return Rigidbody2DComponent::SmoothingType::None;
+		if (smoothingTypeString == "Interpolation")	return Rigidbody2DComponent::SmoothingType::Interpolation;
+		if (smoothingTypeString == "Extrapolation")	return Rigidbody2DComponent::SmoothingType::Extrapolation;
+
+		ENGINE_CORE_ASSERT(false, "Unknown smoothing type!");
+		return Rigidbody2DComponent::SmoothingType::Interpolation;
+	}
+
 	static void SerializeEntity(YAML::Emitter& out, Entity entity)
 	{
 		ENGINE_CORE_ASSERT(entity.HasComponent<IDComponent>(), "Entity must have UUID!");
@@ -338,6 +361,7 @@ namespace Engine
 			auto& rigidbody2DComponent = entity.GetComponent<Rigidbody2DComponent>();
 			out << YAML::Key << "Type" << YAML::Value << Rigidbody2DBodyTypeToString(rigidbody2DComponent.Type);
 			out << YAML::Key << "FixedRotation" << YAML::Value << rigidbody2DComponent.FixedRotation;
+			out << YAML::Key << "Smoothing" << YAML::Value << Rigidbody2DSmoothingTypeToString(rigidbody2DComponent.Smoothing);
 
 			out << YAML::EndMap; // Rigidbody2DComponent
 		}
@@ -561,6 +585,7 @@ namespace Engine
 					auto& rigidbody2D = deserializedEntity.AddComponent<Rigidbody2DComponent>();
 					rigidbody2D.Type = Rigidbody2DBodyTypeFromString(rigidbody2DComponent["Type"].as<std::string>());
 					rigidbody2D.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
+					rigidbody2D.Smoothing = Rigidbody2DSmoothingTypeFromString(rigidbody2DComponent["Smoothing"].as<std::string>());
 				}
 
 				auto boxCollider2DComponent = entity["BoxCollider2DComponent"];

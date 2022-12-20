@@ -136,6 +136,13 @@ namespace Engine
 		BodyType Type = BodyType::Static;
 		bool FixedRotation = false;
 
+		enum class SmoothingType {
+			None = 0, Interpolation, Extrapolation
+		};
+		SmoothingType Smoothing = SmoothingType::Interpolation;
+		glm::vec2 previousPosition;
+		float previousAngle;
+
 		// Storage for runtime
 		void* RuntimeBody = nullptr;
 

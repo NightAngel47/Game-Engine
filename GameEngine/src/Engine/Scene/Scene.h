@@ -84,7 +84,8 @@ namespace Engine
 
 		// Physics
 		float m_Accumulator = 0.0f;
-		const float m_PhysicsTimestep = 0.01f;
+		float m_AccumulatorRatio = 0.0f;
+		const float m_PhysicsTimestep = 1.0f / 60.0f;
 		b2World* m_PhysicsWorld = nullptr;
 		uint32_t m_VelocityIteractions = 8;
 		uint32_t m_PositionIteractions = 3;

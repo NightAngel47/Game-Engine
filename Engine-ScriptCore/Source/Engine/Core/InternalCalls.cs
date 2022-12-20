@@ -151,5 +151,15 @@ namespace Engine.Core
 		internal static extern void SpriteRendererComponent_SetTiling(ulong entityID, float tiling);
 
 		#endregion SpriteRendererComponent
+
+		#region Rigidbody2DComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_ApplyLinearImpulse(ulong entityID, ref Vector2 impulse, ref Vector2 worldPosition, bool wake);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_ApplyLinearImpulseToCenter(ulong entityID, ref Vector2 impulse, bool wake);
+
+		#endregion Rigidbody2DComponent
 	}
 }
