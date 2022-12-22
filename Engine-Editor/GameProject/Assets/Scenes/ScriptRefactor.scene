@@ -1,27 +1,41 @@
 Scene: ScriptRefactor.scene
 Entities:
-  - Entity: 17908196038695326210
+  - Entity: 4439650569278229468
     TagComponent:
-      Tag: Ground
+      Tag: Camera
     TransformComponent:
-      Position: [-3.06509781, -1.70000005, 0]
+      Position: [0, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [15, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [0, 0.421940923, 0.416917831, 1]
-      Path: ""
-      Tiling: 1
-    Rigidbody2DComponent:
-      Type: Static
-      FixedRotation: false
-      Smoothing: Interpolation
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: Perspective
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 10
+      Primary: true
+      FixedAspectRatio: false
+    ScriptComponent:
+      ClassName: GameProject.Source.Camera
+      ScriptFields:
+        - Name: DistanceFromPlayerMax
+          Type: Float
+          Data: 50
+        - Name: DistanceFromPlayer
+          Type: Float
+          Data: 0
+        - Name: DistanceFromPlayerMin
+          Type: Float
+          Data: 8
+        - Name: offSet
+          Type: Vector2
+          Data: [0, 2]
+        - Name: zoomSpeedPercentIncrease
+          Type: Float
+          Data: 0.5
   - Entity: 11764441337374806066
     TagComponent:
       Tag: Player
@@ -45,9 +59,6 @@ Entities:
         - Name: movement
           Type: Vector2
           Data: [0, 0]
-        - Name: zoomSpeed
-          Type: Float
-          Data: 2
         - Name: exampleString
           Type: String
           Data: Chicken
@@ -62,27 +73,25 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 4439650569278229468
+  - Entity: 17908196038695326210
     TagComponent:
-      Tag: Camera
+      Tag: Ground
     TransformComponent:
-      Position: [0, 0, 0]
+      Position: [-3.06509781, -1.70000005, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: Perspective
-        PerspectiveFOV: 0.785398185
-        PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
-        OrthographicSize: 10
-        OrthographicNear: -1
-        OrthographicFar: 10
-      Primary: true
-      FixedAspectRatio: false
-    ScriptComponent:
-      ClassName: GameProject.Source.Camera
-      ScriptFields:
-        - Name: DistanceFromPlayer
-          Type: Float
-          Data: 5
+      Scale: [15, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [0, 0.421940923, 0.416917831, 1]
+      Path: ""
+      Tiling: 1
+    Rigidbody2DComponent:
+      Type: Static
+      FixedRotation: false
+      Smoothing: Interpolation
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5

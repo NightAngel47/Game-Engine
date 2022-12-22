@@ -10,9 +10,6 @@ namespace GameProject.Source
 		public float rotSpeeed = 5.0f;
 		public Vector2 movement;
 
-		public float zoomSpeed = 1.0f;
-		public Camera camera = null;
-
 		public string exampleString = "Example";
 
 		private Rigidbody2DComponent rb2d = null;
@@ -20,11 +17,6 @@ namespace GameProject.Source
 		protected override void OnCreate()
 		{
 			rb2d = GetComponent<Rigidbody2DComponent>();
-		}
-
-		protected override void OnStart()
-		{
-			camera ??= FindEntityByName("Camera").As<Camera>();
 		}
 
 		protected override void OnUpdate(float ts)
@@ -75,15 +67,6 @@ namespace GameProject.Source
 				Vector3 rotation = Transform.Rotation;
 				rotation.Z += -1.0f * rotSpeeed * ts;
 				Transform.Rotation = rotation;
-			}
-
-			if (camera != null)
-			{
-				camera.DistanceFromPlayer += zoomSpeed * ts;
-			}
-			else
-			{
-				Log.Error("Camera is null!");
 			}
 		}
 	}

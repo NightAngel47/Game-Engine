@@ -155,6 +155,9 @@ namespace Engine.Core
 		#region Rigidbody2DComponent
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_GetLinearVelocity(ulong entityID, out Vector2 velocity);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_ApplyLinearImpulse(ulong entityID, ref Vector2 impulse, ref Vector2 worldPosition, bool wake);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
