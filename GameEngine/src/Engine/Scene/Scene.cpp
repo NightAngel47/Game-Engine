@@ -117,8 +117,8 @@ namespace Engine
 
 	void Scene::DestroyEntity(Entity entity)
 	{
-		m_Registry.destroy(entity);
 		m_EntityMap.erase(entity.GetUUID());
+		m_Registry.destroy(entity);
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
