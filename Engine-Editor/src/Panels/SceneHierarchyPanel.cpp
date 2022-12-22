@@ -284,12 +284,10 @@ namespace Engine
 				for (int i = 0; i < 2; ++i)
 				{
 					bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
-					if(ImGui::Selectable(projectionTypeStrings[i], isSelected))
-					{
+					if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
 						camera.SetProjectionType((SceneCamera::ProjectionType)i);
-					}
 
-					if(isSelected)
+					if (isSelected)
 						ImGui::SetItemDefaultFocus();
 				}
 				
@@ -384,13 +382,10 @@ namespace Engine
 				{
 					bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
 					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
-					{
 						component.Type = (Rigidbody2DComponent::BodyType)i;
-					}
+
 					if (isSelected)
-					{
 						ImGui::SetItemDefaultFocus();
-					}
 				}
 
 				ImGui::EndCombo();
@@ -407,13 +402,10 @@ namespace Engine
 				{
 					bool isSelected = currentsmoothTypeString == smoothTypeStrings[i];
 					if (ImGui::Selectable(smoothTypeStrings[i], isSelected))
-					{
 						component.Smoothing = (Rigidbody2DComponent::SmoothingType)i;
-					}
+
 					if (isSelected)
-					{
 						ImGui::SetItemDefaultFocus();
-					}
 				}
 
 				ImGui::EndCombo();
@@ -461,21 +453,12 @@ namespace Engine
 			if (!scriptClassExists) return;
 
 			// Fields
-			Ref<ScriptInstance> scriptInstance = nullptr;
-			std::unordered_map<std::string, ScriptField> fields = {};
-
 			bool sceneRunning = m_Context->IsRunning();
-			if (sceneRunning)
-			{
-				scriptInstance = ScriptEngine::GetEntityInstance(entity);
-				fields = scriptInstance->GetScriptClass()->GetScriptFields();
-			}
-			else
-			{
-				fields = ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
-			}
 
+			Ref<ScriptInstance> scriptInstance = sceneRunning ? ScriptEngine::GetEntityInstance(entity) : nullptr;
+			std::unordered_map<std::string, ScriptField> fields = sceneRunning ? scriptInstance->GetScriptClass()->GetScriptFields() : ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
 			auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
+
 			for (auto& [name, field] : fields)
 			{
 				if (!field.IsPublic())
@@ -484,39 +467,18 @@ namespace Engine
 				ImGui::Text(name.c_str());
 				ImGui::SameLine();
 
+				bool fieldExists = entityFields.find(name) != entityFields.end(); // TODO make entity fields exists func
+				ScriptFieldInstance& scriptField = fieldExists ? entityFields.at(name) : entityFields[name];
+				if (!sceneRunning && !fieldExists)
+					scriptField.Field = field;
+
 				switch (field.Type)
 				{
-				default:
-					FieldTypeUnsupported(field.Type);
-					break;
-				case ScriptFieldType::None:
-					FieldTypeUnsupported(field.Type);
-					break;
 				case ScriptFieldType::Float:
 				{
-					float data = 0.0f;
-
-					bool fieldExists = entityFields.find(name) != entityFields.end(); // TODO make entity fields exists func
-					ScriptFieldInstance& scriptField = fieldExists ? entityFields.at(name) : entityFields[name];
-
-					if (sceneRunning)
-					{
-						data = scriptInstance->GetFieldValue<float>(name);
-					}
-					else
-					{
-						if (!fieldExists)
-						{
-							scriptField.Field = field;
-						}
-
-						data = fieldExists ? scriptField.GetValue<float>() : 0.0f;
-					}
-
+					float data = sceneRunning ? scriptInstance->GetFieldValue<float>(name) : fieldExists ? scriptField.GetValue<float>() : 0.0f; // default 0.0 TODO read script default value
 					if (ImGui::DragFloat(("##" + name).c_str(), &data, 0.1f))
-					{
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					}
 					break;
 				}
 				case ScriptFieldType::Double:
@@ -532,28 +494,9 @@ namespace Engine
 				{
 					char buffer[64];
 					memset(buffer, 0, sizeof(buffer));
-
-					bool fieldExists = entityFields.find(name) != entityFields.end(); // TODO make entity fields exists func
-					ScriptFieldInstance& scriptField = fieldExists ? entityFields.at(name) : entityFields[name];
-
-					if (sceneRunning)
-					{
-						strcpy_s(buffer, sizeof(buffer), scriptInstance->GetFieldValue<std::string>(name).c_str());
-					}
-					else
-					{
-						if (!fieldExists)
-						{
-							scriptField.Field = field;
-						}
-
-						strcpy_s(buffer, sizeof(buffer), fieldExists ? scriptField.GetValue<std::string>().c_str() : "");
-					}
-
+					strcpy_s(buffer, sizeof(buffer), sceneRunning ? scriptInstance->GetFieldValue<std::string>(name).c_str() : fieldExists ? scriptField.GetValue<std::string>().c_str() : "");
 					if (ImGui::InputText(("##" + name).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
-					{
 						sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(buffer)) : scriptField.SetValue(std::string(buffer));
-					}
 					break;
 				}
 				case ScriptFieldType::Byte:
@@ -590,6 +533,10 @@ namespace Engine
 					FieldTypeUnsupported(field.Type);
 					break;
 				case ScriptFieldType::Entity:
+					FieldTypeUnsupported(field.Type);
+					break;
+				case ScriptFieldType::None:
+				default:
 					FieldTypeUnsupported(field.Type);
 					break;
 				}
