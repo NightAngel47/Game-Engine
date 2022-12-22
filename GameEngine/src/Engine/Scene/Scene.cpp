@@ -162,6 +162,9 @@ namespace Engine
 
 			// Physics
 			OnPhysics2DUpdate(ts);
+
+			// Late Update scripts
+			OnScriptsLateUpdate(ts);
 		}
 		
 		// Render 2D
@@ -375,6 +378,30 @@ namespace Engine
 		ScriptEngine::OnRuntimeStop();
 	}
 
+	void Scene::OnScriptsUpdate(Timestep ts)
+	{
+		// Update Scripts
+		auto view = m_Registry.view<ScriptComponent>();
+		for (auto e : view)
+		{
+			Entity entity = { e, this };
+			ScriptEngine::OnUpdateEntity(entity, ts);
+		}
+
+		// Update Native Scripts
+		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
+		{
+			if (!nsc.Instance)
+			{
+				nsc.Instance = nsc.InstantiateScript();
+				nsc.Instance->m_Entity = Entity{ e, this };
+				nsc.Instance->OnCreate();
+			}
+
+			nsc.Instance->OnUpdate(ts);
+		});
+	}
+
 	// Fixed timestep guide: 
 	// Original Article: https://gafferongames.com/post/fix_your_timestep/
 	// Box2d Specific: https://www.unagames.com/blog/daniele/2010/06/fixed-time-step-implementation-box2d#:~:text=If%20you%20are%20interested%20in,with%20a%20variable%20frame%2Drate.
@@ -477,28 +504,15 @@ namespace Engine
 		}
 	}
 
-	void Scene::OnScriptsUpdate(Timestep ts)
+	void Scene::OnScriptsLateUpdate(Timestep ts)
 	{
-		// Update Scripts
+		// Late Update Scripts
 		auto view = m_Registry.view<ScriptComponent>();
 		for (auto e : view)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnUpdateEntity(entity, ts);
+			ScriptEngine::OnLateUpdateEntity(entity, ts);
 		}
-
-		// Update Native Scripts
-		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
-		{
-			if (!nsc.Instance)
-			{
-				nsc.Instance = nsc.InstantiateScript();
-				nsc.Instance->m_Entity = Entity{ e, this };
-				nsc.Instance->OnCreate();
-			}
-
-			nsc.Instance->OnUpdate(ts);
-		});
 	}
 
 	void Scene::OnRender2DUpdate()

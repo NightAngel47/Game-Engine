@@ -15,7 +15,7 @@ namespace GameProject.Source
 			player = FindEntityByName("Player");
 		}
 
-		protected override void OnUpdate(float ts)
+		protected override void OnLateUpdate(float ts)
 		{
 			if (player != null)
 			{

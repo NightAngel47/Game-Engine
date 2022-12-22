@@ -19,6 +19,7 @@ extern "C"
 typedef void(*OnCreate) (MonoObject* obj, MonoObject** exp);
 typedef void(*OnDestroy) (MonoObject* obj, MonoObject** exp);
 typedef void(*OnUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
+typedef void(*OnLateUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
 
 // Created with help from this guide (Mono Embedding for Game Engines): https://peter1745.github.io/introduction.html
 
@@ -145,6 +146,7 @@ namespace Engine
 		static void OnCreateEntity(Entity entity);
 		static void OnDestroyEntity(Entity entity);
 		static void OnUpdateEntity(Entity entity, Timestep ts);
+		static void OnLateUpdateEntity(Entity entity, Timestep ts);
 
 		static bool EntityInstanceExists(Entity& entity);
 		static Ref<ScriptInstance> GetEntityInstance(Entity entity);
@@ -227,6 +229,7 @@ namespace Engine
 		void InvokeOnCreate();
 		void InvokeOnDestroy();
 		void InvokeOnUpdate(float ts);
+		void InvokeOnLateUpdate(float ts);
 
 		MonoObject* GetMonoObject() { return m_Instance; }
 
@@ -243,6 +246,7 @@ namespace Engine
 		OnCreate OnCreateThunk = nullptr;
 		OnDestroy OnDestroyThunk = nullptr;
 		OnUpdate OnUpdateThunk = nullptr;
+		OnLateUpdate OnLateUpdateThunk = nullptr;
 
 		inline static char s_FieldValueBuffer[64];
 

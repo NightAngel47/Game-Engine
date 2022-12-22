@@ -83,7 +83,6 @@ namespace Engine
 
 	static ScriptEngineData* s_ScriptEngineData = nullptr;
 
-
 	static bool CheckMonoError(MonoError& error)
 	{
 		bool hasError = !mono_error_ok(&error);
@@ -488,6 +487,19 @@ namespace Engine
 		}
 	}
 
+	void ScriptEngine::OnLateUpdateEntity(Entity entity, Timestep ts)
+	{
+		const auto& sc = entity.GetComponent<ScriptComponent>();
+
+		if (EntityClassExists(sc.ClassName))
+		{
+			if (EntityInstanceExists(entity))
+			{
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnLateUpdate((float)ts);
+			}
+		}
+	}
+
 	bool ScriptEngine::EntityInstanceExists(Entity& entity)
 	{
 		const auto& entityInstances = s_ScriptEngineData->EntityInstances;
@@ -526,10 +538,8 @@ namespace Engine
 	}
 
 	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
-		: m_ScriptClass(scriptClass)
+		: m_ScriptClass(scriptClass), m_Instance(m_ScriptClass->Instantiate())
 	{
-		m_Instance = m_ScriptClass->Instantiate();
-
 		MonoMethod* constructor = mono_class_get_method_from_name(s_ScriptEngineData->EntityClass, ".ctor", 1);
 		{
 			UUID id = entity.GetUUID();
@@ -541,36 +551,27 @@ namespace Engine
 
 		// setup onCreate method
 		MonoMethod* OnCreateMethodPtr = mono_class_get_method_from_name(monoClass, "OnCreate", 0);
-		if (OnCreateMethodPtr)
-		{
-			OnCreateThunk = (OnCreate)mono_method_get_unmanaged_thunk(OnCreateMethodPtr);
-		}
-		else
-		{
+		OnCreateThunk = OnCreateMethodPtr ? (OnCreate)mono_method_get_unmanaged_thunk(OnCreateMethodPtr) : nullptr;
+		if (!OnCreateThunk)
 			ENGINE_CORE_WARN("Could not find create method desc in class!");
-		}
 
 		// setup onDestroy method
 		MonoMethod* OnDestroyMethodPtr = mono_class_get_method_from_name(monoClass, "OnDestroy", 0);
-		if (OnDestroyMethodPtr)
-		{
-			OnDestroyThunk = (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr);
-		}
-		else
-		{
+		OnDestroyThunk = OnDestroyMethodPtr ? (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr) : nullptr;
+		if (OnDestroyThunk)
 			ENGINE_CORE_WARN("Could not find destroy method desc in class!");
-		}
 
 		// setup onUpdate method
 		MonoMethod* OnUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnUpdate", 1);
-		if (OnUpdateMethodPtr)
-		{
-			OnUpdateThunk = (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr);
-		}
-		else
-		{
+		OnUpdateThunk = OnUpdateMethodPtr ? (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr) : nullptr;
+		if (OnUpdateThunk)
 			ENGINE_CORE_WARN("Could not find update method desc in class!");
-		}
+
+		// setup onLateUpdate method
+		MonoMethod* OnLateUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnLateUpdate", 1);
+		OnLateUpdateThunk = OnLateUpdateMethodPtr ? (OnLateUpdate)mono_method_get_unmanaged_thunk(OnLateUpdateMethodPtr) : nullptr;
+		if (OnLateUpdateThunk)
+			ENGINE_CORE_WARN("Could not find late update method desc in class!");
 	}
 
 	void ScriptInstance::InvokeOnCreate()
@@ -597,6 +598,15 @@ namespace Engine
 
 		MonoObject* ptrExObject = nullptr;
 		OnUpdateThunk(m_Instance, &ts, &ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
+	}
+
+	void ScriptInstance::InvokeOnLateUpdate(float ts)
+	{
+		if (!OnLateUpdateThunk) return; // handle script without OnLateUpdate
+
+		MonoObject* ptrExObject = nullptr;
+		OnLateUpdateThunk(m_Instance, &ts, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 

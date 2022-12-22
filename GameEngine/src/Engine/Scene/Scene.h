@@ -67,8 +67,9 @@ namespace Engine
 		void OnPhysics2DStop();
 		void OnScriptsStop();
 
-		void OnPhysics2DUpdate(Timestep ts);
 		void OnScriptsUpdate(Timestep ts);
+		void OnPhysics2DUpdate(Timestep ts);
+		void OnScriptsLateUpdate(Timestep ts);
 		void OnRender2DUpdate();
 
 	private:
@@ -87,8 +88,8 @@ namespace Engine
 		float m_AccumulatorRatio = 0.0f;
 		const float m_PhysicsTimestep = 1.0f / 60.0f;
 		b2World* m_PhysicsWorld = nullptr;
-		uint32_t m_VelocityIteractions = 8;
-		uint32_t m_PositionIteractions = 3;
+		uint32_t m_VelocityIteractions = 20;
+		uint32_t m_PositionIteractions = 16;
 
 		friend class Entity;
 		friend class SceneSerializer;

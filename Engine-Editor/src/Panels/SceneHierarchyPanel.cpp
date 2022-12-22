@@ -13,8 +13,16 @@ namespace Engine
 	static void FieldTypeUnsupported(const ScriptFieldType& fieldType)
 	{
 		const char* typeName = Utils::ScriptFieldTypeToString(fieldType);
-		//ENGINE_CORE_ERROR("Script Field Type {} not supported in Draw Component!", typeName);
 		ImGui::Text(typeName);
+	}
+
+	static ScriptFieldInstance SetupScriptField(const std::string& name, const ScriptField& field, const bool& sceneRunning, const bool& fieldExists, ScriptFieldMap& entityFields)
+	{
+		ScriptFieldInstance& scriptField = fieldExists ? entityFields.at(name) : entityFields[name];
+		if (!sceneRunning && !fieldExists)
+			scriptField.Field = field;
+
+		return scriptField;
 	}
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
@@ -468,14 +476,13 @@ namespace Engine
 				ImGui::SameLine();
 
 				bool fieldExists = entityFields.find(name) != entityFields.end(); // TODO make entity fields exists func
-				ScriptFieldInstance& scriptField = fieldExists ? entityFields.at(name) : entityFields[name];
-				if (!sceneRunning && !fieldExists)
-					scriptField.Field = field;
 
 				switch (field.Type)
 				{
 				case ScriptFieldType::Float:
 				{
+					ScriptFieldInstance scriptField = SetupScriptField(name, field, sceneRunning, fieldExists, entityFields);
+
 					float data = sceneRunning ? scriptInstance->GetFieldValue<float>(name) : fieldExists ? scriptField.GetValue<float>() : 0.0f; // default 0.0 TODO read script default value
 					if (ImGui::DragFloat(("##" + name).c_str(), &data, 0.1f))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
@@ -492,6 +499,8 @@ namespace Engine
 					break;
 				case ScriptFieldType::String:
 				{
+					ScriptFieldInstance scriptField = SetupScriptField(name, field, sceneRunning, fieldExists, entityFields);
+
 					char buffer[64];
 					memset(buffer, 0, sizeof(buffer));
 					strcpy_s(buffer, sizeof(buffer), sceneRunning ? scriptInstance->GetFieldValue<std::string>(name).c_str() : fieldExists ? scriptField.GetValue<std::string>().c_str() : "");
