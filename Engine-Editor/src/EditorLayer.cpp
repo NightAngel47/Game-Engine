@@ -228,7 +228,7 @@ namespace Engine
 		m_ViewportFocused = ImGui::IsWindowFocused();
 		m_ViewportHovered = ImGui::IsWindowHovered();
 		Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
-		
+
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 		
@@ -477,6 +477,20 @@ namespace Engine
 			{
 				if (control)
 					OnDuplicateEntity();
+
+				break;
+			}
+			case Key::Delete:
+			{
+				if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
+				{
+					Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+					if (selectedEntity)
+					{
+						m_SceneHierarchyPanel.SetSelectedEntity({});
+						m_EditorScene->DestroyEntity(selectedEntity);
+					}
+				}
 
 				break;
 			}

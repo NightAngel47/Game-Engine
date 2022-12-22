@@ -57,7 +57,7 @@ namespace Engine
 			{
 				if (ImGui::MenuItem("Create Empty Entity"))
 				{
-					m_Context->CreateEntity("Empty Entity");
+					m_Context->CreateEntity();
 				}
 				else if (ImGui::MenuItem("Create Sprite"))
 				{
