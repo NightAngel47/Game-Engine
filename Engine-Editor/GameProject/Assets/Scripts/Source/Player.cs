@@ -22,10 +22,13 @@ namespace GameProject.Source
 			rb2d = GetComponent<Rigidbody2DComponent>();
 		}
 
-		protected override void OnUpdate(float ts)
+		protected override void OnStart()
 		{
 			camera ??= FindEntityByName("Camera").As<Camera>();
+		}
 
+		protected override void OnUpdate(float ts)
+		{
 			if (Input.IsMouseButtonPressed(MouseCode.ButtonRight))
 			{
 				Vector2 curMousePos = Input.GetMousePosition();

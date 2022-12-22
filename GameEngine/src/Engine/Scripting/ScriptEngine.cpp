@@ -458,6 +458,19 @@ namespace Engine
 		}
 	}
 
+	void ScriptEngine::OnStartEntity(Entity entity)
+	{
+		const auto& sc = entity.GetComponent<ScriptComponent>();
+
+		if (EntityClassExists(sc.ClassName))
+		{
+			if (EntityInstanceExists(entity))
+			{
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnStart();
+			}
+		}
+	}
+
 	void ScriptEngine::OnDestroyEntity(Entity entity)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
@@ -555,6 +568,12 @@ namespace Engine
 		if (!OnCreateThunk)
 			ENGINE_CORE_WARN("Could not find create method desc in class!");
 
+		// setup onStart method
+		MonoMethod* OnStartMethodPtr = mono_class_get_method_from_name(monoClass, "OnStart", 0);
+		OnStartThunk = OnStartMethodPtr ? (OnCreate)mono_method_get_unmanaged_thunk(OnStartMethodPtr) : nullptr;
+		if (!OnStartThunk)
+			ENGINE_CORE_WARN("Could not find start method desc in class!");
+
 		// setup onDestroy method
 		MonoMethod* OnDestroyMethodPtr = mono_class_get_method_from_name(monoClass, "OnDestroy", 0);
 		OnDestroyThunk = OnDestroyMethodPtr ? (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr) : nullptr;
@@ -580,6 +599,15 @@ namespace Engine
 
 		MonoObject* ptrExObject = nullptr;
 		OnCreateThunk(m_Instance, &ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
+	}
+
+	void ScriptInstance::InvokeOnStart()
+	{
+		if (!OnStartThunk) return; // handle script without OnStart
+
+		MonoObject* ptrExObject = nullptr;
+		OnStartThunk(m_Instance, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 

@@ -26,30 +26,33 @@ namespace Engine
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
 		void DestroyEntity(Entity entity);
-		
-		void OnRuntimeStart();
-		void OnSimulationStart();
-
-		void OnRuntimeStop();
-		void OnSimulationStop();
-
-		void OnUpdateRuntime(Timestep ts);
-		void OnUpdateSimulation(Timestep ts, EditorCamera& camera);
-		void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 
 		void OnViewportResize(uint32_t width, uint32_t height);
 		Entity GetPrimaryCameraEntity();
-
-		bool IsRunning() const { return m_IsRunning; }
-		bool IsPaused() const { return m_IsPaused; }
-
-		void SetPaused(bool paused) { m_IsPaused = paused; }
 
 		void Step(int frames = 1);
 
 		void DuplicateEntity(Entity entity);
 		Entity GetEntityWithUUID(UUID uuid);
 		Entity FindEntityByName(const std::string_view& entityName);
+		
+		// Start Play/Sim Whole
+		void OnRuntimeStart();
+		void OnSimulationStart();
+
+		// Stop Play/Sim Whole
+		void OnRuntimeStop();
+		void OnSimulationStop();
+
+		// Update Play/Sim Whole
+		void OnUpdateRuntime(Timestep ts);
+		void OnUpdateSimulation(Timestep ts, EditorCamera& camera);
+		void OnUpdateEditor(Timestep ts, EditorCamera& camera);
+
+		bool IsRunning() const { return m_IsRunning; }
+		bool IsPaused() const { return m_IsPaused; }
+
+		void SetPaused(bool paused) { m_IsPaused = paused; }
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -61,12 +64,16 @@ namespace Engine
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
 
+		// Start Play/Sim Section
 		void OnPhysics2DStart();
+		void OnScriptsCreate();
 		void OnScriptsStart();
 
+		// Stop Play/Sim Section
 		void OnPhysics2DStop();
 		void OnScriptsStop();
 
+		// Update Play/Sim Section
 		void OnScriptsUpdate(Timestep ts);
 		void OnPhysics2DUpdate(Timestep ts);
 		void OnScriptsLateUpdate(Timestep ts);

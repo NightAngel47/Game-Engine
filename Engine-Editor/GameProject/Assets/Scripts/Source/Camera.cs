@@ -10,9 +10,9 @@ namespace GameProject.Source
 
 		Entity player;
 
-		protected override void OnCreate()
+		protected override void OnStart()
 		{
-			player = FindEntityByName("Player");
+			player ??= FindEntityByName("Player");
 		}
 
 		protected override void OnLateUpdate(float ts)

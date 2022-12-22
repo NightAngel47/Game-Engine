@@ -121,6 +121,64 @@ namespace Engine
 		m_EntityMap.erase(entity.GetUUID());
 	}
 
+	void Scene::OnViewportResize(uint32_t width, uint32_t height)
+	{
+		m_ViewportWidth = width;
+		m_ViewportHeight = height;
+
+		// Resize our non-FixedAspectRatio cameras
+		auto view = m_Registry.view<CameraComponent>();
+		for (auto entity : view)
+		{
+			auto& cameraComponent = view.get<CameraComponent>(entity);
+			if (!cameraComponent.FixedAspectRatio)
+				cameraComponent.Camera.SetViewportSize(width, height);
+		}
+	}
+
+	Entity Scene::GetPrimaryCameraEntity()
+	{
+		auto view = m_Registry.view<CameraComponent>();
+		for (auto entity : view)
+		{
+			const auto& cameraComponent = view.get<CameraComponent>(entity);
+			if (cameraComponent.Primary)
+				return Entity{ entity, this };
+		}
+
+		return {};
+	}
+
+	void Scene::Step(int frames)
+	{
+		m_StepFrames = frames;
+	}
+
+	void Scene::DuplicateEntity(Entity entity)
+	{
+		Entity newEntity = CreateEntity(entity.GetName());
+		CopyComponentIfExists(AllComponents{}, newEntity, entity);
+	}
+
+	Entity Scene::GetEntityWithUUID(UUID uuid)
+	{
+		ENGINE_CORE_ASSERT(m_EntityMap.find(uuid) != m_EntityMap.end(), "Could not find Entity with UUID: " + std::to_string(uuid) + " in Scene: " + m_Name);
+		return { m_EntityMap.at(uuid), this };
+	}
+
+	Entity Scene::FindEntityByName(const std::string_view& entityName)
+	{
+		auto view = m_Registry.view<TagComponent>();
+		for (auto entity : view)
+		{
+			const TagComponent& tc = view.get<TagComponent>(entity);
+			if (tc.Tag == entityName)
+				return Entity{ entity, this };
+		}
+
+		return {};
+	}
+
 	void Scene::OnRuntimeStart()
 	{
 		m_IsRunning = true;
@@ -128,7 +186,10 @@ namespace Engine
 		// Create Physics Objects
 		OnPhysics2DStart();
 
-		// Start Scripts
+		// Create Scripts
+		OnScriptsCreate();
+
+		// Scripts OnStart
 		OnScriptsStart();
 	}
 
@@ -216,64 +277,6 @@ namespace Engine
 		Renderer2D::EndScene();
 	}
 
-	void Scene::OnViewportResize(uint32_t width, uint32_t height)
-	{
-		m_ViewportWidth = width;
-		m_ViewportHeight = height;
-
-		// Resize our non-FixedAspectRatio cameras
-		auto view = m_Registry.view<CameraComponent>();
-		for (auto entity : view)
-		{
-			auto& cameraComponent = view.get<CameraComponent>(entity);
-			if (!cameraComponent.FixedAspectRatio)
-				cameraComponent.Camera.SetViewportSize(width, height);
-		}
-	}
-
-	Entity Scene::GetPrimaryCameraEntity()
-	{
-		auto view = m_Registry.view<CameraComponent>();
-		for(auto entity : view)
-		{
-			const auto& cameraComponent = view.get<CameraComponent>(entity);
-			if(cameraComponent.Primary)
-				return Entity{entity, this};
-		}
-
-		return {};
-	}
-
-	void Scene::Step(int frames)
-	{
-		m_StepFrames = frames;
-	}
-
-	void Scene::DuplicateEntity(Entity entity)
-	{
-		Entity newEntity = CreateEntity(entity.GetName());
-		CopyComponentIfExists(AllComponents{}, newEntity, entity);
-	}
-
-	Entity Scene::GetEntityWithUUID(UUID uuid)
-	{
-		ENGINE_CORE_ASSERT(m_EntityMap.find(uuid) != m_EntityMap.end(), "Could not find Entity with UUID: " + std::to_string(uuid) + " in Scene: " + m_Name);
-		return { m_EntityMap.at(uuid), this };
-	}
-
-	Entity Scene::FindEntityByName(const std::string_view& entityName)
-	{
-		auto view = m_Registry.view<TagComponent>();
-		for (auto entity : view)
-		{
-			const TagComponent& tc = view.get<TagComponent>(entity);
-			if (tc.Tag == entityName)
-				return Entity{ entity, this };
-		}
-
-		return {};
-	}
-
 	void Scene::OnPhysics2DStart()
 	{
 		m_PhysicsWorld = new b2World({ 0.0f, -9.8f });
@@ -336,28 +339,28 @@ namespace Engine
 		}
 	}
 
-	void Scene::OnScriptsStart()
+	void Scene::OnScriptsCreate()
 	{
 		ScriptEngine::OnRuntimeStart(this);
 
-		// Start Scripts
+		// Instantiate Script Entities
 		auto view = m_Registry.view<ScriptComponent>();
 		for (auto e : view)
 		{
 			Entity entity = { e, this };
 			ScriptEngine::OnCreateEntity(entity);
 		}
+	}
 
-		// Start Native Scripts
-		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
+	void Scene::OnScriptsStart()
+	{
+		// Scripts OnStart
+		auto view = m_Registry.view<ScriptComponent>();
+		for (auto e : view)
 		{
-			if (!nsc.Instance)
-			{
-				nsc.Instance = nsc.InstantiateScript();
-				nsc.Instance->m_Entity = Entity{ e, this };
-				nsc.Instance->OnCreate();
-			}
-		});
+			Entity entity = { e, this };
+			ScriptEngine::OnStartEntity(entity);
+		}
 	}
 
 	void Scene::OnPhysics2DStop()
@@ -538,6 +541,7 @@ namespace Engine
 		}
 	}
 
+#pragma region OnComponentAdded
 	template <typename T>
 	void Scene::OnComponentAdded(Entity entity, T& component)
 	{
@@ -600,4 +604,5 @@ namespace Engine
 	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
 	{
 	}
+#pragma endregion OnComponentAdded
 }

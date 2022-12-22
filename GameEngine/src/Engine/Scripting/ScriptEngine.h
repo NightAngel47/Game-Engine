@@ -17,6 +17,7 @@ extern "C"
 }
 
 typedef void(*OnCreate) (MonoObject* obj, MonoObject** exp);
+typedef void(*OnStart) (MonoObject* obj, MonoObject** exp);
 typedef void(*OnDestroy) (MonoObject* obj, MonoObject** exp);
 typedef void(*OnUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
 typedef void(*OnLateUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
@@ -144,6 +145,7 @@ namespace Engine
 		static void DeleteEntityInstance(Ref<ScriptInstance> instance, Entity entity);
 
 		static void OnCreateEntity(Entity entity);
+		static void OnStartEntity(Entity entity);
 		static void OnDestroyEntity(Entity entity);
 		static void OnUpdateEntity(Entity entity, Timestep ts);
 		static void OnLateUpdateEntity(Entity entity, Timestep ts);
@@ -227,6 +229,7 @@ namespace Engine
 		}
 
 		void InvokeOnCreate();
+		void InvokeOnStart();
 		void InvokeOnDestroy();
 		void InvokeOnUpdate(float ts);
 		void InvokeOnLateUpdate(float ts);
@@ -244,6 +247,7 @@ namespace Engine
 
 		MonoMethod* m_Constructor = nullptr;
 		OnCreate OnCreateThunk = nullptr;
+		OnStart OnStartThunk = nullptr;
 		OnDestroy OnDestroyThunk = nullptr;
 		OnUpdate OnUpdateThunk = nullptr;
 		OnLateUpdate OnLateUpdateThunk = nullptr;

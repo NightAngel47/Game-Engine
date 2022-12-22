@@ -16,6 +16,7 @@ namespace Engine.Scene
 		}
 
 		protected virtual void OnCreate() { }
+		protected virtual void OnStart() { }
 		protected virtual void OnDestroy() { }
 		protected virtual void OnUpdate(float ts) { }
 		protected virtual void OnLateUpdate(float ts) { }
