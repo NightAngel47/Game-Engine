@@ -25,6 +25,7 @@ namespace Engine
 		{ "System.Double",			ScriptFieldType::Double },
 		{ "System.Boolean",			ScriptFieldType::Bool },
 		{ "System.Char",			ScriptFieldType::Char },
+		{ "System.SByte",			ScriptFieldType::SByte },
 		{ "System.String",			ScriptFieldType::String },
 		{ "System.Int16",			ScriptFieldType::Short },
 		{ "System.Int32",			ScriptFieldType::Int },
@@ -446,6 +447,10 @@ namespace Engine
 					if (fieldInstance.Field.Type == ScriptFieldType::String)
 					{
 						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(*(std::string*)fieldInstance.m_Buffer));
+					}
+					else if (fieldInstance.Field.Type == ScriptFieldType::Char)
+					{
+						instance->SetFieldValueInternal(name, &fieldInstance.m_Buffer[sizeof(char*)]);
 					}
 					else
 					{

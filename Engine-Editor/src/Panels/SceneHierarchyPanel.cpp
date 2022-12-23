@@ -479,20 +479,40 @@ namespace Engine
 				{
 					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
 
-					float data = sceneRunning ? scriptInstance->GetFieldValue<float>(name) : fieldExists ? scriptField.GetValue<float>() : 0.0f; // default 0.0 TODO read script default value
+					float data = sceneRunning ? scriptInstance->GetFieldValue<float>(name) : fieldExists ? scriptField.GetValue<float>() : 0.0f; // default 0.0f TODO read script default value
 					if (ImGui::DragFloat(("##" + name).c_str(), &data, 0.1f))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Double:
-					FieldTypeUnsupported(field.Type);
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					double data = sceneRunning ? scriptInstance->GetFieldValue<double>(name) : fieldExists ? scriptField.GetValue<double>() : 0.0; // default 0.0 TODO read script default value
+					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_Double, &data, 0.1))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
+				}
 				case ScriptFieldType::Bool:
-					FieldTypeUnsupported(field.Type);
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					bool data = sceneRunning ? scriptInstance->GetFieldValue <bool> (name) : fieldExists ? scriptField.GetValue<bool>() : false; // default false TODO read script default value
+					if (ImGui::Checkbox(("##" + name).c_str(), &data))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
+				}
 				case ScriptFieldType::Char:
-					FieldTypeUnsupported(field.Type);
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					char buffer[2];
+					memset(buffer, 0, sizeof(buffer));
+					strcpy_s(buffer, sizeof(buffer), sceneRunning ? scriptInstance->GetFieldValue<std::string>(name).c_str() : fieldExists ? scriptField.GetValue<std::string>().c_str() : ""); // default "" TODO read script default value
+					if (ImGui::InputText(("##" + name).c_str(), buffer, sizeof(buffer)))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(buffer)) : scriptField.SetValue(std::string(buffer));
 					break;
+				}
 				case ScriptFieldType::String:
 				{
 					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
@@ -504,30 +524,78 @@ namespace Engine
 						sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(buffer)) : scriptField.SetValue(std::string(buffer));
 					break;
 				}
-				case ScriptFieldType::Byte:
-					FieldTypeUnsupported(field.Type);
+				case ScriptFieldType::SByte:
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					int8_t data = sceneRunning ? scriptInstance->GetFieldValue<int8_t>(name) : fieldExists ? scriptField.GetValue<int8_t>() : 0; // default 0 TODO read script default value
+					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S8, &data))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
+				}
 				case ScriptFieldType::Short:
-					FieldTypeUnsupported(field.Type);
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					int16_t data = sceneRunning ? scriptInstance->GetFieldValue<int16_t>(name) : fieldExists ? scriptField.GetValue<int16_t>() : 0; // default 0 TODO read script default value
+					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S16, &data))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
+				}
 				case ScriptFieldType::Int:
-					FieldTypeUnsupported(field.Type);
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					int32_t data = sceneRunning ? scriptInstance->GetFieldValue<int32_t>(name) : fieldExists ? scriptField.GetValue<int32_t>() : 0; // default 0 TODO read script default value
+					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S32, &data))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
+				}
 				case ScriptFieldType::Long:
-					FieldTypeUnsupported(field.Type);
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					int64_t data = sceneRunning ? scriptInstance->GetFieldValue<int64_t>(name) : fieldExists ? scriptField.GetValue<int64_t>() : 0; // default 0 TODO read script default value
+					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S64, &data))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
-				case ScriptFieldType::UByte:
-					FieldTypeUnsupported(field.Type);
+				}
+				case ScriptFieldType::Byte:
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					uint8_t data = sceneRunning ? scriptInstance->GetFieldValue<uint8_t>(name) : fieldExists ? scriptField.GetValue<uint8_t>() : 0; // default 0 TODO read script default value
+					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U8, &data))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &(uint8_t)data) : scriptField.SetValue((uint8_t)data);
 					break;
+				}
 				case ScriptFieldType::UShort:
-					FieldTypeUnsupported(field.Type);
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					uint16_t data = sceneRunning ? scriptInstance->GetFieldValue<uint16_t>(name) : fieldExists ? scriptField.GetValue<uint16_t>() : 0; // default 0 TODO read script default value
+					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U16, &data))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
+				}
 				case ScriptFieldType::UInt:
-					FieldTypeUnsupported(field.Type);
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					uint32_t data = sceneRunning ? scriptInstance->GetFieldValue<uint32_t>(name) : fieldExists ? scriptField.GetValue<uint32_t>() : 0; // default 0 TODO read script default value
+					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U32, &data))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
+				}
 				case ScriptFieldType::ULong:
-					FieldTypeUnsupported(field.Type);
+				{
+					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+
+					uint64_t data = sceneRunning ? scriptInstance->GetFieldValue<uint64_t>(name) : fieldExists ? scriptField.GetValue<uint64_t>() : 0; // default 0 TODO read script default value
+					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U64, &data))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
+				}
 				case ScriptFieldType::Vector2:
 				{
 					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);

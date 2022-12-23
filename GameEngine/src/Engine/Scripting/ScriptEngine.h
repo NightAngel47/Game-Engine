@@ -31,8 +31,8 @@ namespace Engine
 		None = -1,
 		Float, Double,
 		Bool, Char, String,
-		Byte, Short, Int, Long,
-		UByte, UShort, UInt, ULong,
+		SByte, Short, Int, Long,
+		Byte, UShort, UInt, ULong,
 		Vector2, Vector3, Vector4,
 		Entity
 	};
@@ -84,7 +84,7 @@ namespace Engine
 		}
 
 	private:
-		char m_Buffer[64];
+		uint8_t m_Buffer[64];
 
 		friend class ScriptEngine;
 		friend class ScriptInstance;
@@ -158,6 +158,7 @@ namespace Engine
 		static uint8_t GetPropertyAccessbility(MonoProperty* property);
 
 		static void HandleMonoException(MonoObject* ptrExObject);
+		static MonoString* CharToMonoString(char& charString);
 		static MonoString* StringToMonoString(const std::string& string);
 		static std::string MonoStringToUTF8(MonoString* monoString);
 	
@@ -210,6 +211,12 @@ namespace Engine
 			}
 
 			return ScriptEngine::MonoStringToUTF8(*(MonoString**)s_FieldValueBuffer);
+		}
+
+		template<>
+		char GetFieldValue(const std::string& name)
+		{
+			return *GetFieldValue<std::string>(name).c_str();
 		}
 
 		template<typename T>
@@ -270,11 +277,11 @@ namespace Engine
 			case ScriptFieldType::Bool:		return "Bool";
 			case ScriptFieldType::Char:		return "Char";
 			case ScriptFieldType::String:	return "String";
-			case ScriptFieldType::Byte:		return "Byte";
+			case ScriptFieldType::SByte:	return "SByte";
 			case ScriptFieldType::Short:	return "Short";
 			case ScriptFieldType::Int:		return "Int";
 			case ScriptFieldType::Long:		return "Long";
-			case ScriptFieldType::UByte:	return "UByte";
+			case ScriptFieldType::Byte:		return "Byte";
 			case ScriptFieldType::UShort:	return "UShort";
 			case ScriptFieldType::UInt:		return "UInt";
 			case ScriptFieldType::ULong:	return "ULong";
@@ -295,11 +302,11 @@ namespace Engine
 			if (fieldType == "Bool")	return ScriptFieldType::Bool;
 			if (fieldType == "Char")	return ScriptFieldType::Char;
 			if (fieldType == "String")	return ScriptFieldType::String;
-			if (fieldType == "Byte")	return ScriptFieldType::Byte;
+			if (fieldType == "SByte")	return ScriptFieldType::SByte;
 			if (fieldType == "Short")	return ScriptFieldType::Short;
 			if (fieldType == "Int")		return ScriptFieldType::Int;
 			if (fieldType == "Long")	return ScriptFieldType::Long;
-			if (fieldType == "UByte")	return ScriptFieldType::UByte;
+			if (fieldType == "Byte")	return ScriptFieldType::Byte;
 			if (fieldType == "UShort")	return ScriptFieldType::UShort;
 			if (fieldType == "UInt")	return ScriptFieldType::UInt;
 			if (fieldType == "ULong")	return ScriptFieldType::ULong;

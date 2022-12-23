@@ -153,6 +153,8 @@ namespace Engine
 		
 		style.WindowMinSize.x = minWinSizeX;
 
+		ImGui::ShowDemoWindow();
+
 	    if (ImGui::BeginMenuBar())
 	    {
 	        if (ImGui::BeginMenu("File"))
