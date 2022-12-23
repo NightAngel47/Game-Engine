@@ -10,10 +10,25 @@
 
 namespace Engine
 {
-#define SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields)					\
-	ScriptFieldInstance& scriptField = fieldExists ? entityFields.at(name) : entityFields[name];	\
-	if (!sceneRunning && !fieldExists)																\
-		scriptField.Field = field;																	\
+#define SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields)								\
+	ScriptFieldInstance& scriptField = fieldExists ? entityFields.at(name) : entityFields[name];				\
+	if (!sceneRunning && !fieldExists)																			\
+		scriptField.Field = field;																				\
+
+#define GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, className, Type)	\
+	if (sceneRunning)																							\
+	{																											\
+		data = scriptInstance->GetFieldValue<Type>(name);														\
+	}																											\
+	else if (fieldExists)																						\
+	{																											\
+		data = scriptField.GetValue<Type>();																	\
+	}																											\
+	else 																										\
+	{																											\
+		data = ScriptEngine::GetDefaultScriptFieldMap(component.ClassName).at(name).GetValue<Type>();			\
+		scriptField.SetValue(data);																				\
+	}																											\
 
 	static void FieldTypeUnsupported(const ScriptFieldType& fieldType)
 	{
@@ -473,7 +488,7 @@ namespace Engine
 
 			// Fields
 			Ref<ScriptInstance> scriptInstance = sceneRunning ? ScriptEngine::GetEntityInstance(entity) : nullptr;
-			std::unordered_map<std::string, ScriptField> fields = sceneRunning ? scriptInstance->GetScriptClass()->GetScriptFields() : ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
+			auto& fields = sceneRunning ? scriptInstance->GetScriptClass()->GetScriptFields() : ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
 			auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
 
 			for (auto& [name, field] : fields)
@@ -490,148 +505,203 @@ namespace Engine
 				{
 				case ScriptFieldType::Float:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					float data = sceneRunning ? scriptInstance->GetFieldValue<float>(name) : fieldExists ? scriptField.GetValue<float>() : 0.0f; // default 0.0f TODO read script default value
+					float data = 0.0f;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, float);
+
 					if (ImGui::DragFloat(("##" + name).c_str(), &data, 0.1f))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Double:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					double data = sceneRunning ? scriptInstance->GetFieldValue<double>(name) : fieldExists ? scriptField.GetValue<double>() : 0.0; // default 0.0 TODO read script default value
+					double data = 0.0;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, double);
+
 					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_Double, &data, 0.1))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Bool:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					bool data = sceneRunning ? scriptInstance->GetFieldValue <bool> (name) : fieldExists ? scriptField.GetValue<bool>() : false; // default false TODO read script default value
+					bool data = false;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, bool);
+
 					if (ImGui::Checkbox(("##" + name).c_str(), &data))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Char:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 					
 					char data[2];
 					memset(data, 0, sizeof(data));
-					data[0] = sceneRunning ? scriptInstance->GetFieldValue<char>(name) : fieldExists ? scriptField.GetValue<char>() : ' '; // default ' ' TODO read script default value
+					if (sceneRunning)
+					{
+						data[0] = scriptInstance->GetFieldValue<char>(name);
+					}
+					else if (fieldExists)
+					{
+						data[0] = scriptField.GetValue<char>();
+					}
+					else
+					{
+						data[0] = ScriptEngine::GetDefaultScriptFieldMap(component.ClassName).at(name).GetValue<char>();
+						scriptField.SetValue(data[0]);
+					}
+
 					if (ImGui::InputText(("##" + name).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data[0]) : scriptField.SetValue(data[0]);
 					break;
 				}
 				case ScriptFieldType::String:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
 					char data[64];
 					memset(data, 0, sizeof(data));
-					strcpy_s(data, sizeof(data), sceneRunning ? scriptInstance->GetFieldValue<std::string>(name).c_str() : fieldExists ? scriptField.GetValue<std::string>().c_str() : ""); // default "" TODO read script default value
+					if (sceneRunning)
+					{
+						strcpy_s(data, sizeof(data), scriptInstance->GetFieldValue<std::string>(name).c_str());
+					}
+					else if (fieldExists)
+					{
+						strcpy_s(data, sizeof(data), scriptField.GetValue<std::string>().c_str());
+					}
+					else
+					{
+						std::string strVal = ScriptEngine::GetDefaultScriptFieldMap(component.ClassName).at(name).GetValue<std::string>();
+						strcpy_s(data, sizeof(data), strVal.c_str());
+						scriptField.SetValue(strVal);
+					}
+
 					if (ImGui::InputText(("##" + name).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(data)) : scriptField.SetValue(std::string(data));
 					break;
 				}
 				case ScriptFieldType::SByte:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					int8_t data = sceneRunning ? scriptInstance->GetFieldValue<int8_t>(name) : fieldExists ? scriptField.GetValue<int8_t>() : 0; // default 0 TODO read script default value
+					int8_t data = 0;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int8_t);
+
 					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S8, &data))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Short:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					int16_t data = sceneRunning ? scriptInstance->GetFieldValue<int16_t>(name) : fieldExists ? scriptField.GetValue<int16_t>() : 0; // default 0 TODO read script default value
+					int16_t data = 0;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int16_t);
+
 					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S16, &data))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Int:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					int32_t data = sceneRunning ? scriptInstance->GetFieldValue<int32_t>(name) : fieldExists ? scriptField.GetValue<int32_t>() : 0; // default 0 TODO read script default value
+					int32_t data = 0;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int32_t);
+
 					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S32, &data))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Long:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					int64_t data = sceneRunning ? scriptInstance->GetFieldValue<int64_t>(name) : fieldExists ? scriptField.GetValue<int64_t>() : 0; // default 0 TODO read script default value
+					int64_t data = 0;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int64_t);
+
 					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S64, &data))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Byte:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					uint8_t data = sceneRunning ? scriptInstance->GetFieldValue<uint8_t>(name) : fieldExists ? scriptField.GetValue<uint8_t>() : 0; // default 0 TODO read script default value
+					uint8_t data = 0;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint8_t);
+
 					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U8, &data))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &(uint8_t)data) : scriptField.SetValue((uint8_t)data);
 					break;
 				}
 				case ScriptFieldType::UShort:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					uint16_t data = sceneRunning ? scriptInstance->GetFieldValue<uint16_t>(name) : fieldExists ? scriptField.GetValue<uint16_t>() : 0; // default 0 TODO read script default value
+					uint16_t data = 0;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint16_t);
+
 					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U16, &data))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::UInt:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					uint32_t data = sceneRunning ? scriptInstance->GetFieldValue<uint32_t>(name) : fieldExists ? scriptField.GetValue<uint32_t>() : 0; // default 0 TODO read script default value
+					uint32_t data = 0;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint32_t);
+
 					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U32, &data))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::ULong:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					uint64_t data = sceneRunning ? scriptInstance->GetFieldValue<uint64_t>(name) : fieldExists ? scriptField.GetValue<uint64_t>() : 0; // default 0 TODO read script default value
+					uint64_t data = 0;
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint64_t);
+
 					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U64, &data))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Vector2:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					glm::vec2 data = sceneRunning ? scriptInstance->GetFieldValue<glm::vec2>(name) : fieldExists ? scriptField.GetValue<glm::vec2>() : glm::vec2{}; // default {} TODO read script default value
+					glm::vec2 data = {};
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, glm::vec2);
+
 					if (ImGui::DragFloat2(("##" + name).c_str(), glm::value_ptr(data), 0.1f))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Vector3:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					glm::vec3 data = sceneRunning ? scriptInstance->GetFieldValue<glm::vec3>(name) : fieldExists ? scriptField.GetValue<glm::vec3>() : glm::vec3{}; // default {} TODO read script default value
+					glm::vec3 data = {};
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, glm::vec3);
+
 					if (ImGui::DragFloat3(("##" + name).c_str(), glm::value_ptr(data), 0.1f))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;
 				}
 				case ScriptFieldType::Vector4:
 				{
-					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
+					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
 
-					glm::vec4 data = sceneRunning ? scriptInstance->GetFieldValue<glm::vec4>(name) : fieldExists ? scriptField.GetValue<glm::vec4>() : glm::vec4{}; // default {} TODO read script default value
+					glm::vec4 data = {};
+					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, glm::vec4);
+
 					if (ImGui::DragFloat4(("##" + name).c_str(), glm::value_ptr(data), 0.1f))
 						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 					break;

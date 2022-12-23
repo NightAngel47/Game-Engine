@@ -180,8 +180,12 @@ namespace Engine
 			if (ImGui::BeginMenu("Script"))
 	        {
 
-	        	if (ImGui::MenuItem("Reload Assembly", "Crtl+R"))
+				if (ImGui::MenuItem("Reload Assembly", "Crtl+R"))
+				{
 					ScriptEngine::ReloadAssembly();
+					// TODO prompt user to save any changes before reloading scene
+					OpenScene(m_EditorScenePath); // reload scene to match new assembly state
+				}
 
 	            ImGui::EndMenu();
 	        }

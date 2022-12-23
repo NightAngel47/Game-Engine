@@ -18,7 +18,8 @@
 #include <FileWatch.hpp>
 
 namespace Engine
-{
+{				
+				
 	static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
 	{
 		{ "System.Single",			ScriptFieldType::Float },
@@ -75,6 +76,7 @@ namespace Engine
 		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
 		std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
+		std::unordered_map<std::string, ScriptFieldMap> ScriptFieldsDefaults;
 
 		Scene* SceneContext;
 
@@ -190,6 +192,7 @@ namespace Engine
 		s_ScriptEngineData->EntityInstances.clear();
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->EntityScriptFields.clear();
+		s_ScriptEngineData->ScriptFieldsDefaults.clear();
 		delete s_ScriptEngineData;
 	}
 
@@ -280,6 +283,7 @@ namespace Engine
 		s_ScriptEngineData->EntityInstances.clear();
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->EntityScriptFields.clear();
+		s_ScriptEngineData->ScriptFieldsDefaults.clear();
 
 		// reload assemblies
 		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
@@ -292,6 +296,7 @@ namespace Engine
 	void ScriptEngine::LoadEntityClasses(MonoAssembly* assembly)
 	{
 		s_ScriptEngineData->EntityClasses.clear();
+		s_ScriptEngineData->ScriptFieldsDefaults.clear();
 
 		MonoImage* image = mono_assembly_get_image(assembly);
 		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
@@ -317,6 +322,11 @@ namespace Engine
 			Ref<ScriptClass> scriptClass = CreateRef<ScriptClass>(nameSpace, className);
 			s_ScriptEngineData->EntityClasses[fullName] = scriptClass;
 
+			// instantiate temp instance to get default values
+			MonoObject* instance = mono_object_new(s_ScriptEngineData->AppDomain, monoClass);
+			mono_runtime_object_init(instance);
+			ScriptFieldMap scriptDefaultMap;
+
 			// get class fields
 			int fieldCount = mono_class_num_fields(monoClass);
 			ENGINE_CORE_TRACE("{} has {} fields:", className, fieldCount);
@@ -333,8 +343,29 @@ namespace Engine
 				if (scriptField.IsPublic()) // tracking only public fields for now, want others for debug later
 				{
 					scriptClass->m_ScriptFields[fieldName] = scriptField;
+
+					// get default field value
+					ScriptFieldInstance& fieldInstance = scriptDefaultMap[fieldName];
+					fieldInstance.Field = scriptField;
+
+					uint8_t buffer[64];
+					memset(buffer, 0, sizeof(buffer));
+
+					mono_field_get_value(instance, field, buffer);
+
+					if (fieldType == ScriptFieldType::String)
+					{
+						std::string value = ScriptEngine::MonoStringToUTF8(*(MonoString**)buffer);
+						fieldInstance.SetValue(value);
+					}
+					else
+					{
+						memcpy(fieldInstance.m_Buffer, buffer, sizeof(fieldInstance.m_Buffer));
+					}
 				}
 			}
+			
+			s_ScriptEngineData->ScriptFieldsDefaults[fullName] = scriptDefaultMap;
 		}
 	}
 
@@ -366,6 +397,14 @@ namespace Engine
 		ENGINE_CORE_ASSERT(entity, "Entity doesn't exists!");
 
 		return s_ScriptEngineData->EntityScriptFields[entity.GetUUID()];
+	}
+
+	ScriptFieldMap ScriptEngine::GetDefaultScriptFieldMap(const std::string& scriptName)
+	{
+		if (!EntityClassExists(scriptName))
+			return {};
+
+		return s_ScriptEngineData->ScriptFieldsDefaults.at(scriptName);
 	}
 
 	Scene* ScriptEngine::GetSceneContext()

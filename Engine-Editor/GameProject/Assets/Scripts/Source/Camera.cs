@@ -6,7 +6,7 @@ namespace GameProject.Source
 {
 	public class Camera : Entity
 	{
-		public float DistanceFromPlayer = 5.0f;
+		public float DistanceFromPlayer;
 		public float DistanceFromPlayerMin = 5.0f;
 		public float DistanceFromPlayerMax = 50.0f;
 

@@ -135,6 +135,7 @@ namespace Engine
 
 		static std::unordered_map<std::string, Ref<ScriptClass>> GetEntityClasses();
 		static ScriptFieldMap& GetScriptFieldMap(Entity entity);
+		static ScriptFieldMap GetDefaultScriptFieldMap(const std::string& scriptName);
 		static Scene* GetSceneContext();
 
 		static MonoAssembly* GetCoreAssembly();
