@@ -441,24 +441,37 @@ namespace Engine
 		DrawComponent<ScriptComponent>("Script Component", entity, [&](auto& component)
 		{
 			bool scriptClassExists = ScriptEngine::EntityClassExists(component.ClassName);
+			bool sceneRunning = m_Context->IsRunning();
 
-			char buffer[256];
-			memset(buffer, 0, sizeof(buffer));
-			strcpy_s(buffer, sizeof(buffer), component.ClassName.c_str());
+			ImGui::Text("Script");
+			ImGui::SameLine();
 
-			UI::ScopedStyleColor textColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f), !scriptClassExists);
-
-			if (ImGui::InputText("ScriptName", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
+			if (sceneRunning)
 			{
-				component.ClassName = std::string(buffer);
-				return;
+				ImGui::Text(component.ClassName.c_str());
 			}
+			else
+			{
+				const std::string& currentScriptClassName = scriptClassExists ? component.ClassName : "";
+				if (ImGui::BeginCombo("##Script", currentScriptClassName.c_str()))
+				{
+					for (const auto& [name, scriptClass] : ScriptEngine::GetEntityClasses())
+					{
+						bool isSelected = currentScriptClassName == name;
+						if (ImGui::Selectable(name.c_str(), isSelected))
+							component.ClassName = name;
 
+						if (isSelected)
+							ImGui::SetItemDefaultFocus();
+					}
+
+					ImGui::EndCombo();
+				}
+			}
+			
 			if (!scriptClassExists) return;
 
 			// Fields
-			bool sceneRunning = m_Context->IsRunning();
-
 			Ref<ScriptInstance> scriptInstance = sceneRunning ? ScriptEngine::GetEntityInstance(entity) : nullptr;
 			std::unordered_map<std::string, ScriptField> fields = sceneRunning ? scriptInstance->GetScriptClass()->GetScriptFields() : ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
 			auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
@@ -506,22 +519,22 @@ namespace Engine
 				{
 					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
 					
-					char buffer[2];
-					memset(buffer, 0, sizeof(buffer));
-					buffer[0] = sceneRunning ? scriptInstance->GetFieldValue<char>(name) : fieldExists ? scriptField.GetValue<char>() : ' '; // default ' ' TODO read script default value
-					if (ImGui::InputText(("##" + name).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &buffer[0]) : scriptField.SetValue(buffer[0]);
+					char data[2];
+					memset(data, 0, sizeof(data));
+					data[0] = sceneRunning ? scriptInstance->GetFieldValue<char>(name) : fieldExists ? scriptField.GetValue<char>() : ' '; // default ' ' TODO read script default value
+					if (ImGui::InputText(("##" + name).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &data[0]) : scriptField.SetValue(data[0]);
 					break;
 				}
 				case ScriptFieldType::String:
 				{
 					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
 
-					char buffer[64];
-					memset(buffer, 0, sizeof(buffer));
-					strcpy_s(buffer, sizeof(buffer), sceneRunning ? scriptInstance->GetFieldValue<std::string>(name).c_str() : fieldExists ? scriptField.GetValue<std::string>().c_str() : ""); // default "" TODO read script default value
-					if (ImGui::InputText(("##" + name).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(buffer)) : scriptField.SetValue(std::string(buffer));
+					char data[64];
+					memset(data, 0, sizeof(data));
+					strcpy_s(data, sizeof(data), sceneRunning ? scriptInstance->GetFieldValue<std::string>(name).c_str() : fieldExists ? scriptField.GetValue<std::string>().c_str() : ""); // default "" TODO read script default value
+					if (ImGui::InputText(("##" + name).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+						sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(data)) : scriptField.SetValue(std::string(data));
 					break;
 				}
 				case ScriptFieldType::SByte:
