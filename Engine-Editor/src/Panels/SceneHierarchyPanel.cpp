@@ -510,10 +510,7 @@ namespace Engine
 					memset(buffer, 0, sizeof(buffer));
 					buffer[0] = sceneRunning ? scriptInstance->GetFieldValue<char>(name) : fieldExists ? scriptField.GetValue<char>() : ' '; // default ' ' TODO read script default value
 					if (ImGui::InputText(("##" + name).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
-					{
 						sceneRunning ? scriptInstance->SetFieldValue(name, &buffer[0]) : scriptField.SetValue(buffer[0]);
-					}
-
 					break;
 				}
 				case ScriptFieldType::String:
