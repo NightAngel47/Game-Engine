@@ -1,66 +1,121 @@
 Scene: ScriptRefactor.scene
 Entities:
-  - Entity: 4439650569278229468
+  - Entity: 13451980592939124771
     TagComponent:
-      Tag: Camera
+      Tag: Entity
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: Perspective
-        PerspectiveFOV: 0.785398185
-        PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
-        OrthographicSize: 10
-        OrthographicNear: -1
-        OrthographicFar: 10
-      Primary: true
-      FixedAspectRatio: false
     ScriptComponent:
-      ClassName: GameProject.Source.Camera
+      ClassName: GameProject.Source.VariableValidator
       ScriptFields:
-        - Name: DistanceFromPlayer
-          Type: Float
-          Data: 5
-  - Entity: 11764441337374806066
-    TagComponent:
-      Tag: Player
-    TransformComponent:
-      Position: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0, 1, 0.607594967, 1]
-      Path: Textures\shipGreen_manned.png
-      Tiling: 1
-    ScriptComponent:
-      ClassName: GameProject.Source.Player
-      ScriptFields:
-        - Name: moveSpeed
-          Type: Float
-          Data: 50
-        - Name: rotSpeeed
-          Type: Float
-          Data: 2.20000005
-        - Name: zoomSpeed
-          Type: Float
-          Data: 8.60000038
-        - Name: exampleString
+        - Name: Var13
+          Type: Vector2
+          Data: [1234, -1234]
+        - Name: Var0
+          Type: Bool
+          Data: true
+        - Name: Var12
+          Type: ULong
+          Data: 6316545
+        - Name: Var1
+          Type: Char
+          Data: Y
+        - Name: Var11
+          Type: Long
+          Data: -3165
+        - Name: Var2
           Type: String
-          Data: Chicken
-    Rigidbody2DComponent:
-      Type: Dynamic
-      FixedRotation: false
-      Smoothing: Interpolation
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
+          Data: Hello There!
+        - Name: Var10
+          Type: UInt
+          Data: 31654
+        - Name: Var3
+          Type: Float
+          Data: 192.123001
+        - Name: Var4
+          Type: Double
+          Data: 1237.1231689453125
+        - Name: Var5
+          Type: SByte
+          Data: -96
+        - Name: Var15
+          Type: Vector4
+          Data: [1234, 1234, -98723, 12356]
+        - Name: Var6
+          Type: Byte
+          Data: 240
+        - Name: Var14
+          Type: Vector3
+          Data: [-1234, 1234, 98723]
+        - Name: Var7
+          Type: Short
+          Data: -2400
+        - Name: Var8
+          Type: UShort
+          Data: 2400
+        - Name: Var9
+          Type: Int
+          Data: -21654
+  - Entity: 6453289136765797799
+    TagComponent:
+      Tag: VariableValidator
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ClassName: GameProject.Source.VariableValidator
+      ScriptFields:
+        - Name: Var13
+          Type: Vector2
+          Data: [18.8999996, 13.3999996]
+        - Name: Var0
+          Type: Bool
+          Data: true
+        - Name: Var12
+          Type: ULong
+          Data: 1498
+        - Name: Var1
+          Type: Char
+          Data: y
+        - Name: Var11
+          Type: Long
+          Data: 1614
+        - Name: Var2
+          Type: String
+          Data: asdf
+        - Name: Var10
+          Type: UInt
+          Data: 2226
+        - Name: Var3
+          Type: Float
+          Data: 14.5
+        - Name: Var4
+          Type: Double
+          Data: 30.700001
+        - Name: Var5
+          Type: SByte
+          Data: 127
+        - Name: Var15
+          Type: Vector4
+          Data: [5.0999999, 12.6999998, 10, 8.69999981]
+        - Name: Var6
+          Type: Byte
+          Data: 102
+        - Name: Var14
+          Type: Vector3
+          Data: [-5.4000001, -4.80000019, -4.9000001]
+        - Name: Var7
+          Type: Short
+          Data: 127
+        - Name: Var8
+          Type: UShort
+          Data: 241
+        - Name: Var9
+          Type: Int
+          Data: -192
   - Entity: 17908196038695326210
     TagComponent:
       Tag: Ground
@@ -83,3 +138,76 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 11764441337374806066
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0, 1, 0.607594967, 1]
+      Path: Textures\shipGreen_manned.png
+      Tiling: 1
+    ScriptComponent:
+      ClassName: GameProject.Source.Player
+      ScriptFields:
+        - Name: moveSpeed
+          Type: Float
+          Data: 50
+        - Name: rotSpeeed
+          Type: Float
+          Data: 2.20000005
+        - Name: movement
+          Type: Vector2
+          Data: [0, 0]
+        - Name: exampleString
+          Type: String
+          Data: Chicken
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      Smoothing: Interpolation
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 4439650569278229468
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: Perspective
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 10
+      Primary: true
+      FixedAspectRatio: false
+    ScriptComponent:
+      ClassName: GameProject.Source.Camera
+      ScriptFields:
+        - Name: DistanceFromPlayerMax
+          Type: Float
+          Data: 50
+        - Name: DistanceFromPlayer
+          Type: Float
+          Data: 0
+        - Name: DistanceFromPlayerMin
+          Type: Float
+          Data: 8
+        - Name: offSet
+          Type: Vector2
+          Data: [0, 2]
+        - Name: zoomSpeedPercentIncrease
+          Type: Float
+          Data: 0.5

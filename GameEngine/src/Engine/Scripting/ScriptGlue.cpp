@@ -85,6 +85,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_GetTiling);
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_SetTiling);
 
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulse);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
 	}
@@ -381,6 +382,14 @@ namespace InternalCalls
 #pragma endregion SpriteRendererComponent
 
 #pragma region Rigidbody2DComponent
+
+	void ScriptGlue::Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		const b2Vec2& rb2dVelocity = body->GetLinearVelocity();
+		*velocity = { rb2dVelocity.x, rb2dVelocity.y };
+	}
 
 	void ScriptGlue::Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake)
 	{

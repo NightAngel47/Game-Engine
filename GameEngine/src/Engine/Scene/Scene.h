@@ -26,30 +26,33 @@ namespace Engine
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
 		void DestroyEntity(Entity entity);
-		
-		void OnRuntimeStart();
-		void OnSimulationStart();
-
-		void OnRuntimeStop();
-		void OnSimulationStop();
-
-		void OnUpdateRuntime(Timestep ts);
-		void OnUpdateSimulation(Timestep ts, EditorCamera& camera);
-		void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 
 		void OnViewportResize(uint32_t width, uint32_t height);
 		Entity GetPrimaryCameraEntity();
+
+		void Step(int frames = 1);
+
+		Entity DuplicateEntity(Entity entity);
+		Entity GetEntityWithUUID(UUID uuid);
+		Entity FindEntityByName(const std::string_view& entityName);
+		
+		// Start Play/Sim Whole
+		void OnRuntimeStart();
+		void OnSimulationStart();
+
+		// Stop Play/Sim Whole
+		void OnRuntimeStop();
+		void OnSimulationStop();
+
+		// Update Play/Sim Whole
+		void OnUpdateRuntime(Timestep ts);
+		void OnUpdateSimulation(Timestep ts, EditorCamera& camera);
+		void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 
 		bool IsRunning() const { return m_IsRunning; }
 		bool IsPaused() const { return m_IsPaused; }
 
 		void SetPaused(bool paused) { m_IsPaused = paused; }
-
-		void Step(int frames = 1);
-
-		void DuplicateEntity(Entity entity);
-		Entity GetEntityWithUUID(UUID uuid);
-		Entity FindEntityByName(const std::string_view& entityName);
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -61,14 +64,19 @@ namespace Engine
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
 
+		// Start Play/Sim Section
 		void OnPhysics2DStart();
+		void OnScriptsCreate();
 		void OnScriptsStart();
 
+		// Stop Play/Sim Section
 		void OnPhysics2DStop();
 		void OnScriptsStop();
 
-		void OnPhysics2DUpdate(Timestep ts);
+		// Update Play/Sim Section
 		void OnScriptsUpdate(Timestep ts);
+		void OnPhysics2DUpdate(Timestep ts);
+		void OnScriptsLateUpdate(Timestep ts);
 		void OnRender2DUpdate();
 
 	private:
@@ -87,8 +95,8 @@ namespace Engine
 		float m_AccumulatorRatio = 0.0f;
 		const float m_PhysicsTimestep = 1.0f / 60.0f;
 		b2World* m_PhysicsWorld = nullptr;
-		uint32_t m_VelocityIteractions = 8;
-		uint32_t m_PositionIteractions = 3;
+		uint32_t m_VelocityIteractions = 20;
+		uint32_t m_PositionIteractions = 16;
 
 		friend class Entity;
 		friend class SceneSerializer;

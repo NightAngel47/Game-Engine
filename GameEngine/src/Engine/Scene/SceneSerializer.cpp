@@ -97,7 +97,7 @@ namespace YAML
 
 		static bool decode(const Node& node, Engine::UUID& uuid)
 		{
-			uuid = node[0].as<float>();
+			uuid = node[0].as<uint64_t>();
 			return true;
 		}
 	};
@@ -323,23 +323,23 @@ namespace Engine
 
 					switch (field.Type)
 					{
-						WRITE_SCRIPT_FIELD(Float,	float		);
-						WRITE_SCRIPT_FIELD(Double,	double		);
-						WRITE_SCRIPT_FIELD(Bool,	bool		);
-						WRITE_SCRIPT_FIELD(Char,	char		);
-						WRITE_SCRIPT_FIELD(String,	std::string	);
-						WRITE_SCRIPT_FIELD(Byte,	int8_t		);
-						WRITE_SCRIPT_FIELD(Short,	int16_t		);
-						WRITE_SCRIPT_FIELD(Int,		int32_t		);
-						WRITE_SCRIPT_FIELD(Long,	int64_t		);
-						WRITE_SCRIPT_FIELD(UByte,	uint8_t		);
-						WRITE_SCRIPT_FIELD(UShort,	uint16_t	);
-						WRITE_SCRIPT_FIELD(UInt,	uint32_t	);
-						WRITE_SCRIPT_FIELD(ULong,	uint64_t	);
-						WRITE_SCRIPT_FIELD(Vector2,	glm::vec2	);
-						WRITE_SCRIPT_FIELD(Vector3,	glm::vec3	);
-						WRITE_SCRIPT_FIELD(Vector4,	glm::vec4	);
-						WRITE_SCRIPT_FIELD(Entity,	UUID		);
+						WRITE_SCRIPT_FIELD(Float,	float			);
+						WRITE_SCRIPT_FIELD(Double,	double			);
+						WRITE_SCRIPT_FIELD(Bool,	bool			);
+						WRITE_SCRIPT_FIELD(Char,	char			);
+						WRITE_SCRIPT_FIELD(String,	std::string		);
+						WRITE_SCRIPT_FIELD(SByte,	int8_t			);
+						WRITE_SCRIPT_FIELD(Short,	int16_t			);
+						WRITE_SCRIPT_FIELD(Int,		int32_t			);
+						WRITE_SCRIPT_FIELD(Long,	int64_t			);
+						WRITE_SCRIPT_FIELD(Byte,	uint16_t		); // upcasting uint8_t to unint16_t to fix yaml-cpp encode/decode
+						WRITE_SCRIPT_FIELD(UShort,	uint16_t		);
+						WRITE_SCRIPT_FIELD(UInt,	uint32_t		);
+						WRITE_SCRIPT_FIELD(ULong,	uint64_t		);
+						WRITE_SCRIPT_FIELD(Vector2,	glm::vec2		);
+						WRITE_SCRIPT_FIELD(Vector3,	glm::vec3		);
+						WRITE_SCRIPT_FIELD(Vector4,	glm::vec4		);
+						WRITE_SCRIPT_FIELD(Entity,	UUID			);
 					default:
 						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(field.Type));
 					}
@@ -555,23 +555,23 @@ namespace Engine
 
 							switch (type)
 							{
-								READ_SCRIPT_FIELD(Float,	float		);
-								READ_SCRIPT_FIELD(Double,	double		);
-								READ_SCRIPT_FIELD(Bool,		bool		);
-								READ_SCRIPT_FIELD(Char,		char		);
-								READ_SCRIPT_FIELD(String,	std::string	);
-								READ_SCRIPT_FIELD(Byte,		int8_t		);
-								READ_SCRIPT_FIELD(Short,	int16_t		);
-								READ_SCRIPT_FIELD(Int,		int32_t		);
-								READ_SCRIPT_FIELD(Long,		int64_t		);
-								READ_SCRIPT_FIELD(UByte,	uint8_t		);
-								READ_SCRIPT_FIELD(UShort,	uint16_t	);
-								READ_SCRIPT_FIELD(UInt,		uint32_t	);
-								READ_SCRIPT_FIELD(ULong,	uint64_t	);
-								READ_SCRIPT_FIELD(Vector2,	glm::vec2	);
-								READ_SCRIPT_FIELD(Vector3,	glm::vec3	);
-								READ_SCRIPT_FIELD(Vector4,	glm::vec4	);
-								READ_SCRIPT_FIELD(Entity,	UUID		);
+								READ_SCRIPT_FIELD(Float,	float			);
+								READ_SCRIPT_FIELD(Double,	double			);
+								READ_SCRIPT_FIELD(Bool,		bool			);
+								READ_SCRIPT_FIELD(Char,		char			);
+								READ_SCRIPT_FIELD(String,	std::string		);
+								READ_SCRIPT_FIELD(SByte,	int8_t			);
+								READ_SCRIPT_FIELD(Short,	int16_t			);
+								READ_SCRIPT_FIELD(Int,		int32_t			);
+								READ_SCRIPT_FIELD(Long,		int64_t			);
+								READ_SCRIPT_FIELD(Byte,		uint16_t		); // upcasting uint8_t to unint16_t to fix yaml-cpp encode/decode
+								READ_SCRIPT_FIELD(UShort,	uint16_t		);
+								READ_SCRIPT_FIELD(UInt,		uint32_t		);
+								READ_SCRIPT_FIELD(ULong,	uint64_t		);
+								READ_SCRIPT_FIELD(Vector2,	glm::vec2		);
+								READ_SCRIPT_FIELD(Vector3,	glm::vec3		);
+								READ_SCRIPT_FIELD(Vector4,	glm::vec4		);
+								READ_SCRIPT_FIELD(Entity,	UUID			);
 							default:
 								ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", Utils::ScriptFieldTypeToString(type));
 							}

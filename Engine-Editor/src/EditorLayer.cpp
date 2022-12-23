@@ -134,7 +134,7 @@ namespace Engine
 	        window_flags |= ImGuiWindowFlags_NoBackground;
 
 	    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	    ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+	    ImGui::Begin("DockSpace", &dockspaceOpen, window_flags);
 	    ImGui::PopStyleVar();
 
 	    if (opt_fullscreen)
@@ -180,8 +180,12 @@ namespace Engine
 			if (ImGui::BeginMenu("Script"))
 	        {
 
-	        	if (ImGui::MenuItem("Reload Assembly", "Crtl+R"))
+				if (ImGui::MenuItem("Reload Assembly", "Crtl+R"))
+				{
 					ScriptEngine::ReloadAssembly();
+					// TODO prompt user to save any changes before reloading scene
+					OpenScene(m_EditorScenePath); // reload scene to match new assembly state
+				}
 
 	            ImGui::EndMenu();
 	        }
@@ -228,7 +232,7 @@ namespace Engine
 		m_ViewportFocused = ImGui::IsWindowFocused();
 		m_ViewportHovered = ImGui::IsWindowHovered();
 		Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
-		
+
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 		
@@ -480,6 +484,20 @@ namespace Engine
 
 				break;
 			}
+			case Key::Delete:
+			{
+				if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
+				{
+					Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+					if (selectedEntity)
+					{
+						m_SceneHierarchyPanel.SetSelectedEntity({});
+						m_EditorScene->DestroyEntity(selectedEntity);
+					}
+				}
+
+				break;
+			}
 		}
 
 		return false;
@@ -664,7 +682,8 @@ namespace Engine
 		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 		if (selectedEntity)
 		{
-			m_ActiveScene->DuplicateEntity(selectedEntity);
+			Entity newEntity = m_ActiveScene->DuplicateEntity(selectedEntity);
+			m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
 		}
 	}
 

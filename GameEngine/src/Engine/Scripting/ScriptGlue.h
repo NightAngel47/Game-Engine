@@ -111,10 +111,12 @@ namespace InternalCalls
 
 #pragma region Rigidbody2DComponent
 
+		static void Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity);
 		static void Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake);
 		static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(Engine::UUID entityID, glm::vec2& impulse, bool wake);
 
 #pragma endregion Rigidbody2DComponent
 	};
+
 }
 

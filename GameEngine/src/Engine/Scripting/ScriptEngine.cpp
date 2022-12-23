@@ -18,13 +18,15 @@
 #include <FileWatch.hpp>
 
 namespace Engine
-{
+{				
+				
 	static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
 	{
 		{ "System.Single",			ScriptFieldType::Float },
 		{ "System.Double",			ScriptFieldType::Double },
 		{ "System.Boolean",			ScriptFieldType::Bool },
 		{ "System.Char",			ScriptFieldType::Char },
+		{ "System.SByte",			ScriptFieldType::SByte },
 		{ "System.String",			ScriptFieldType::String },
 		{ "System.Int16",			ScriptFieldType::Short },
 		{ "System.Int32",			ScriptFieldType::Int },
@@ -74,6 +76,7 @@ namespace Engine
 		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
 		std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
+		std::unordered_map<std::string, ScriptFieldMap> ScriptFieldsDefaults;
 
 		Scene* SceneContext;
 
@@ -82,7 +85,6 @@ namespace Engine
 	};
 
 	static ScriptEngineData* s_ScriptEngineData = nullptr;
-
 
 	static bool CheckMonoError(MonoError& error)
 	{
@@ -190,6 +192,7 @@ namespace Engine
 		s_ScriptEngineData->EntityInstances.clear();
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->EntityScriptFields.clear();
+		s_ScriptEngineData->ScriptFieldsDefaults.clear();
 		delete s_ScriptEngineData;
 	}
 
@@ -280,6 +283,7 @@ namespace Engine
 		s_ScriptEngineData->EntityInstances.clear();
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->EntityScriptFields.clear();
+		s_ScriptEngineData->ScriptFieldsDefaults.clear();
 
 		// reload assemblies
 		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
@@ -292,6 +296,7 @@ namespace Engine
 	void ScriptEngine::LoadEntityClasses(MonoAssembly* assembly)
 	{
 		s_ScriptEngineData->EntityClasses.clear();
+		s_ScriptEngineData->ScriptFieldsDefaults.clear();
 
 		MonoImage* image = mono_assembly_get_image(assembly);
 		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
@@ -317,6 +322,11 @@ namespace Engine
 			Ref<ScriptClass> scriptClass = CreateRef<ScriptClass>(nameSpace, className);
 			s_ScriptEngineData->EntityClasses[fullName] = scriptClass;
 
+			// instantiate temp instance to get default values
+			MonoObject* instance = mono_object_new(s_ScriptEngineData->AppDomain, monoClass);
+			mono_runtime_object_init(instance);
+			ScriptFieldMap scriptDefaultMap;
+
 			// get class fields
 			int fieldCount = mono_class_num_fields(monoClass);
 			ENGINE_CORE_TRACE("{} has {} fields:", className, fieldCount);
@@ -333,8 +343,29 @@ namespace Engine
 				if (scriptField.IsPublic()) // tracking only public fields for now, want others for debug later
 				{
 					scriptClass->m_ScriptFields[fieldName] = scriptField;
+
+					// get default field value
+					ScriptFieldInstance& fieldInstance = scriptDefaultMap[fieldName];
+					fieldInstance.Field = scriptField;
+
+					uint8_t buffer[64];
+					memset(buffer, 0, sizeof(buffer));
+
+					mono_field_get_value(instance, field, buffer);
+
+					if (fieldType == ScriptFieldType::String)
+					{
+						std::string value = ScriptEngine::MonoStringToUTF8(*(MonoString**)buffer);
+						fieldInstance.SetValue(value);
+					}
+					else
+					{
+						memcpy(fieldInstance.m_Buffer, buffer, sizeof(fieldInstance.m_Buffer));
+					}
 				}
 			}
+			
+			s_ScriptEngineData->ScriptFieldsDefaults[fullName] = scriptDefaultMap;
 		}
 	}
 
@@ -366,6 +397,14 @@ namespace Engine
 		ENGINE_CORE_ASSERT(entity, "Entity doesn't exists!");
 
 		return s_ScriptEngineData->EntityScriptFields[entity.GetUUID()];
+	}
+
+	ScriptFieldMap ScriptEngine::GetDefaultScriptFieldMap(const std::string& scriptName)
+	{
+		if (!EntityClassExists(scriptName))
+			return {};
+
+		return s_ScriptEngineData->ScriptFieldsDefaults.at(scriptName);
 	}
 
 	Scene* ScriptEngine::GetSceneContext()
@@ -459,6 +498,19 @@ namespace Engine
 		}
 	}
 
+	void ScriptEngine::OnStartEntity(Entity entity)
+	{
+		const auto& sc = entity.GetComponent<ScriptComponent>();
+
+		if (EntityClassExists(sc.ClassName))
+		{
+			if (EntityInstanceExists(entity))
+			{
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnStart();
+			}
+		}
+	}
+
 	void ScriptEngine::OnDestroyEntity(Entity entity)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
@@ -484,6 +536,19 @@ namespace Engine
 			if (EntityInstanceExists(entity))
 			{
 				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnUpdate((float)ts);
+			}
+		}
+	}
+
+	void ScriptEngine::OnLateUpdateEntity(Entity entity, Timestep ts)
+	{
+		const auto& sc = entity.GetComponent<ScriptComponent>();
+
+		if (EntityClassExists(sc.ClassName))
+		{
+			if (EntityInstanceExists(entity))
+			{
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnLateUpdate((float)ts);
 			}
 		}
 	}
@@ -526,10 +591,8 @@ namespace Engine
 	}
 
 	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
-		: m_ScriptClass(scriptClass)
+		: m_ScriptClass(scriptClass), m_Instance(m_ScriptClass->Instantiate())
 	{
-		m_Instance = m_ScriptClass->Instantiate();
-
 		MonoMethod* constructor = mono_class_get_method_from_name(s_ScriptEngineData->EntityClass, ".ctor", 1);
 		{
 			UUID id = entity.GetUUID();
@@ -541,36 +604,33 @@ namespace Engine
 
 		// setup onCreate method
 		MonoMethod* OnCreateMethodPtr = mono_class_get_method_from_name(monoClass, "OnCreate", 0);
-		if (OnCreateMethodPtr)
-		{
-			OnCreateThunk = (OnCreate)mono_method_get_unmanaged_thunk(OnCreateMethodPtr);
-		}
-		else
-		{
+		OnCreateThunk = OnCreateMethodPtr ? (OnCreate)mono_method_get_unmanaged_thunk(OnCreateMethodPtr) : nullptr;
+		if (!OnCreateThunk)
 			ENGINE_CORE_WARN("Could not find create method desc in class!");
-		}
+
+		// setup onStart method
+		MonoMethod* OnStartMethodPtr = mono_class_get_method_from_name(monoClass, "OnStart", 0);
+		OnStartThunk = OnStartMethodPtr ? (OnCreate)mono_method_get_unmanaged_thunk(OnStartMethodPtr) : nullptr;
+		if (!OnStartThunk)
+			ENGINE_CORE_WARN("Could not find start method desc in class!");
 
 		// setup onDestroy method
 		MonoMethod* OnDestroyMethodPtr = mono_class_get_method_from_name(monoClass, "OnDestroy", 0);
-		if (OnDestroyMethodPtr)
-		{
-			OnDestroyThunk = (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr);
-		}
-		else
-		{
+		OnDestroyThunk = OnDestroyMethodPtr ? (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr) : nullptr;
+		if (OnDestroyThunk)
 			ENGINE_CORE_WARN("Could not find destroy method desc in class!");
-		}
 
 		// setup onUpdate method
 		MonoMethod* OnUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnUpdate", 1);
-		if (OnUpdateMethodPtr)
-		{
-			OnUpdateThunk = (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr);
-		}
-		else
-		{
+		OnUpdateThunk = OnUpdateMethodPtr ? (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr) : nullptr;
+		if (OnUpdateThunk)
 			ENGINE_CORE_WARN("Could not find update method desc in class!");
-		}
+
+		// setup onLateUpdate method
+		MonoMethod* OnLateUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnLateUpdate", 1);
+		OnLateUpdateThunk = OnLateUpdateMethodPtr ? (OnLateUpdate)mono_method_get_unmanaged_thunk(OnLateUpdateMethodPtr) : nullptr;
+		if (OnLateUpdateThunk)
+			ENGINE_CORE_WARN("Could not find late update method desc in class!");
 	}
 
 	void ScriptInstance::InvokeOnCreate()
@@ -579,6 +639,15 @@ namespace Engine
 
 		MonoObject* ptrExObject = nullptr;
 		OnCreateThunk(m_Instance, &ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
+	}
+
+	void ScriptInstance::InvokeOnStart()
+	{
+		if (!OnStartThunk) return; // handle script without OnStart
+
+		MonoObject* ptrExObject = nullptr;
+		OnStartThunk(m_Instance, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
@@ -597,6 +666,15 @@ namespace Engine
 
 		MonoObject* ptrExObject = nullptr;
 		OnUpdateThunk(m_Instance, &ts, &ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
+	}
+
+	void ScriptInstance::InvokeOnLateUpdate(float ts)
+	{
+		if (!OnLateUpdateThunk) return; // handle script without OnLateUpdate
+
+		MonoObject* ptrExObject = nullptr;
+		OnLateUpdateThunk(m_Instance, &ts, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
