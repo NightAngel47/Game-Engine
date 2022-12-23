@@ -505,12 +505,15 @@ namespace Engine
 				case ScriptFieldType::Char:
 				{
 					SETUP_SCRIPT_FIELD(name, field, sceneRunning, fieldExists, entityFields);
-
+					
 					char buffer[2];
 					memset(buffer, 0, sizeof(buffer));
-					strcpy_s(buffer, sizeof(buffer), sceneRunning ? scriptInstance->GetFieldValue<std::string>(name).c_str() : fieldExists ? scriptField.GetValue<std::string>().c_str() : ""); // default "" TODO read script default value
-					if (ImGui::InputText(("##" + name).c_str(), buffer, sizeof(buffer)))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(buffer)) : scriptField.SetValue(std::string(buffer));
+					buffer[0] = sceneRunning ? scriptInstance->GetFieldValue<char>(name) : fieldExists ? scriptField.GetValue<char>() : ' '; // default ' ' TODO read script default value
+					if (ImGui::InputText(("##" + name).c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
+					{
+						sceneRunning ? scriptInstance->SetFieldValue(name, &buffer[0]) : scriptField.SetValue(buffer[0]);
+					}
+
 					break;
 				}
 				case ScriptFieldType::String:

@@ -1,85 +1,41 @@
 Scene: ScriptRefactor.scene
 Entities:
-  - Entity: 6453289136765797799
+  - Entity: 4439650569278229468
     TagComponent:
-      Tag: VariableValidator
+      Tag: Camera
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: Perspective
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 10
+      Primary: true
+      FixedAspectRatio: false
     ScriptComponent:
-      ClassName: GameProject.Source.VariableValidator
+      ClassName: GameProject.Source.Camera
       ScriptFields:
-        - Name: Var13
-          Type: Vector2
-          Data: [18.8999996, 13.3999996]
-        - Name: Var0
-          Type: Bool
-          Data: true
-        - Name: Var12
-          Type: ULong
-          Data: 1498
-        - Name: Var1
-          Type: Char
-          Data: H
-        - Name: Var11
-          Type: Long
-          Data: 1614
-        - Name: Var2
-          Type: String
-          Data: asdf
-        - Name: Var10
-          Type: UInt
-          Data: 2226
-        - Name: Var3
+        - Name: DistanceFromPlayerMax
           Type: Float
-          Data: 14.5
-        - Name: Var4
-          Type: Double
-          Data: 30.700001
-        - Name: Var5
-          Type: SByte
-          Data: 127
-        - Name: Var15
-          Type: Vector4
-          Data: [5.0999999, 12.6999998, 10, 8.69999981]
-        - Name: Var6
-          Type: Byte
-          Data: 102
-        - Name: Var14
-          Type: Vector3
-          Data: [-5.4000001, -4.80000019, -4.9000001]
-        - Name: Var7
-          Type: Short
-          Data: 127
-        - Name: Var8
-          Type: UShort
-          Data: 241
-        - Name: Var9
-          Type: Int
-          Data: -192
-  - Entity: 17908196038695326210
-    TagComponent:
-      Tag: Ground
-    TransformComponent:
-      Position: [-3.06509781, -1.70000005, 0]
-      Rotation: [0, 0, 0]
-      Scale: [15, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [0, 0.421940923, 0.416917831, 1]
-      Path: ""
-      Tiling: 1
-    Rigidbody2DComponent:
-      Type: Static
-      FixedRotation: false
-      Smoothing: Interpolation
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
+          Data: 50
+        - Name: DistanceFromPlayer
+          Type: Float
+          Data: 0
+        - Name: DistanceFromPlayerMin
+          Type: Float
+          Data: 8
+        - Name: offSet
+          Type: Vector2
+          Data: [0, 2]
+        - Name: zoomSpeedPercentIncrease
+          Type: Float
+          Data: 0.5
   - Entity: 11764441337374806066
     TagComponent:
       Tag: Player
@@ -117,39 +73,83 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 4439650569278229468
+  - Entity: 17908196038695326210
     TagComponent:
-      Tag: Camera
+      Tag: Ground
+    TransformComponent:
+      Position: [-3.06509781, -1.70000005, 0]
+      Rotation: [0, 0, 0]
+      Scale: [15, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [0, 0.421940923, 0.416917831, 1]
+      Path: ""
+      Tiling: 1
+    Rigidbody2DComponent:
+      Type: Static
+      FixedRotation: false
+      Smoothing: Interpolation
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 6453289136765797799
+    TagComponent:
+      Tag: VariableValidator
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: Perspective
-        PerspectiveFOV: 0.785398185
-        PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
-        OrthographicSize: 10
-        OrthographicNear: -1
-        OrthographicFar: 10
-      Primary: true
-      FixedAspectRatio: false
     ScriptComponent:
-      ClassName: GameProject.Source.Camera
+      ClassName: GameProject.Source.VariableValidator
       ScriptFields:
-        - Name: DistanceFromPlayerMax
-          Type: Float
-          Data: 50
-        - Name: DistanceFromPlayer
-          Type: Float
-          Data: 0
-        - Name: DistanceFromPlayerMin
-          Type: Float
-          Data: 8
-        - Name: offSet
+        - Name: Var13
           Type: Vector2
-          Data: [0, 2]
-        - Name: zoomSpeedPercentIncrease
+          Data: [18.8999996, 13.3999996]
+        - Name: Var0
+          Type: Bool
+          Data: true
+        - Name: Var12
+          Type: ULong
+          Data: 1498
+        - Name: Var1
+          Type: Char
+          Data: y
+        - Name: Var11
+          Type: Long
+          Data: 1614
+        - Name: Var2
+          Type: String
+          Data: asdf
+        - Name: Var10
+          Type: UInt
+          Data: 2226
+        - Name: Var3
           Type: Float
-          Data: 0.5
+          Data: 14.5
+        - Name: Var4
+          Type: Double
+          Data: 30.700001
+        - Name: Var5
+          Type: SByte
+          Data: 127
+        - Name: Var15
+          Type: Vector4
+          Data: [5.0999999, 12.6999998, 10, 8.69999981]
+        - Name: Var6
+          Type: Byte
+          Data: 102
+        - Name: Var14
+          Type: Vector3
+          Data: [-5.4000001, -4.80000019, -4.9000001]
+        - Name: Var7
+          Type: Short
+          Data: 127
+        - Name: Var8
+          Type: UShort
+          Data: 241
+        - Name: Var9
+          Type: Int
+          Data: -192

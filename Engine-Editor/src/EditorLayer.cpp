@@ -134,7 +134,7 @@ namespace Engine
 	        window_flags |= ImGuiWindowFlags_NoBackground;
 
 	    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	    ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+	    ImGui::Begin("DockSpace", &dockspaceOpen, window_flags);
 	    ImGui::PopStyleVar();
 
 	    if (opt_fullscreen)
@@ -152,8 +152,6 @@ namespace Engine
 	    }
 		
 		style.WindowMinSize.x = minWinSizeX;
-
-		ImGui::ShowDemoWindow();
 
 	    if (ImGui::BeginMenuBar())
 	    {

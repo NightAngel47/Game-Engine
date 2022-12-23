@@ -448,10 +448,12 @@ namespace Engine
 					{
 						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(*(std::string*)fieldInstance.m_Buffer));
 					}
-					else if (fieldInstance.Field.Type == ScriptFieldType::Char)
-					{
-						instance->SetFieldValueInternal(name, &fieldInstance.m_Buffer[sizeof(char*)]);
-					}
+					//else if (fieldInstance.Field.Type == ScriptFieldType::Char)
+					//{
+					//	std::string& buffer = *(std::string*)fieldInstance.m_Buffer;
+					//	const char* charBuffer = buffer.c_str();
+					//	instance->SetFieldValueInternal(name, charBuffer);
+					//}
 					else
 					{
 						instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);

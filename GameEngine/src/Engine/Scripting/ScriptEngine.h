@@ -213,12 +213,6 @@ namespace Engine
 			return ScriptEngine::MonoStringToUTF8(*(MonoString**)s_FieldValueBuffer);
 		}
 
-		template<>
-		char GetFieldValue(const std::string& name)
-		{
-			return *GetFieldValue<std::string>(name).c_str();
-		}
-
 		template<typename T>
 		void SetFieldValue(const std::string& name, T* value)
 		{

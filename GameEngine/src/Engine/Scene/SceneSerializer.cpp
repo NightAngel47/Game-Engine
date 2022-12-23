@@ -326,7 +326,7 @@ namespace Engine
 						WRITE_SCRIPT_FIELD(Float,	float			);
 						WRITE_SCRIPT_FIELD(Double,	double			);
 						WRITE_SCRIPT_FIELD(Bool,	bool			);
-						WRITE_SCRIPT_FIELD(Char,	std::string		); // handling char as a one character string
+						WRITE_SCRIPT_FIELD(Char,	char			);
 						WRITE_SCRIPT_FIELD(String,	std::string		);
 						WRITE_SCRIPT_FIELD(SByte,	int8_t			);
 						WRITE_SCRIPT_FIELD(Short,	int16_t			);
@@ -558,7 +558,7 @@ namespace Engine
 								READ_SCRIPT_FIELD(Float,	float			);
 								READ_SCRIPT_FIELD(Double,	double			);
 								READ_SCRIPT_FIELD(Bool,		bool			);
-								READ_SCRIPT_FIELD(Char,		std::string		); // handling char as a one character string
+								READ_SCRIPT_FIELD(Char,		char			);
 								READ_SCRIPT_FIELD(String,	std::string		);
 								READ_SCRIPT_FIELD(SByte,	int8_t			);
 								READ_SCRIPT_FIELD(Short,	int16_t			);
