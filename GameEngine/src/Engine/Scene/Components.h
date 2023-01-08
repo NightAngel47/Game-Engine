@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Renderer/Texture.h"
+#include "Engine/Renderer/SubTexture2D.h"
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Core/UUID.h"
@@ -58,6 +59,13 @@ namespace Engine
 		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
 		std::filesystem::path Path = "";
+
+		//Sub Texture
+		bool IsSubTexture = false;
+		Ref<SubTexture2D> SubTexture = nullptr;
+		glm::vec2 SubCoords = { 0.0f, 0.0f };
+		glm::vec2 SubCellSize = { 0.0f, 0.0f };
+		glm::vec2 SubSpriteSize = { 1.0f, 1.0f };
 	
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -70,6 +78,16 @@ namespace Engine
 			{
 				Path = path;
 				Texture = Texture2D::Create(Project::GetAssetFileSystemPath(path).string());
+
+				GenerateSubTexture();
+			}
+		}
+
+		void GenerateSubTexture()
+		{
+			if (IsSubTexture)
+			{
+				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
 			}
 		}
 	};

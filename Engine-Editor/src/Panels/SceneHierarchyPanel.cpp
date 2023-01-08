@@ -380,6 +380,24 @@ namespace Engine
 			}
 			
 			ImGui::DragFloat("Tiling", &component.Tiling, 0.1f);
+
+			ImGui::Separator();
+			bool subtextureInvalidated = false;
+			ImGui::Text("Sub-Texture Settings");
+
+			if (ImGui::Checkbox("Is Sub-Texture", &component.IsSubTexture))
+				subtextureInvalidated = true;
+			if (ImGui::DragFloat2("Sub-Coords", glm::value_ptr(component.SubCoords), 1.0f, 0.0f, std::numeric_limits<float>().max(), "%.0f"))
+				subtextureInvalidated = true;
+			if (ImGui::DragFloat2("Sub-CellSize", glm::value_ptr(component.SubCellSize), 1.0f, 0.0f, std::numeric_limits<float>().max(), "%.0f"))
+				subtextureInvalidated = true;
+			if (ImGui::DragFloat2("Sub-SpriteSize", glm::value_ptr(component.SubSpriteSize), 1.0f, 1.0f, std::numeric_limits<float>().max(), "%.0f"))
+				subtextureInvalidated = true;
+
+			if (subtextureInvalidated)
+			{
+				component.GenerateSubTexture();
+			}
 		});
 		
 		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)

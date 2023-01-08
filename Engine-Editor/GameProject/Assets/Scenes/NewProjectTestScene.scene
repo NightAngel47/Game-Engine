@@ -1,5 +1,155 @@
 Scene: NewProjectTestScene.scene
 Entities:
+  - Entity: 5271954409781187714
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [9.7574749, 3.76528287, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
+  - Entity: 282602155941504965
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [9.7574749, 3.76528287, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
+  - Entity: 8691444214683072516
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [9.23707199, -0.4672966, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
+  - Entity: 15424259805620975629
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [5.51627254, -2.01831341, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
+  - Entity: 4189482330867659004
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [5.48157787, -6.49374485, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
+  - Entity: 1942476773695885484
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [-3.15711188, -4.82846832, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
+  - Entity: 3166044662196759708
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [1.21427405, -0.804048538, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
+  - Entity: 9995167163037237062
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [-5.82851362, 0.58368212, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
+  - Entity: 7681733159336109424
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [-0.555096626, 4.95503473, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
+  - Entity: 8062841876405131879
+    TagComponent:
+      Tag: Sprite
+    TransformComponent:
+      Position: [5.86320877, 4.92034054, 0]
+      Rotation: [0, 0, -0.656702578]
+      Scale: [6, 6, 1]
+    SpriteRendererComponent:
+      Color: [0.755274296, 0.245384455, 0.245384455, 1]
+      Path: Textures\RPGpack_sheet_2X.png
+      Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]
   - Entity: 3797763953371755923
     TagComponent:
       Tag: Camera
@@ -29,3 +179,7 @@ Entities:
       Color: [0.755274296, 0.245384455, 0.245384455, 1]
       Path: Textures\RPGpack_sheet_2X.png
       Tiling: 4
+      IsSubTexture: true
+      SubCoords: [5, 8]
+      SubCellSize: [256, 256]
+      SubSpriteSize: [2, 2]

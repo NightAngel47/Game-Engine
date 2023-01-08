@@ -277,6 +277,11 @@ namespace Engine
 			out << YAML::Key << "Path" << YAML::Value << spriteRendererComponent.Path.string();
 			out << YAML::Key << "Tiling" << YAML::Value << spriteRendererComponent.Tiling;
 
+			out << YAML::Key << "IsSubTexture" << YAML::Value << spriteRendererComponent.IsSubTexture;
+			out << YAML::Key << "SubCoords" << YAML::Value << spriteRendererComponent.SubCoords;
+			out << YAML::Key << "SubCellSize" << YAML::Value << spriteRendererComponent.SubCellSize;
+			out << YAML::Key << "SubSpriteSize" << YAML::Value << spriteRendererComponent.SubSpriteSize;
+
 			out << YAML::EndMap; // SpriteRendererComponent
 		}
 		
@@ -505,8 +510,14 @@ namespace Engine
 					auto& spriteRenderer = deserializedEntity.AddComponent<SpriteRendererComponent>();
 					spriteRenderer.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 					spriteRenderer.Path = spriteRendererComponent["Path"].as<std::string>();
-					spriteRenderer.LoadTexture(spriteRenderer.Path);
 					spriteRenderer.Tiling = spriteRendererComponent["Tiling"].as<float>();
+
+					spriteRenderer.IsSubTexture = spriteRendererComponent["IsSubTexture"].as<bool>();
+					spriteRenderer.SubCoords = spriteRendererComponent["SubCoords"].as<glm::vec2>();
+					spriteRenderer.SubCellSize = spriteRendererComponent["SubCellSize"].as<glm::vec2>();
+					spriteRenderer.SubSpriteSize = spriteRendererComponent["SubSpriteSize"].as<glm::vec2>();
+
+					spriteRenderer.LoadTexture(spriteRenderer.Path);
 				}
 
 				auto circleRendererComponent = entity["CircleRendererComponent"];

@@ -29,3 +29,7 @@ Entities:
       Color: [1, 1, 1, 1]
       Path: textures\temple.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]

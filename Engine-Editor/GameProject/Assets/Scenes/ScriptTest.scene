@@ -11,6 +11,10 @@ Entities:
       Color: [0.227450982, 0.121568628, 0.294117659, 1]
       Path: textures\Checkerboard.png
       Tiling: 11
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
@@ -33,6 +37,10 @@ Entities:
       Color: [0.226403013, 0.119638942, 0.295358658, 1]
       Path: textures\Checkerboard.png
       Tiling: 11
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
@@ -55,6 +63,10 @@ Entities:
       Color: [0.999990523, 1, 0.999989986, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
   - Entity: 3290987784417831286
     TagComponent:
       Tag: Camera

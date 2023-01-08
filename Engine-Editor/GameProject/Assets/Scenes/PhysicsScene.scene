@@ -29,6 +29,10 @@ Entities:
       Color: [0, 0.481012583, 1, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
@@ -51,6 +55,10 @@ Entities:
       Color: [0, 0.316455722, 0.144207641, 1]
       Path: textures\Checkerboard.png
       Tiling: 5
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
@@ -73,6 +81,10 @@ Entities:
       Color: [0, 0.481012583, 1, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
@@ -95,6 +107,10 @@ Entities:
       Color: [0, 0.481012583, 1, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
@@ -117,6 +133,10 @@ Entities:
       Color: [0, 0.481012583, 1, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
@@ -139,6 +159,10 @@ Entities:
       Color: [0, 0.481012583, 1, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
@@ -161,6 +185,10 @@ Entities:
       Color: [0, 0.481012583, 1, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
@@ -183,6 +211,10 @@ Entities:
       Color: [0, 0.481012583, 1, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
@@ -205,6 +237,10 @@ Entities:
       Color: [0, 0.481012583, 1, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
@@ -227,6 +263,10 @@ Entities:
       Color: [0, 0.481012583, 1, 1]
       Path: textures\shipGreen_manned.png
       Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Dynamic
       FixedRotation: false
@@ -249,6 +289,10 @@ Entities:
       Color: [0, 0.316455722, 0.144207641, 1]
       Path: textures\Checkerboard.png
       Tiling: 5
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
@@ -271,6 +315,10 @@ Entities:
       Color: [0, 0.316455722, 0.144207641, 1]
       Path: textures\Checkerboard.png
       Tiling: 5
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
@@ -293,6 +341,10 @@ Entities:
       Color: [0.316455722, 0, 0, 1]
       Path: textures\Checkerboard.png
       Tiling: 5
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
@@ -315,6 +367,10 @@ Entities:
       Color: [0, 0.316455722, 0.144207641, 1]
       Path: textures\Checkerboard.png
       Tiling: 5
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
     Rigidbody2DComponent:
       Type: Static
       FixedRotation: false
