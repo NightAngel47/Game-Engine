@@ -1,0 +1,129 @@
+Scene: SpaceGame.scene
+Entities:
+  - Entity: 14915008708924800273
+    TagComponent:
+      Tag: Colored Background
+    TransformComponent:
+      Position: [0, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [100, 10000, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Path: Textures\Checkerboard.png
+      Tiling: 2
+      IsSubTexture: true
+      SubCoords: [0, 0]
+      SubCellSize: [100, 10000]
+      SubSpriteSize: [1, 1]
+    ScriptComponent:
+      ClassName: GameProject.Source.ColorChanger
+      ScriptFields:
+        - Name: secondsBetween
+          Type: Float
+          Data: 5
+        - Name: color
+          Type: Vector4
+          Data: [0, 0, 0, 0]
+  - Entity: 12940202294083603207
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: Perspective
+        PerspectiveFOV: 1.04719758
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 100
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 100
+      Primary: true
+      FixedAspectRatio: false
+    ScriptComponent:
+      ClassName: GameProject.Source.Camera
+      ScriptFields:
+        - Name: DistanceFromPlayerMax
+          Type: Float
+          Data: 16
+        - Name: DistanceFromPlayer
+          Type: Float
+          Data: 0
+        - Name: DistanceFromPlayerMin
+          Type: Float
+          Data: 8
+        - Name: offSet
+          Type: Vector2
+          Data: [0, -2]
+        - Name: zoomSpeedPercentIncrease
+          Type: Float
+          Data: 0.00999999978
+  - Entity: 9803254290711981613
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Position: [0, -3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [20, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.303797483, 0.303794444, 0.303794444, 1]
+      Path: ""
+      Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
+    Rigidbody2DComponent:
+      Type: Static
+      FixedRotation: false
+      Smoothing: None
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 1353344786687538892
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Path: Textures\shipGreen_manned.png
+      Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
+    ScriptComponent:
+      ClassName: GameProject.Source.Player
+      ScriptFields:
+        - Name: moveSpeed
+          Type: Float
+          Data: 50
+        - Name: rotSpeeed
+          Type: Float
+          Data: 5
+        - Name: movement
+          Type: Vector2
+          Data: [0, 0]
+        - Name: exampleString
+          Type: String
+          Data: Example
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      Smoothing: Interpolation
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5

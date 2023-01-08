@@ -40,7 +40,7 @@ Entities:
     TagComponent:
       Tag: Player
     TransformComponent:
-      Position: [0, 0, 0]
+      Position: [-0.0882119834, 0.264635026, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -49,8 +49,8 @@ Entities:
       Tiling: 1
       IsSubTexture: false
       SubCoords: [0, 0]
-      SubCellSize: [0, 0]
-      SubSpriteSize: [1, 1]
+      SubCellSize: [124, 124]
+      SubSpriteSize: [3, 3]
     ScriptComponent:
       ClassName: GameProject.Source.Player
       ScriptFields:
@@ -103,67 +103,16 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 6453289136765797799
+  - Entity: 2672660962227343174
     TagComponent:
-      Tag: VariableValidator
+      Tag: Entity
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    ScriptComponent:
-      ClassName: GameProject.Source.VariableValidator
-      ScriptFields:
-        - Name: Var13
-          Type: Vector2
-          Data: [18.8999996, 13.3999996]
-        - Name: Var0
-          Type: Bool
-          Data: true
-        - Name: Var12
-          Type: ULong
-          Data: 1498
-        - Name: Var1
-          Type: Char
-          Data: y
-        - Name: Var11
-          Type: Long
-          Data: 1614
-        - Name: Var2
-          Type: String
-          Data: asdf
-        - Name: Var10
-          Type: UInt
-          Data: 2226
-        - Name: Var3
-          Type: Float
-          Data: 14.5
-        - Name: Var4
-          Type: Double
-          Data: 30.700001
-        - Name: Var5
-          Type: SByte
-          Data: 127
-        - Name: Var15
-          Type: Vector4
-          Data: [5.0999999, 12.6999998, 10, 8.69999981]
-        - Name: Var6
-          Type: Byte
-          Data: 102
-        - Name: Var14
-          Type: Vector3
-          Data: [-5.4000001, -4.80000019, -4.9000001]
-        - Name: Var7
-          Type: Short
-          Data: 127
-        - Name: Var8
-          Type: UShort
-          Data: 241
-        - Name: Var9
-          Type: Int
-          Data: -192
   - Entity: 13451980592939124771
     TagComponent:
-      Tag: Entity
+      Tag: Variable Validator
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
