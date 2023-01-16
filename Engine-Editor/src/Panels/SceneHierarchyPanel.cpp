@@ -408,10 +408,14 @@ namespace Engine
 			ImGui::DragFloat("Fade", &component.Fade, 0.0001f, 0.0f, 1.0f);
 		});
 		
-		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
+		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [&](auto& component)
 		{
+			bool sceneRunning = m_Context->IsRunning();
+			auto body = (b2Body*)component.RuntimeBody;
+
 			const char* bodyTypeStrings[3] = { "Static", "Dynamic", "Kinematic" };
-			const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
+			int bodyTypeIndex = sceneRunning ? (int)Engine::Utils::Box2DBodyTypeToRigidbody2DType(body->GetType()) : (int)component.Type;
+			const char* currentBodyTypeString = bodyTypeStrings[bodyTypeIndex];
 
 			if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
 			{
@@ -419,7 +423,13 @@ namespace Engine
 				{
 					bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
 					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
-						component.Type = (Rigidbody2DComponent::BodyType)i;
+					{
+						Rigidbody2DComponent::BodyType selectedBody = (Rigidbody2DComponent::BodyType)i;
+						if (sceneRunning)
+							body->SetType(Engine::Utils::Rigidbody2DTypeToBox2DBodyType(selectedBody));
+						else
+							component.Type = selectedBody;
+					}
 
 					if (isSelected)
 						ImGui::SetItemDefaultFocus();

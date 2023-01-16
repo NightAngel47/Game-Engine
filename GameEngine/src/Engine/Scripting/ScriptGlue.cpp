@@ -4,8 +4,8 @@
 
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Entity.h"
-#include "Engine/Scene/Components.h"
 #include "Engine/Math/Random.h"
+#include "Engine/Physics/Physics2D.h"
 
 #include <box2d/b2_body.h>
 
@@ -88,6 +88,8 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulse);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
 	}
 
 	template<typename... Component>
@@ -403,6 +405,20 @@ namespace InternalCalls
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
 		body->ApplyLinearImpulseToCenter(b2Vec2(impulse.x, impulse.y), wake);
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		*bodyType = Engine::Utils::Box2DBodyTypeToRigidbody2DType(body->GetType());
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_SetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType bodyType)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		body->SetType(Engine::Utils::Rigidbody2DTypeToBox2DBodyType(bodyType));
 	}
 
 #pragma endregion Rigidbody2DComponent

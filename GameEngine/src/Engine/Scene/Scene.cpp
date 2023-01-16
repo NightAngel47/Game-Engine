@@ -5,7 +5,7 @@
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Renderer/Renderer2D.h"
-
+#include "Engine/Physics/Physics2D.h"
 #include "Engine/Scripting/ScriptEngine.h"
 
 #include <glm/glm.hpp>
@@ -18,21 +18,9 @@
 #include "box2d/b2_circle_shape.h"
 #include <box2d/b2_types.h>
 
+
 namespace Engine
 {
-	static b2BodyType Rigidbody2DTypeToBox2DBodyType(Rigidbody2DComponent::BodyType bodyType)
-	{
-		switch (bodyType)
-		{
-			case Rigidbody2DComponent::BodyType::Static:	return b2BodyType::b2_staticBody;
-			case Rigidbody2DComponent::BodyType::Dynamic:	return b2BodyType::b2_dynamicBody;
-			case Rigidbody2DComponent::BodyType::Kinematic:	return b2BodyType::b2_kinematicBody;
-		}
-
-		ENGINE_ASSERT(false, "Unknown body type!");
-		return b2_staticBody;
-	}
-
 	template<typename... Component>
 	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap)
 	{
@@ -291,7 +279,7 @@ namespace Engine
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
 			b2BodyDef bodyDef;
-			bodyDef.type = Rigidbody2DTypeToBox2DBodyType(rb2d.Type);
+			bodyDef.type = Utils::Rigidbody2DTypeToBox2DBodyType(rb2d.Type);
 			bodyDef.position.Set(transform.Position.x, transform.Position.y);
 			bodyDef.angle = transform.Rotation.z;
 

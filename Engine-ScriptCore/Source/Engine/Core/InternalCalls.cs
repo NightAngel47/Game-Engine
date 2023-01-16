@@ -162,6 +162,12 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_ApplyLinearImpulseToCenter(ulong entityID, ref Vector2 impulse, bool wake);
+		
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_GetType(ulong entityID, out int bodyType);
+		
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_SetType(ulong entityID, int bodyType);
 
 		#endregion Rigidbody2DComponent
 	}

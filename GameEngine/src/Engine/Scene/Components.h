@@ -152,6 +152,7 @@ namespace Engine
 			Static = 0, Dynamic, Kinematic
 		};
 		BodyType Type = BodyType::Static;
+
 		bool FixedRotation = false;
 
 		enum class SmoothingType {

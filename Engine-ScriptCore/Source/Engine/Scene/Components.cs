@@ -1,5 +1,7 @@
 ﻿using Engine.Math;
 using Engine.Core;
+using Engine.Physics;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace Engine.Scene
 {
@@ -74,6 +76,17 @@ namespace Engine.Scene
 				InternalCalls.Rigidbody2DComponent_GetLinearVelocity(Entity.ID, out Vector2 velocity);
 				return velocity;
 			}
+		}
+
+		public BodyType Body
+		{
+			get
+			{
+				InternalCalls.Rigidbody2DComponent_GetType(Entity.ID, out int bodyType);
+				return (BodyType)bodyType;
+			}
+
+			set => InternalCalls.Rigidbody2DComponent_SetType(Entity.ID, (int)value);
 		}
 
 		public void ApplyLinearImpulse(Vector2 impulse, Vector2 worldPosition, bool wake)
