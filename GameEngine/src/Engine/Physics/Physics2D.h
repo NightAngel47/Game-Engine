@@ -2,6 +2,7 @@
 #include "Engine/Scene/Components.h"
 
 #include <box2d/b2_body.h>
+#include <box2d/b2_world.h>
 
 namespace Engine
 {
@@ -33,4 +34,12 @@ namespace Engine
 			return Rigidbody2DComponent::BodyType::Static;
 		}
 	}
+
+	class Physics2D
+	{
+	public:
+		static b2Body* CreateRigidbody(const TransformComponent& transform, Rigidbody2DComponent& rb2d, b2World* world);
+		static b2Fixture* CreateCollider(const TransformComponent& transform, const Rigidbody2DComponent& rb2d, const BoxCollider2DComponent& bc2d);
+		static b2Fixture* CreateCollider(const TransformComponent& transform, const Rigidbody2DComponent& rb2d, const CircleCollider2DComponent& cc2d);
+	};
 }

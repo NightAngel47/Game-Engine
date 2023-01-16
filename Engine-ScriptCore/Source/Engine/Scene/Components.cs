@@ -78,7 +78,7 @@ namespace Engine.Scene
 			}
 		}
 
-		public BodyType Body
+		public BodyType Type
 		{
 			get
 			{
@@ -98,5 +98,10 @@ namespace Engine.Scene
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
 		}
+	}
+
+	public class BoxCollider2DComponent : Component
+	{
+
 	}
 }
