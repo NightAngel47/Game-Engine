@@ -12,6 +12,7 @@
 namespace InternalCalls
 {
 	static std::unordered_map < MonoType*, std::function<bool(Engine::Entity) >> s_EntityHasComponentFuncs;
+	static std::unordered_map < MonoType*, std::function<void(Engine::Entity) >> s_EntityAddComponentFuncs;
 
 	static Engine::Entity GetEntityFromScene(Engine::UUID entityID)
 	{
@@ -70,7 +71,9 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector4_sqrMagnitude);
 
 		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
+		ENGINE_ADD_INTERNAL_CALL(Entity_AddComponent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_FindEntityByName);
+		ENGINE_ADD_INTERNAL_CALL(Entity_CreateEntity);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetScriptInstance);
 
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetPosition);
@@ -109,6 +112,7 @@ namespace InternalCalls
 				return;
 			}
 			s_EntityHasComponentFuncs[managedType] = [](Engine::Entity entity) { return entity.HasComponent<Component>(); };
+			s_EntityAddComponentFuncs[managedType] = [](Engine::Entity entity) { entity.AddComponent<Component>(); };
 		}(), ... );
 	}
 
@@ -277,6 +281,14 @@ namespace InternalCalls
 		return s_EntityHasComponentFuncs.at(managedType)(entity);
 	}
 
+	void ScriptGlue::Entity_AddComponent(Engine::UUID entityID, MonoReflectionType* componentType)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		MonoType* managedType = mono_reflection_type_get_type(componentType);
+		ENGINE_CORE_ASSERT(s_EntityAddComponentFuncs.find(managedType) != s_EntityAddComponentFuncs.end());
+		s_EntityAddComponentFuncs.at(managedType)(entity);
+	}
+
 	uint64_t ScriptGlue::Entity_FindEntityByName(MonoString* name)
 	{
 		std::string entityName = Engine::ScriptEngine::MonoStringToUTF8(name);
@@ -287,6 +299,20 @@ namespace InternalCalls
 			return 0;
 		}
 
+		return entity.GetUUID();
+	}
+
+	uint64_t ScriptGlue::Entity_CreateEntity(MonoString* name)
+	{
+		std::string entityName = Engine::ScriptEngine::MonoStringToUTF8(name);
+		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
+		Engine::Entity entity = scene->CreateEntity(entityName);
+
+		if (!entity)
+		{
+			return 0;
+		}
 		return entity.GetUUID();
 	}
 

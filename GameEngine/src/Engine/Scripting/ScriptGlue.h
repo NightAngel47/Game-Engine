@@ -82,7 +82,9 @@ namespace InternalCalls
 #pragma region Entity
 
 		static bool Entity_HasComponent(Engine::UUID entityID, MonoReflectionType* componentType);
+		static void Entity_AddComponent(Engine::UUID entityID, MonoReflectionType* componentType);
 		static uint64_t Entity_FindEntityByName(MonoString* name);
+		static uint64_t Entity_CreateEntity(MonoString* name);
 		static MonoObject* Entity_GetScriptInstance(Engine::UUID entityID);
 
 #pragma endregion Entity

@@ -27,6 +27,13 @@ namespace Engine.Scene
 			return InternalCalls.Entity_HasComponent(ID, componentType);
 		}
 
+		public T AddComponent<T>() where T : Component, new()
+		{
+			System.Type componentType = typeof(T);
+			InternalCalls.Entity_AddComponent(ID, componentType);
+			return GetComponent<T>();
+		}
+
 		public T GetComponent<T>() where T : Component, new()
 		{
 			if (!HasComponent<T>())
@@ -50,6 +57,30 @@ namespace Engine.Scene
 				return null;
 
 			return new Entity(entityID);
+		}
+
+		public Entity CreateEntity(string name = "Entity")
+		{
+			ulong entityID = InternalCalls.Entity_CreateEntity(name);
+			if (entityID == 0)
+				return null;
+
+			return new Entity(entityID);
+		}
+
+		public Entity CreateEntity(string name, Vector3 position, Vector3 rotation, Vector3 scale)
+		{
+			Entity entity = CreateEntity(name);
+
+			if (entity != null)
+			{
+				TransformComponent transform = entity.GetComponent<TransformComponent>();
+				transform.Position = position;
+				transform.Rotation = rotation;
+				transform.Scale = scale;
+			}
+
+			return entity;
 		}
 
 		public T As<T>() where T : Entity, new()
