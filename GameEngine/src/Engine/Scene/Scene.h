@@ -33,6 +33,8 @@ namespace Engine
 		void Step(int frames = 1);
 
 		Entity DuplicateEntity(Entity entity);
+		bool DoesEntityExist(UUID uuid);
+		bool DoesEntityExist(Entity uuid);
 		Entity GetEntityWithUUID(UUID uuid);
 		Entity FindEntityByName(const std::string_view& entityName);
 		

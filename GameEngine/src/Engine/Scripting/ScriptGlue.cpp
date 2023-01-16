@@ -75,6 +75,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Entity_FindEntityByName);
 		ENGINE_ADD_INTERNAL_CALL(Entity_CreateEntity);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetScriptInstance);
+		ENGINE_ADD_INTERNAL_CALL(Entity_DestroyEntity);
 
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetPosition);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetPosition);
@@ -319,10 +320,17 @@ namespace InternalCalls
 	MonoObject* ScriptGlue::Entity_GetScriptInstance(Engine::UUID entityID)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
-
 		auto& instance = Engine::ScriptEngine::GetEntityInstance(entity);
-
 		return instance->GetMonoObject();
+	}
+
+	void ScriptGlue::Entity_DestroyEntity(Engine::UUID entityID)
+	{
+		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
+		Engine::Entity entity = scene->GetEntityWithUUID(entityID);
+		ENGINE_CORE_ASSERT(entity, "Entity with UUID: " + std::to_string(entityID) + " was not found in Scene!");
+		scene->DestroyEntity(entity);
 	}
 
 #pragma endregion Entity

@@ -12,7 +12,13 @@ namespace Engine
 		void SetContext(const Ref<Scene>& context);
 
 		void OnImGuiRender();
-		Entity GetSelectedEntity() const { return m_SelectionContext; }
+		Entity GetSelectedEntity() const 
+		{
+			if (!m_Context->DoesEntityExist(m_SelectionContext))
+				return {};
+
+			return m_Context->GetEntityWithUUID(m_SelectionContext); 
+		}
 		void SetSelectedEntity(Entity entity);
 	private:
 		template<typename T>
@@ -22,6 +28,6 @@ namespace Engine
 		void DrawComponents(Entity entity);
 	private:
 		Ref<Scene> m_Context;
-		Entity m_SelectionContext;
+		UUID m_SelectionContext;
 	};
 }

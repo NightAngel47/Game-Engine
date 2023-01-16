@@ -118,6 +118,9 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern object Entity_GetScriptInstance(ulong entityID);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_DestroyEntity(ulong entityID);
+
 		#endregion Entity
 
 		#region TransformComponent

@@ -90,9 +90,10 @@ namespace Engine
 		ImGui::End();
 
 		ImGui::Begin("Properties");
-		if(m_SelectionContext)
+		Entity selectedEntity = GetSelectedEntity();
+		if(selectedEntity)
 		{
-			DrawComponents(m_SelectionContext);
+			DrawComponents(selectedEntity);
 		}
 		
 		ImGui::End();
@@ -100,19 +101,21 @@ namespace Engine
 
 	void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
 	{
-		m_SelectionContext = entity;
+		m_SelectionContext = entity.GetUUID();
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
 	{
 		auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-		ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		Entity selectedEntity = GetSelectedEntity();
+
+		ImGuiTreeNodeFlags flags = (selectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
 		if(ImGui::IsItemClicked())
 		{
-			m_SelectionContext = entity;
+			m_SelectionContext = entity.GetUUID();
 		}
 
 		bool entityDeleted = false;
@@ -131,7 +134,7 @@ namespace Engine
 
 		if(entityDeleted)
 		{
-			if (m_SelectionContext == entity)
+			if (selectedEntity == entity)
 				m_SelectionContext = {};
 			m_Context->DestroyEntity(entity);
 		}
@@ -747,12 +750,14 @@ namespace Engine
 	}
 
 	template<typename T>
-	void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName) {
-		if (!m_SelectionContext.HasComponent<T>())
+	void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName)
+	{
+		Entity selectedEntity = GetSelectedEntity();
+		if (!selectedEntity.HasComponent<T>())
 		{
 			if (ImGui::MenuItem(entryName.c_str()))
 			{
-				m_SelectionContext.AddComponent<T>();
+				selectedEntity.AddComponent<T>();
 				ImGui::CloseCurrentPopup();
 			}
 		}

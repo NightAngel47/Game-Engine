@@ -101,6 +101,15 @@ namespace Engine
 
 	void Scene::DestroyEntity(Entity entity)
 	{
+		if (m_IsRunning)
+		{
+			if (entity.HasComponent<Rigidbody2DComponent>())
+			{
+				b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+				m_PhysicsWorld->DestroyBody(body);
+			}
+		}
+
 		m_EntityMap.erase(entity.GetUUID());
 		m_Registry.destroy(entity);
 	}
@@ -144,6 +153,11 @@ namespace Engine
 		Entity newEntity = CreateEntity(name);
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
 		return newEntity;
+	}
+
+	bool Scene::DoesEntityExist(UUID uuid)
+	{
+		return m_EntityMap.find(uuid) != m_EntityMap.end();
 	}
 
 	Entity Scene::GetEntityWithUUID(UUID uuid)

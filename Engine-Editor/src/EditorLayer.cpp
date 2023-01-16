@@ -488,10 +488,9 @@ namespace Engine
 			{
 				if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
 				{
-					Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-					if (selectedEntity)
+					if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
 					{
-						m_SceneHierarchyPanel.SetSelectedEntity({});
+						//m_SceneHierarchyPanel.SetSelectedEntity({});
 						m_EditorScene->DestroyEntity(selectedEntity);
 					}
 				}
@@ -565,7 +564,7 @@ namespace Engine
 			}
 		}
 
-		// Draw selected entity outline 
+		// Draw selected entity outline
 		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity()) {
 			const TransformComponent& transform = selectedEntity.GetComponent<TransformComponent>();
 
@@ -679,8 +678,7 @@ namespace Engine
 	{
 		if (m_SceneState != SceneState::Edit) return;
 
-		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-		if (selectedEntity)
+		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
 		{
 			Entity newEntity = m_ActiveScene->DuplicateEntity(selectedEntity);
 			m_SceneHierarchyPanel.SetSelectedEntity(newEntity);

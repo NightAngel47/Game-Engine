@@ -89,6 +89,11 @@ namespace Engine.Scene
 			return instance as T;
 		}
 
+		public void DestroyEntity()
+		{
+			InternalCalls.Entity_DestroyEntity(ID);
+		}
+
 		public Vector3 Position
 		{
 			get
