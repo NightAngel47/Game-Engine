@@ -32,6 +32,7 @@
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/SceneSerializer.h"
+#include "Engine/Scene/PrefabSerializer.h"
 
 #include "Engine/Scripting/ScriptEngine.h"
 

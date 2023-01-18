@@ -33,6 +33,52 @@ namespace Engine
 			ENGINE_ASSERT(false, "Unknown body type!");
 			return Rigidbody2DComponent::BodyType::Static;
 		}
+
+		inline static std::string Rigidbody2DBodyTypeToString(Rigidbody2DComponent::BodyType bodyType)
+		{
+			switch (bodyType)
+			{
+			case Rigidbody2DComponent::BodyType::Static:	return "Static";
+			case Rigidbody2DComponent::BodyType::Dynamic:	return "Dynamic";
+			case Rigidbody2DComponent::BodyType::Kinematic:	return "Kinematic";
+			}
+
+			ENGINE_CORE_ASSERT(false, "Unknown body type!");
+			return {};
+		}
+
+		inline static Rigidbody2DComponent::BodyType Rigidbody2DBodyTypeFromString(const std::string& bodyTypeString)
+		{
+			if (bodyTypeString == "Static")		return Rigidbody2DComponent::BodyType::Static;
+			if (bodyTypeString == "Dynamic")	return Rigidbody2DComponent::BodyType::Dynamic;
+			if (bodyTypeString == "Kinematic")	return Rigidbody2DComponent::BodyType::Kinematic;
+
+			ENGINE_CORE_ASSERT(false, "Unknown body type!");
+			return Rigidbody2DComponent::BodyType::Static;
+		}
+
+		inline static std::string Rigidbody2DSmoothingTypeToString(Rigidbody2DComponent::SmoothingType smoothingType)
+		{
+			switch (smoothingType)
+			{
+			case Rigidbody2DComponent::SmoothingType::None:				return "None";
+			case Rigidbody2DComponent::SmoothingType::Interpolation:	return "Interpolation";
+			case Rigidbody2DComponent::SmoothingType::Extrapolation:	return "Extrapolation";
+			}
+
+			ENGINE_CORE_ASSERT(false, "Unknown smoothing type!");
+			return {};
+		}
+
+		inline static Rigidbody2DComponent::SmoothingType Rigidbody2DSmoothingTypeFromString(const std::string& smoothingTypeString)
+		{
+			if (smoothingTypeString == "None")			return Rigidbody2DComponent::SmoothingType::None;
+			if (smoothingTypeString == "Interpolation")	return Rigidbody2DComponent::SmoothingType::Interpolation;
+			if (smoothingTypeString == "Extrapolation")	return Rigidbody2DComponent::SmoothingType::Extrapolation;
+
+			ENGINE_CORE_ASSERT(false, "Unknown smoothing type!");
+			return Rigidbody2DComponent::SmoothingType::Interpolation;
+		}
 	}
 
 	class Physics2D

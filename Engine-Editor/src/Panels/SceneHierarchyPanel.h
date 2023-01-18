@@ -26,6 +26,9 @@ namespace Engine
 
 		void DrawEntityNode(Entity entity);
 		void DrawComponents(Entity entity);
+
+		void SavePrefabAs();
+		void CreateFromPrefab();
 	private:
 		Ref<Scene> m_Context;
 		UUID m_SelectionContext;

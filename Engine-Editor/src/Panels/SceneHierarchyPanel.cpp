@@ -67,21 +67,15 @@ namespace Engine
 			if (ImGui::BeginPopupContextWindow(0, 1, false))
 			{
 				if (ImGui::MenuItem("Create Empty Entity"))
-				{
 					m_Context->CreateEntity();
-				}
 				else if (ImGui::MenuItem("Create Sprite"))
-				{
 					m_Context->CreateEntity("Sprite").AddComponent<SpriteRendererComponent>();
-				}
 				else if (ImGui::MenuItem("Create Circle"))
-				{
 					m_Context->CreateEntity("Circle").AddComponent<CircleRendererComponent>();
-				}
 				else if (ImGui::MenuItem("Create Camera"))
-				{
 					m_Context->CreateEntity("Camera").AddComponent<CameraComponent>();
-				}
+				else if (ImGui::MenuItem("Create from Prefab"))
+					CreateFromPrefab();
 
 				ImGui::EndPopup();
 			}
@@ -123,6 +117,9 @@ namespace Engine
 		{
 			if (ImGui::MenuItem("Delete Entity"))
 				entityDeleted = true;
+
+			if (ImGui::MenuItem("Create Prefab"))
+				SavePrefabAs();
 
 			ImGui::EndPopup();
 		}
@@ -762,4 +759,31 @@ namespace Engine
 			}
 		}
 	}
+
+	void SceneHierarchyPanel::SavePrefabAs()
+	{
+		std::filesystem::path filepath = FileDialogs::SaveFile("Prefab (*.prefab)\0*.prefab\0");
+
+		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
+		serializer.Serialize(filepath);
+	}
+
+	void SceneHierarchyPanel::CreateFromPrefab()
+	{
+		std::string filepath = FileDialogs::OpenFile("Prefab (*.prefab)\0*.prefab\0");
+		if (filepath.empty())
+			return;
+
+		auto relativePath = std::filesystem::relative(filepath, Project::GetAssetDirectory());
+
+		if (relativePath.extension().string() != ".prefab")
+		{
+			ENGINE_CORE_WARN("Could not load {0} - not a prefab file", relativePath.filename().string());
+			return;
+		}
+
+		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
+		serializer.Deserialize(relativePath);
+	}
+
 }

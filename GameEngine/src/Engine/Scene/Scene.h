@@ -102,6 +102,8 @@ namespace Engine
 
 		friend class Entity;
 		friend class SceneSerializer;
+		friend class EntitySerializer;
+		friend class PrefabSerializer;
 		friend class SceneHierarchyPanel;
 	};
 }
