@@ -79,6 +79,28 @@ namespace Engine
 
 				ImGui::EndPopup();
 			}
+
+			ImGui::Button("##DragTarget", ImGui::GetContentRegionAvail());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					const wchar_t* fileExtension = std::wcsrchr(path, '.');
+
+					if (std::wcscmp(fileExtension, L".prefab") == 0)
+					{
+						CreateFromPrefab(path);
+					}
+					else
+					{
+						std::wstring ws(fileExtension);
+						ENGINE_CORE_WARN("File type is not supported by drag and drop in the Scene Hierarchy Panel: " + std::string(ws.begin(), ws.end()));
+					}
+				}
+
+				ImGui::EndDragDropTarget();
+			}
 		}
 		
 		ImGui::End();
@@ -775,15 +797,19 @@ namespace Engine
 			return;
 
 		auto relativePath = std::filesystem::relative(filepath, Project::GetAssetDirectory());
+		CreateFromPrefab(relativePath);
+	}
 
-		if (relativePath.extension().string() != ".prefab")
+	void SceneHierarchyPanel::CreateFromPrefab(const std::filesystem::path& filepath)
+	{
+		if (filepath.extension().string() != ".prefab")
 		{
-			ENGINE_CORE_WARN("Could not load {0} - not a prefab file", relativePath.filename().string());
+			ENGINE_CORE_WARN("Could not load {0} - not a prefab file", filepath.filename().string());
 			return;
 		}
 
 		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
-		serializer.Deserialize(relativePath);
+		serializer.Deserialize(filepath);
 	}
 
 }
