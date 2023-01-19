@@ -136,20 +136,22 @@ namespace Engine
 		return out;
 	}
 
-	void EntitySerializer::Serialize(YAML::Emitter& out)
+	void EntitySerializer::Serialize(YAML::Emitter& out, bool newUUID)
 	{
 		ENGINE_CORE_ASSERT(m_Entity.HasComponent<IDComponent>(), "Entity must have UUID!");
 
 		out << YAML::BeginMap; // Entity
-		out << YAML::Key << "Entity" << YAML::Value << m_Entity.GetUUID();
+		UUID uuid = newUUID ? UUID() : m_Entity.GetUUID();
+		out << YAML::Key << "Entity" << YAML::Value << uuid;
 
 		if (m_Entity.HasComponent<TagComponent>())
 		{
 			out << YAML::Key << "TagComponent";
 			out << YAML::BeginMap; // TagComponent
 
-			out << YAML::Key << "Tag" << YAML::Value << m_Entity.GetComponent<TagComponent>().Tag;
-			ENGINE_CORE_TRACE("Serializing entity with ID = {0}, name {1}", m_Entity.GetUUID(), m_Entity.GetComponent<TagComponent>().Tag);
+			std::string& name = m_Entity.GetComponent<TagComponent>().Tag;
+			out << YAML::Key << "Tag" << YAML::Value << name;
+			ENGINE_CORE_TRACE("Serializing entity with ID = {0}, name {1}", uuid, name);
 
 			out << YAML::EndMap; // TagComponent
 		}
@@ -335,9 +337,9 @@ namespace Engine
 		out << YAML::EndMap; // Entity
 	}
 
-	Engine::Entity EntitySerializer::Deserialize(YAML::Node& entity)
-	{
-		UUID uuid = entity["Entity"].as<uint64_t>();
+	Engine::Entity EntitySerializer::Deserialize(YAML::Node& entity, bool newUUID)
+{
+		UUID uuid = newUUID ? UUID() : entity["Entity"].as<uint64_t>();
 
 		std::string name;
 		auto tagComponent = entity["TagComponent"];
