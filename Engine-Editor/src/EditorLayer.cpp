@@ -46,6 +46,15 @@ namespace Engine
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 		
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+		// temp parent testing
+		Entity parentEntity = m_ActiveScene->CreateEntity("Parent");
+		Entity childEntityOne = m_ActiveScene->CreateEntity("Child One");
+		auto& parentRelationship = parentEntity.GetComponent<RelationshipComponent>();
+		auto& childOneRelationship = childEntityOne.GetComponent<RelationshipComponent>();
+		childOneRelationship.Parent = parentEntity.GetUUID();
+		childOneRelationship.HasParent = true;
+		parentRelationship.Children->emplace_back(childEntityOne.GetUUID());
 	}
 
 	void EditorLayer::OnDetach()
@@ -282,8 +291,9 @@ namespace Engine
 			glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 			
 			// Entity transform
-			auto& transformComponent = selectedEntity.GetComponent<TransformComponent>();
-			glm::mat4 transform = transformComponent.GetTransform();
+			TransformComponent transformComponent = selectedEntity.GetComponent<TransformComponent>();
+			glm::mat4 transform = selectedEntity.GetWorldTransform();
+			//glm::mat4 transform = transformComponent.GetTransform();
 
 			// Snapping
 			bool snap = Input::IsKeyPressed(Key::LeftControl);
@@ -303,7 +313,7 @@ namespace Engine
 				m_IsGizmoInUse = true;
 				glm::vec3 position, rotation, scale;
 				Math::DecomposeTransform(transform, position, rotation, scale);
-				
+
 				glm::vec3 deltaRotation = rotation - transformComponent.Rotation;
 				
 				transformComponent.Position = position;
@@ -522,7 +532,7 @@ namespace Engine
 			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
 			if (!camera) return;
 
-			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetWorldTransform());
 		}
 		else
 		{
@@ -565,11 +575,10 @@ namespace Engine
 		}
 
 		// Draw selected entity outline
-		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity()) {
-			const TransformComponent& transform = selectedEntity.GetComponent<TransformComponent>();
-
+		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
+		{
 			Renderer2D::SetLineWidth(4.0f);
-			Renderer2D::DrawRect(transform.GetTransform(), glm::vec4(1, 0, 0.5f, 1));
+			Renderer2D::DrawRect(selectedEntity.GetWorldTransform(), glm::vec4(1, 0, 0.5f, 1));
 		}
 		else
 		{

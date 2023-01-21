@@ -92,6 +92,7 @@ namespace Engine
 
 		entity.AddComponent<IDComponent>(uuid);
 		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<RelationshipComponent>();
 		entity.AddComponent<TagComponent>().Tag = name.empty() ? "Entity" : name;
 
 		m_EntityMap[uuid] = entity;
@@ -232,15 +233,16 @@ namespace Engine
 		Camera* mainCamera = nullptr;
 		glm::mat4 cameraTransform;
 		{
-			auto view = m_Registry.view<TransformComponent, CameraComponent>();
-			for (auto entity : view)
+			auto view = m_Registry.view<CameraComponent>();
+			for (auto e : view)
 			{
-				auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+				Entity entity = { e, this };
+				auto& camera = entity.GetComponent<CameraComponent>();
 				
 				if (camera.Primary)
 				{
 					mainCamera = &camera.Camera;
-					cameraTransform = transform.GetTransform();
+					cameraTransform = entity.GetWorldTransform();
 					break;
 				}
 			}
@@ -488,22 +490,22 @@ namespace Engine
 	void Scene::OnRender2DUpdate()
 	{
 		{ // Draw Sprites
-			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-			for (auto entity : group)
+			auto view = m_Registry.view<SpriteRendererComponent>();
+			for (auto e : view)
 			{
-				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-				Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+				Entity entity = { e, this };
+				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
+				Renderer2D::DrawSprite(entity.GetWorldTransform(), sprite, (int)e);
 			}
 		}
 
 		{ // Draw Circles
-			auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
-			for (auto entity : view)
+			auto view = m_Registry.view<CircleRendererComponent>();
+			for (auto e : view)
 			{
-				auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
-
-				Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
+				Entity entity = { e, this };
+				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
+				Renderer2D::DrawCircle(entity.GetWorldTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
 			}
 		}
 	}
@@ -522,6 +524,11 @@ namespace Engine
 
 	template<>
 	void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
 	{
 	}
 

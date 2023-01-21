@@ -6,6 +6,7 @@
 #include "Engine/Scene/Components.h"
 
 #include <entt.hpp>
+#include <glm/glm.hpp>
 
 namespace Engine
 {
@@ -62,6 +63,22 @@ namespace Engine
 
 		UUID GetUUID() { return GetComponent<IDComponent>().ID; }
 		const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
+
+		glm::mat4 GetWorldTransform()
+		{
+			TransformComponent transform = GetComponent<TransformComponent>();
+			RelationshipComponent relationship = GetComponent<RelationshipComponent>();
+
+			glm::mat4 localTransform = transform.GetTransform();
+
+			if (!relationship.HasParent)
+				return localTransform;
+
+			Entity parentEntity = m_Scene->GetEntityWithUUID(relationship.Parent);
+			TransformComponent parentTransform = parentEntity.GetComponent<TransformComponent>();
+
+			return parentTransform.GetTransform() * localTransform;
+		}
 
 		bool operator==(const Entity other) const { return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene; }
 		bool operator!=(const Entity other) const { return !(*this == other); }

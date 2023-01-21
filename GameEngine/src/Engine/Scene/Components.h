@@ -31,6 +31,16 @@ namespace Engine
 		TagComponent(const std::string& tag)
 			: Tag(tag) {}
 	};
+
+	struct RelationshipComponent
+	{
+		bool HasParent;
+		UUID Parent;
+		std::vector<UUID>* Children = new std::vector<UUID>();
+
+		RelationshipComponent() = default;
+		RelationshipComponent(const RelationshipComponent&) = default;
+	};
 	
 	struct TransformComponent
 	{
@@ -46,7 +56,7 @@ namespace Engine
 		glm::mat4 GetTransform() const
 		{
 			glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
-			
+
 			return glm::translate(glm::mat4(1.0f), Position)
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);

@@ -57,6 +57,9 @@ namespace Engine
 			m_Context->m_Registry.each([&](auto entityID)
 			{
 				Entity entity{ entityID, m_Context.get() };
+				if (entity.GetComponent<RelationshipComponent>().HasParent)
+					return;
+
 				DrawEntityNode(entity);
 			});
 
@@ -148,6 +151,17 @@ namespace Engine
 
 		if(opened)
 		{
+			auto& relationship = entity.GetComponent<RelationshipComponent>();
+
+			if (relationship.Children > 0)
+			{
+				for (auto& childID : *relationship.Children)
+				{
+					Entity childEntity = m_Context->GetEntityWithUUID(childID);
+					DrawEntityNode(childEntity);
+				}
+			}
+
 			ImGui::TreePop();
 		}
 
