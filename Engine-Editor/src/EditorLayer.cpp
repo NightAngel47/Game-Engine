@@ -49,7 +49,9 @@ namespace Engine
 
 		// temp parent testing
 		Entity parentEntity = m_ActiveScene->CreateEntity("Parent");
+		parentEntity.AddComponent<SpriteRendererComponent>().Color = { 0, 1, 1, 1 };
 		Entity childEntityOne = m_ActiveScene->CreateEntity("Child One");
+		childEntityOne.AddComponent<SpriteRendererComponent>().Color = { 1, 0, 1, 1 };
 		auto& parentRelationship = parentEntity.GetComponent<RelationshipComponent>();
 		auto& childOneRelationship = childEntityOne.GetComponent<RelationshipComponent>();
 		childOneRelationship.Parent = parentEntity.GetUUID();
@@ -290,10 +292,6 @@ namespace Engine
 			const glm::mat4& cameraProjection = m_EditorCamera.GetProjection();
 			glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 			
-			// Entity transform
-			TransformComponent transformComponent = selectedEntity.GetComponent<TransformComponent>();
-			glm::mat4 transform = selectedEntity.GetWorldTransform();
-			//glm::mat4 transform = transformComponent.GetTransform();
 
 			// Snapping
 			bool snap = Input::IsKeyPressed(Key::LeftControl);
@@ -304,21 +302,35 @@ namespace Engine
 
 			float snapValues[3] {snapValue, snapValue, snapValue};
 
+			// Entity transform
+			glm::mat4 transformWorld = selectedEntity.GetWorldTransform();
+			glm::mat4 transformDelta{ 0.0f };
+
 			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), 
-				(ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
-				nullptr, snap ? snapValues : nullptr);
+				(ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::WORLD, glm::value_ptr(transformWorld),
+				glm::value_ptr(transformDelta), snap ? snapValues : nullptr);
 
 			if(ImGuizmo::IsUsing())
 			{
 				m_IsGizmoInUse = true;
-				glm::vec3 position, rotation, scale;
-				Math::DecomposeTransform(transform, position, rotation, scale);
+				glm::vec3 deltaPosition{ 0.0f, 0.0f, 0.0f }, deltaRotation{ 0.0f, 0.0f, 0.0f }, deltaScale{ 0.0f, 0.0f, 0.0f };
+				Math::DecomposeTransform(transformDelta, deltaPosition, deltaRotation, deltaScale);
 
-				glm::vec3 deltaRotation = rotation - transformComponent.Rotation;
-				
-				transformComponent.Position = position;
-				transformComponent.Rotation += deltaRotation;
-				transformComponent.Scale = scale;
+				auto& transformComponent = selectedEntity.GetComponent<TransformComponent>();
+				switch (m_GizmoType)
+				{
+				case ImGuizmo::OPERATION::TRANSLATE:
+					transformComponent.Position += deltaPosition;
+					break;
+				case ImGuizmo::OPERATION::ROTATE:
+					transformComponent.Rotation += deltaRotation;
+					break;
+				case ImGuizmo::OPERATION::SCALE:
+					transformComponent.Scale *= deltaScale;
+					break;
+				default:
+					break;
+				}
 			}
 			else
 			{
