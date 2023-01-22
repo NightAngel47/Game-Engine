@@ -221,7 +221,7 @@ namespace Engine
 	};
 
 	using AllComponents = ComponentGroup<
-		TransformComponent, SpriteRendererComponent, CircleRendererComponent, 
+		RelationshipComponent, TransformComponent, SpriteRendererComponent, CircleRendererComponent, 
 		CameraComponent, NativeScriptComponent, ScriptComponent, 
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 }
