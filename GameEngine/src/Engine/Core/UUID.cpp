@@ -12,7 +12,8 @@ namespace Engine
 	UUID::UUID()
 		: m_UUID(s_UniformDistribution(s_Engine))
 	{
-
+		while (m_UUID == INVALID())
+			m_UUID = s_UniformDistribution(s_Engine);
 	}
 
 	UUID::UUID(uint64_t uuid)

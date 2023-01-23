@@ -37,6 +37,7 @@ namespace Engine
 	}
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
+		:m_SelectionContext(UUID::INVALID())
 	{
 		SetContext(context);
 	}
@@ -44,7 +45,7 @@ namespace Engine
 	void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
 	{
 		m_Context = context;
-		m_SelectionContext = {};
+		m_SelectionContext = UUID::INVALID();
 	}
 
 	void SceneHierarchyPanel::OnImGuiRender()
@@ -53,11 +54,10 @@ namespace Engine
 
 		if (m_Context)
 		{
-
 			m_Context->m_Registry.each([&](auto entityID)
 			{
 				Entity entity{ entityID, m_Context.get() };
-				if (entity.GetComponent<RelationshipComponent>().HasParent)
+				if (entity.GetComponent<RelationshipComponent>().Parent.IsValid())
 					return;
 
 				DrawEntityNode(entity);
@@ -83,7 +83,7 @@ namespace Engine
 				ImGui::EndPopup();
 			}
 
-			ImGui::Button("##DragTarget", ImGui::GetContentRegionAvail());
+			ImGui::InvisibleButton("##DragDropTarget", ImGui::GetContentRegionAvail());
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -123,15 +123,39 @@ namespace Engine
 		m_SelectionContext = entity.GetUUID();
 	}
 
+	void SceneHierarchyPanel::SetSelectedEntity(UUID entityID)
+	{
+		m_SelectionContext = entityID;
+	}
+
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
 	{
-		auto& tag = entity.GetComponent<TagComponent>().Tag;
+		auto& tag = entity.GetName();
 
-		Entity selectedEntity = GetSelectedEntity();
-
-		ImGuiTreeNodeFlags flags = (selectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGuiTreeNodeFlags flags = (IsSelectedEntityValid() && (GetSelectedEntity() == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+		flags |= (entity.GetComponent<RelationshipComponent>().HasChildren()) ? 0 : ImGuiTreeNodeFlags_Leaf;
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+
+		if (ImGui::BeginDragDropSource())
+		{
+			const UUID* entityItem = &entity.GetUUID();
+			ImGui::SetDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM", entityItem, sizeof(UUID*), ImGuiCond_Once);
+			ImGui::EndDragDropSource();
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
+			{
+				const UUID* entityItemID = (const UUID*)payload->Data;
+				Entity entityItem = m_Context->GetEntityWithUUID(*entityItemID);
+				entity.AddChild(entityItem);
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
 		if(ImGui::IsItemClicked())
 		{
 			m_SelectionContext = entity.GetUUID();
@@ -151,15 +175,9 @@ namespace Engine
 
 		if(opened)
 		{
-			auto& relationship = entity.GetComponent<RelationshipComponent>();
-
-			if (relationship.Children > 0)
+			for (Entity childEntity : entity.Children())
 			{
-				for (auto& childID : *relationship.Children)
-				{
-					Entity childEntity = m_Context->GetEntityWithUUID(childID);
-					DrawEntityNode(childEntity);
-				}
+				DrawEntityNode(childEntity);
 			}
 
 			ImGui::TreePop();
@@ -167,8 +185,8 @@ namespace Engine
 
 		if(entityDeleted)
 		{
-			if (selectedEntity == entity)
-				m_SelectionContext = {};
+			if (IsSelectedEntityValid() && GetSelectedEntity() == entity)
+				m_SelectionContext = UUID::INVALID();
 			m_Context->DestroyEntity(entity);
 		}
 	}

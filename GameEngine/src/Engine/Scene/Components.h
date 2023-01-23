@@ -14,6 +14,10 @@
 
 namespace Engine
 {
+
+#pragma region Entity Components
+	// Default Components for All Entities
+
 	struct IDComponent 
 	{
 		UUID ID;
@@ -34,12 +38,16 @@ namespace Engine
 
 	struct RelationshipComponent
 	{
-		bool HasParent;
-		UUID Parent;
-		std::vector<UUID>* Children = new std::vector<UUID>();
+		std::size_t ChildrenCount{};
+		UUID FirstChild = UUID::INVALID();
+		UUID NextChild = UUID::INVALID();
+		UUID PrevChild = UUID::INVALID();
+		UUID Parent = UUID::INVALID();
 
 		RelationshipComponent() = default;
 		RelationshipComponent(const RelationshipComponent&) = default;
+
+		bool const HasChildren() const { return ChildrenCount > 0; }
 	};
 	
 	struct TransformComponent
@@ -62,7 +70,12 @@ namespace Engine
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
 	};
-	
+
+#pragma endregion Entity Components
+
+#pragma region Game Components
+	// Components Available to Entities
+
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -214,6 +227,8 @@ namespace Engine
 		CircleCollider2DComponent() = default;
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
+
+#pragma endregion GameComponents
 
 	template<typename... Component>
 	struct ComponentGroup

@@ -10,6 +10,10 @@ namespace Engine
 		UUID(const UUID&) = default;
 
 		operator uint64_t() const { return m_UUID; }
+
+		inline static const UUID INVALID() { return NULL; }
+		inline const bool IsValid() { return m_UUID != INVALID(); }
+		inline void INVALIDATE() { m_UUID = INVALID(); }
 	private:
 		uint64_t m_UUID;
 	};

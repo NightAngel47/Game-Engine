@@ -52,11 +52,7 @@ namespace Engine
 		parentEntity.AddComponent<SpriteRendererComponent>().Color = { 0, 1, 1, 1 };
 		Entity childEntityOne = m_ActiveScene->CreateEntity("Child One");
 		childEntityOne.AddComponent<SpriteRendererComponent>().Color = { 1, 0, 1, 1 };
-		auto& parentRelationship = parentEntity.GetComponent<RelationshipComponent>();
-		auto& childOneRelationship = childEntityOne.GetComponent<RelationshipComponent>();
-		childOneRelationship.Parent = parentEntity.GetUUID();
-		childOneRelationship.HasParent = true;
-		parentRelationship.Children->emplace_back(childEntityOne.GetUUID());
+		parentEntity.AddChild(childEntityOne);
 	}
 
 	void EditorLayer::OnDetach()
@@ -280,9 +276,9 @@ namespace Engine
 		}
 		
 		// Gizmos
-		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-		if(selectedEntity && m_GizmoType != -1)
+		if(m_SceneHierarchyPanel.IsSelectedEntityValid() && m_GizmoType != -1)
 		{
+			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 			
@@ -510,9 +506,10 @@ namespace Engine
 			{
 				if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
 				{
-					if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
+					if (m_SceneHierarchyPanel.IsSelectedEntityValid())
 					{
-						//m_SceneHierarchyPanel.SetSelectedEntity({});
+						Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+						m_SceneHierarchyPanel.SetSelectedEntity(UUID::INVALID());
 						m_EditorScene->DestroyEntity(selectedEntity);
 					}
 				}
@@ -587,8 +584,9 @@ namespace Engine
 		}
 
 		// Draw selected entity outline
-		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
+		if (m_SceneHierarchyPanel.IsSelectedEntityValid())
 		{
+			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 			Renderer2D::SetLineWidth(4.0f);
 			Renderer2D::DrawRect(selectedEntity.GetWorldTransform(), glm::vec4(1, 0, 0.5f, 1));
 		}
@@ -699,8 +697,9 @@ namespace Engine
 	{
 		if (m_SceneState != SceneState::Edit) return;
 
-		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity())
+		if (m_SceneHierarchyPanel.IsSelectedEntityValid())
 		{
+			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 			Entity newEntity = m_ActiveScene->DuplicateEntity(selectedEntity);
 			m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
 		}

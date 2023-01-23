@@ -67,17 +67,166 @@ namespace Engine
 		glm::mat4 GetWorldTransform()
 		{
 			TransformComponent transform = GetComponent<TransformComponent>();
-			RelationshipComponent relationship = GetComponent<RelationshipComponent>();
-
 			glm::mat4 localTransform = transform.GetTransform();
 
-			if (!relationship.HasParent)
+			if (!GetComponent<RelationshipComponent>().Parent.IsValid())
 				return localTransform;
 
-			Entity parentEntity = m_Scene->GetEntityWithUUID(relationship.Parent);
-			TransformComponent parentTransform = parentEntity.GetComponent<TransformComponent>();
-
+			TransformComponent parentTransform = GetParent().GetComponent<TransformComponent>();
 			return parentTransform.GetTransform() * localTransform;
+		}
+
+		Entity GetParent() { return m_Scene->GetEntityWithUUID(GetComponent<RelationshipComponent>().Parent); }
+
+		void AddChild(Entity child)
+		{
+			auto& relationship = GetComponent<RelationshipComponent>();
+
+			// Remove child entity references
+			if (relationship.Parent.IsValid())
+			{
+				child.GetParent().RemoveChild(child);
+			}
+
+			// Update child entity references for new relationship
+			auto& childRelationship = child.GetComponent<RelationshipComponent>();
+			childRelationship.Parent = GetUUID();
+
+			// Update parent and existing children
+			if (relationship.HasChildren())
+			{
+				UUID childIterator = relationship.FirstChild;
+				for (std::size_t i{}; i < relationship.ChildrenCount; ++i)
+				{
+					if (!childIterator.IsValid())
+						break;
+
+					Entity childIteratorEntity = m_Scene->GetEntityWithUUID(childIterator);
+					auto& childIteratorRelationship = childIteratorEntity.GetComponent<RelationshipComponent>();
+
+					// Found the end, add new child
+					if (!childIteratorRelationship.NextChild.IsValid())
+					{
+						childIteratorRelationship.NextChild = child.GetUUID();
+						childRelationship.PrevChild = childIterator;
+						return;
+					}
+
+					// Check next child if not found
+					childIterator = childIteratorRelationship.NextChild;
+				}
+			}
+
+			// Parent had no existing children, so adding this as first
+			relationship.FirstChild = child.GetUUID();
+			relationship.ChildrenCount++;
+		}
+
+		bool RemoveChild(Entity child)
+		{
+			// Remove passed child entity from this entity (parent)
+			auto& relationship = GetComponent<RelationshipComponent>();
+			if (!relationship.HasChildren())
+				return false;
+
+			UUID childID = child.GetUUID();
+			UUID childIterator = relationship.FirstChild;
+			for (std::size_t i{}; i < relationship.ChildrenCount; ++i)
+			{
+				if (!childIterator.IsValid())
+					break;
+
+				// Check if found child
+				if (childIterator == childID)
+				{
+					auto& childRelationship = child.GetComponent<RelationshipComponent>();
+					UUID nextChild = childRelationship.NextChild;
+					UUID prevChild = childRelationship.PrevChild;
+
+					// Get Next Child Relationship
+					auto& nextChildRelationship = RelationshipComponent{};
+					if (nextChild.IsValid())
+					{
+						Entity nextChildEntity = m_Scene->GetEntityWithUUID(nextChild);
+						nextChildRelationship = nextChildEntity.GetComponent<RelationshipComponent>();
+					}
+
+					// Get Prev Child Relationship
+					auto& prevChildRelationship = RelationshipComponent{};
+					if (prevChild.IsValid())
+					{
+						Entity prevChildEntity = m_Scene->GetEntityWithUUID(prevChild);
+						prevChildRelationship = prevChildEntity.GetComponent<RelationshipComponent>();
+					}
+
+					// Update references
+					if (prevChild.IsValid())
+					{
+						if (nextChild.IsValid())	// Middle Child Removed
+						{
+							prevChildRelationship.NextChild = nextChild;
+							nextChildRelationship.PrevChild = prevChild;
+						}
+						else						// Last Child Removed
+						{
+							prevChildRelationship.NextChild = UUID::INVALID();
+						}
+					}
+					else
+					{
+						if (nextChild.IsValid())	// First Child Removed with Valid Next
+						{
+							relationship.FirstChild = nextChild;
+							nextChildRelationship.PrevChild = UUID::INVALID();
+						}
+						else						// First and Only Child Removed
+						{
+							relationship.FirstChild = UUID::INVALID();
+						}
+					}
+
+					relationship.ChildrenCount--;
+
+					childRelationship.Parent = UUID::INVALID();
+					childRelationship.NextChild = UUID::INVALID();
+					childRelationship.PrevChild = UUID::INVALID();
+
+					return true;
+				}
+
+				// Check next child if not found
+				Entity childIteratorEntity = m_Scene->GetEntityWithUUID(childIterator);
+				childIterator = childIteratorEntity.GetComponent<RelationshipComponent>().NextChild;
+			}
+
+			return false;
+		}
+
+		const std::vector<Entity> Children()
+		{
+			if (!HasComponent<RelationshipComponent>())
+				return {};
+
+			auto& relationship = GetComponent<RelationshipComponent>();
+			std::vector<Entity> childEntities = std::vector<Entity>();
+
+			if (!relationship.HasChildren())
+				return childEntities;
+
+			UUID childIterator = relationship.FirstChild;
+			for (std::size_t i{}; i < relationship.ChildrenCount; ++i)
+			{
+				if (!childIterator.IsValid())
+					break;
+
+				Entity childIteratorEntity = m_Scene->GetEntityWithUUID(childIterator);
+				childEntities.emplace_back(childIteratorEntity);
+
+				// Proceed to next child
+				childIterator = childIteratorEntity.GetComponent<RelationshipComponent>().NextChild;
+			}
+
+			return childEntities;
 		}
 
 		bool operator==(const Entity other) const { return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene; }
