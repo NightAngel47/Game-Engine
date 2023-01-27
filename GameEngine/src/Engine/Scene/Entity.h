@@ -69,29 +69,29 @@ namespace Engine
 			TransformComponent transform = GetComponent<TransformComponent>();
 			glm::mat4 localTransform = transform.GetTransform();
 
-			if (!GetComponent<RelationshipComponent>().Parent.IsValid())
-				return localTransform;
+			UUID parentID = GetComponent<RelationshipComponent>().Parent;
+			while (parentID.IsValid())
+			{
+				Entity parentEntity = m_Scene->GetEntityWithUUID(parentID);
+				localTransform = parentEntity.GetComponent<TransformComponent>().GetTransform() * localTransform;
+				parentID = parentEntity.GetComponent<RelationshipComponent>().Parent;
+			}
 
-			TransformComponent parentTransform = GetParent().GetComponent<TransformComponent>();
-			return parentTransform.GetTransform() * localTransform;
+			return localTransform;
 		}
 
 		Entity GetParent() { return m_Scene->GetEntityWithUUID(GetComponent<RelationshipComponent>().Parent); }
 
 		void AddChild(Entity child)
 		{
-			auto& relationship = GetComponent<RelationshipComponent>();
+			auto& childRelationship = child.GetComponent<RelationshipComponent>();
 
 			// Remove child entity references
-			if (relationship.Parent.IsValid())
-			{
+			if (childRelationship.Parent.IsValid())
 				child.GetParent().RemoveChild(child);
-			}
-
-			// Update child entity references for new relationship
-			auto& childRelationship = child.GetComponent<RelationshipComponent>();
 			childRelationship.Parent = GetUUID();
 
+			auto& relationship = GetComponent<RelationshipComponent>();
 			// Update parent and existing children
 			if (relationship.HasChildren())
 			{
@@ -109,6 +109,7 @@ namespace Engine
 					{
 						childIteratorRelationship.NextChild = child.GetUUID();
 						childRelationship.PrevChild = childIterator;
+						relationship.ChildrenCount++;
 						return;
 					}
 

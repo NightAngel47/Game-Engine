@@ -34,6 +34,7 @@ namespace Engine
 		void SavePrefabAs();
 		void CreateFromPrefab();
 		void CreateFromPrefab(const std::filesystem::path& filepath);
+		void CreateChildEntity();
 	private:
 		Ref<Scene> m_Context;
 		UUID m_SelectionContext = UUID::INVALID();

@@ -46,13 +46,6 @@ namespace Engine
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 		
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-
-		// temp parent testing
-		Entity parentEntity = m_ActiveScene->CreateEntity("Parent");
-		parentEntity.AddComponent<SpriteRendererComponent>().Color = { 0, 1, 1, 1 };
-		Entity childEntityOne = m_ActiveScene->CreateEntity("Child One");
-		childEntityOne.AddComponent<SpriteRendererComponent>().Color = { 1, 0, 1, 1 };
-		parentEntity.AddChild(childEntityOne);
 	}
 
 	void EditorLayer::OnDetach()

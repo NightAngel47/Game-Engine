@@ -64,12 +64,12 @@ namespace Engine
 			});
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-				m_SelectionContext = {};
+				m_SelectionContext = UUID::INVALID();
 
 			// Right-click on blank space
 			if (ImGui::BeginPopupContextWindow(0, 1, false))
 			{
-				if (ImGui::MenuItem("Create Empty Entity"))
+				if (ImGui::MenuItem("Create Entity"))
 					m_Context->CreateEntity();
 				else if (ImGui::MenuItem("Create Sprite"))
 					m_Context->CreateEntity("Sprite").AddComponent<SpriteRendererComponent>();
@@ -109,9 +109,9 @@ namespace Engine
 		ImGui::End();
 
 		ImGui::Begin("Properties");
-		Entity selectedEntity = GetSelectedEntity();
-		if(selectedEntity)
+		if(m_SelectionContext.IsValid())
 		{
+			Entity selectedEntity = GetSelectedEntity();
 			DrawComponents(selectedEntity);
 		}
 		
@@ -166,9 +166,10 @@ namespace Engine
 		{
 			if (ImGui::MenuItem("Delete Entity"))
 				entityDeleted = true;
-
-			if (ImGui::MenuItem("Create Prefab"))
+			else if (ImGui::MenuItem("Create Prefab"))
 				SavePrefabAs();
+			else if (ImGui::MenuItem("Create Child Entity"))
+				CreateChildEntity();
 
 			ImGui::EndPopup();
 		}
@@ -842,6 +843,16 @@ namespace Engine
 
 		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
 		serializer.Deserialize(filepath);
+	}
+
+	void SceneHierarchyPanel::CreateChildEntity()
+	{
+		if (!m_SelectionContext.IsValid())
+			return;
+
+		Entity selectedEntity = GetSelectedEntity();
+		Entity childEntity = m_Context->CreateEntity("Child");
+		selectedEntity.AddChild(childEntity);
 	}
 
 }
