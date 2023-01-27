@@ -96,7 +96,7 @@ namespace Engine
 			if (relationship.HasChildren())
 			{
 				UUID childIterator = relationship.FirstChild;
-				for (std::size_t i{}; i < relationship.ChildrenCount; ++i)
+				for (uint64_t i{}; i < relationship.ChildrenCount; ++i)
 				{
 					if (!childIterator.IsValid())
 						break;
@@ -132,7 +132,7 @@ namespace Engine
 
 			UUID childID = child.GetUUID();
 			UUID childIterator = relationship.FirstChild;
-			for (std::size_t i{}; i < relationship.ChildrenCount; ++i)
+			for (uint64_t i{}; i < relationship.ChildrenCount; ++i)
 			{
 				if (!childIterator.IsValid())
 					break;

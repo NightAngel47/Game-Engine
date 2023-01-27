@@ -156,6 +156,21 @@ namespace Engine
 			out << YAML::EndMap; // TagComponent
 		}
 
+		if (m_Entity.HasComponent<RelationshipComponent>())
+		{
+			out << YAML::Key << "RelationshipComponent";
+			out << YAML::BeginMap; // RelationshipComponent
+
+			auto& relationshipComponent = m_Entity.GetComponent<RelationshipComponent>();
+			out << YAML::Key << "ChildrenCount" << YAML::Value << relationshipComponent.ChildrenCount;
+			out << YAML::Key << "FirstChild" << YAML::Value << relationshipComponent.FirstChild;
+			out << YAML::Key << "NextChild" << YAML::Value << relationshipComponent.NextChild;
+			out << YAML::Key << "PrevChild" << YAML::Value << relationshipComponent.PrevChild;
+			out << YAML::Key << "Parent" << YAML::Value << relationshipComponent.Parent;
+
+			out << YAML::EndMap; // RelationshipComponent
+		}
+
 		if (m_Entity.HasComponent<TransformComponent>())
 		{
 			out << YAML::Key << "TransformComponent";
@@ -352,15 +367,21 @@ namespace Engine
 		auto transformComponent = entity["TransformComponent"];
 		if (transformComponent)
 		{
-			// Entities are created with a transform
 			auto& tc = m_Entity.GetComponent<TransformComponent>();
 			tc.Position = transformComponent["Position"].as<glm::vec3>();
 			tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
 			tc.Scale = transformComponent["Scale"].as<glm::vec3>();
 		}
-		else // So if there is none then remove from Entity
+
+		auto relationshipComponent = entity["RelationshipComponent"];
+		if (relationshipComponent)
 		{
-			m_Entity.RemoveComponent<TransformComponent>();
+			auto& relationship = m_Entity.GetComponent<RelationshipComponent>();
+			relationship.ChildrenCount = relationshipComponent["ChildrenCount"].as<uint64_t>();
+			relationship.FirstChild = relationshipComponent["FirstChild"].as<uint64_t>();
+			relationship.NextChild = relationshipComponent["NextChild"].as<uint64_t>();
+			relationship.PrevChild = relationshipComponent["PrevChild"].as<uint64_t>();
+			relationship.Parent = relationshipComponent["Parent"].as<uint64_t>();
 		}
 
 		auto cameraComponent = entity["CameraComponent"];

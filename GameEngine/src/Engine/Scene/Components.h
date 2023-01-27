@@ -38,7 +38,7 @@ namespace Engine
 
 	struct RelationshipComponent
 	{
-		std::size_t ChildrenCount{};
+		uint64_t ChildrenCount{};
 		UUID FirstChild = UUID::INVALID();
 		UUID NextChild = UUID::INVALID();
 		UUID PrevChild = UUID::INVALID();
