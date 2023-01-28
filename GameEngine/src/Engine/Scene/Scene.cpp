@@ -72,10 +72,13 @@ namespace Engine
 		{
 			UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
 			const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
+			auto& relationship = srcSceneRegistry.get<RelationshipComponent>(e);
 			Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
+			auto& newRelationship = newEntity.GetComponent<RelationshipComponent>();
+			newRelationship = relationship;
 		}
 
-		// Copy Components (Except ID and Tag Components)
+		// Copy Components (Except ID, Tag, and Relationship Components)
 		CopyComponent(AllComponents{}, dstceneRegistry, srcSceneRegistry, newScene->m_EntityMap);
 
 		return newScene;
