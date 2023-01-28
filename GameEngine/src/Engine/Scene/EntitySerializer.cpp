@@ -352,6 +352,7 @@ namespace Engine
 		auto& relationship = m_Entity.GetComponent<RelationshipComponent>();
 		if (relationship.HasChildren())
 		{
+			Entity parentEntity = m_Entity;
 			out << YAML::Key << "ChildEntities" << YAML::Value << YAML::BeginSeq;
 
 			UUID childIterator = relationship.FirstChild;
@@ -360,10 +361,12 @@ namespace Engine
 				m_Entity = m_Scene->GetEntityWithUUID(childIterator);
 				Serialize(out);
 
-				childIterator = relationship.NextChild;
+				childIterator = m_Entity.GetComponent<RelationshipComponent>().NextChild;
 				if (!childIterator.IsValid())
 					break;
 			}
+
+			m_Entity = parentEntity;
 
 			out << YAML::EndSeq; // ChildEntities
 		}
@@ -371,9 +374,9 @@ namespace Engine
 		out << YAML::EndMap; // Entity
 	}
 
-	Engine::Entity EntitySerializer::Deserialize(YAML::Node& entity)
-{
-		UUID uuid = entity["Entity"].as<uint64_t>();
+	Engine::Entity EntitySerializer::Deserialize(YAML::Node& entity, bool isPrefab)
+	{
+		UUID uuid = isPrefab ? UUID() : entity["Entity"].as<uint64_t>();
 
 		std::string name;
 		auto tagComponent = entity["TagComponent"];
@@ -550,14 +553,39 @@ namespace Engine
 		auto childEntities = entity["ChildEntities"];
 		if (childEntities)
 		{
-			Entity rootEntity = m_Entity;
+			Entity parentEntity = m_Entity;
 
-			for (auto childEntity : childEntities)
+			bool firstChild = true;
+			UUID prevChild = UUID::INVALID();
+
+			for (auto childEntityNode : childEntities)
 			{
-				Deserialize(childEntity);
+				Entity childEntity = Deserialize(childEntityNode, isPrefab);
+
+				if (isPrefab)
+				{
+					auto& childRelationship = childEntity.GetComponent<RelationshipComponent>();
+					childRelationship.Parent = parentEntity.GetUUID();
+
+					UUID childID = childEntity.GetUUID();
+
+					if (firstChild)
+					{
+						firstChild = false;
+						parentEntity.GetComponent<RelationshipComponent>().FirstChild = childID;
+					}
+					else
+					{
+						Entity prevChildEntity = m_Scene->GetEntityWithUUID(prevChild);
+						prevChildEntity.GetComponent<RelationshipComponent>().NextChild = childID;
+						childRelationship.PrevChild = prevChild;
+					}
+
+					prevChild = childID;
+				}
 			}
 
-			m_Entity = rootEntity;
+			m_Entity = parentEntity;
 		}
 
 		return m_Entity;

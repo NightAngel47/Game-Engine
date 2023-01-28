@@ -52,7 +52,7 @@ namespace Engine
 			for (auto entity : entities)
 			{
 				EntitySerializer entitySerializer({}, m_Scene);
-				entitySerializer.Deserialize(entity);
+				entitySerializer.Deserialize(entity, true);
 			}
 		}
 	}

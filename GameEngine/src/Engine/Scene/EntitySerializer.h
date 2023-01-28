@@ -14,7 +14,7 @@ namespace Engine
 
 		void Serialize(YAML::Emitter& out);
 
-		Entity Deserialize(YAML::Node& entity);
+		Entity Deserialize(YAML::Node& entity, bool isPrefab = false);
 	private:
 		Entity m_Entity;
 		Ref<Scene> m_Scene;
