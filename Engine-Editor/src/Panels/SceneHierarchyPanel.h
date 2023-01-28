@@ -14,7 +14,7 @@ namespace Engine
 
 		void OnImGuiRender();
 
-		bool IsSelectedEntityValid() { return m_SelectionContext.IsValid(); }
+		bool IsSelectedEntityValid() { return m_SelectionContext.IsValid() && m_Context->DoesEntityExist(m_SelectionContext); }
 		Entity GetSelectedEntity()
 		{ 
 			if (!IsSelectedEntityValid())

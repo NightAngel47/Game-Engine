@@ -109,7 +109,7 @@ namespace Engine
 		ImGui::End();
 
 		ImGui::Begin("Properties");
-		if(m_SelectionContext.IsValid())
+		if(IsSelectedEntityValid())
 		{
 			Entity selectedEntity = GetSelectedEntity();
 			DrawComponents(selectedEntity);
