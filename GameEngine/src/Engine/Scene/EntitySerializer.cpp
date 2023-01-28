@@ -136,12 +136,12 @@ namespace Engine
 		return out;
 	}
 
-	void EntitySerializer::Serialize(YAML::Emitter& out, bool newUUID)
+	void EntitySerializer::Serialize(YAML::Emitter& out)
 	{
 		ENGINE_CORE_ASSERT(m_Entity.HasComponent<IDComponent>(), "Entity must have UUID!");
 
 		out << YAML::BeginMap; // Entity
-		UUID uuid = newUUID ? UUID() : m_Entity.GetUUID();
+		UUID uuid = m_Entity.GetUUID();
 		out << YAML::Key << "Entity" << YAML::Value << uuid;
 
 		if (m_Entity.HasComponent<TagComponent>())
@@ -349,12 +349,31 @@ namespace Engine
 			out << YAML::EndMap; // CircleCollider2DComponent
 		}
 
+		auto& relationship = m_Entity.GetComponent<RelationshipComponent>();
+		if (relationship.HasChildren())
+		{
+			out << YAML::Key << "ChildEntities" << YAML::Value << YAML::BeginSeq;
+
+			UUID childIterator = relationship.FirstChild;
+			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
+			{
+				m_Entity = m_Scene->GetEntityWithUUID(childIterator);
+				Serialize(out);
+
+				childIterator = relationship.NextChild;
+				if (!childIterator.IsValid())
+					break;
+			}
+
+			out << YAML::EndSeq; // ChildEntities
+		}
+
 		out << YAML::EndMap; // Entity
 	}
 
-	Engine::Entity EntitySerializer::Deserialize(YAML::Node& entity, bool newUUID)
+	Engine::Entity EntitySerializer::Deserialize(YAML::Node& entity)
 {
-		UUID uuid = newUUID ? UUID() : entity["Entity"].as<uint64_t>();
+		UUID uuid = entity["Entity"].as<uint64_t>();
 
 		std::string name;
 		auto tagComponent = entity["TagComponent"];
@@ -528,7 +547,19 @@ namespace Engine
 			circleCollider2D.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
 		}
 
+		auto childEntities = entity["ChildEntities"];
+		if (childEntities)
+		{
+			Entity rootEntity = m_Entity;
+
+			for (auto childEntity : childEntities)
+			{
+				Deserialize(childEntity);
+			}
+
+			m_Entity = rootEntity;
+		}
+
 		return m_Entity;
 	}
-
 }

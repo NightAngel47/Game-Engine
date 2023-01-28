@@ -12,9 +12,9 @@ namespace Engine
 		EntitySerializer(Entity entity, const Ref<Scene>& scene)
 			: m_Entity(entity), m_Scene(scene) {}
 
-		void Serialize(YAML::Emitter& out, bool newUUID = false);
+		void Serialize(YAML::Emitter& out);
 
-		Entity Deserialize(YAML::Node& entity, bool newUUID = false);
+		Entity Deserialize(YAML::Node& entity);
 	private:
 		Entity m_Entity;
 		Ref<Scene> m_Scene;

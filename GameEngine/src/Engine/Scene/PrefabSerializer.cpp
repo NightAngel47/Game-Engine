@@ -5,15 +5,21 @@
 
 namespace Engine
 {
+	struct PrefabData
+	{
+		UUID Parent = UUID::INVALID();
+	};
+
 	void PrefabSerializer::Serialize(const std::filesystem::path& filepath)
 	{
+
 		YAML::Emitter out;
 		out << YAML::BeginMap; // Prefab
 		out << YAML::Key << "Prefab" << YAML::Value << m_Entity.GetName();
 		ENGINE_CORE_TRACE("Serializing prefab '{0}'", m_Entity.GetName());
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 		EntitySerializer entitySerializer(m_Entity, m_Scene);
-		entitySerializer.Serialize(out, true);
+		entitySerializer.Serialize(out);
 		out << YAML::EndSeq;
 		out << YAML::EndMap; // Prefab
 
@@ -46,7 +52,7 @@ namespace Engine
 			for (auto entity : entities)
 			{
 				EntitySerializer entitySerializer({}, m_Scene);
-				entitySerializer.Deserialize(entity, true);
+				entitySerializer.Deserialize(entity);
 			}
 		}
 	}

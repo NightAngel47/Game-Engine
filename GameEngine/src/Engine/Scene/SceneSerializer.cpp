@@ -14,7 +14,8 @@ namespace Engine
 		m_Scene->m_Registry.each([&](auto entityID)
 		{
 			Entity entity = { entityID, m_Scene.get() };
-			if(!entity) return;
+			if(!entity || entity.GetComponent<RelationshipComponent>().Parent.IsValid())
+				return;
 
 			EntitySerializer entitySerializer(entity, m_Scene);
 			entitySerializer.Serialize(out);
