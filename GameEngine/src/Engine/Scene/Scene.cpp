@@ -114,6 +114,11 @@ namespace Engine
 			}
 		}
 
+		for (auto& child : entity.Children())
+		{
+			DestroyEntity(child);
+		}
+
 		m_EntityMap.erase(entity.GetUUID());
 		m_Registry.destroy(entity);
 	}
