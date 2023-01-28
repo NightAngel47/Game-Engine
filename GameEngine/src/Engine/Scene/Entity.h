@@ -96,7 +96,7 @@ namespace Engine
 			if (relationship.HasChildren())
 			{
 				UUID childIterator = relationship.FirstChild;
-				for (uint64_t i{}; i < relationship.ChildrenCount; ++i)
+				for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
 				{
 					if (!childIterator.IsValid())
 						break;
@@ -132,7 +132,7 @@ namespace Engine
 
 			UUID childID = child.GetUUID();
 			UUID childIterator = relationship.FirstChild;
-			for (uint64_t i{}; i < relationship.ChildrenCount; ++i)
+			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
 			{
 				if (!childIterator.IsValid())
 					break;
@@ -141,46 +141,37 @@ namespace Engine
 				if (childIterator == childID)
 				{
 					auto& childRelationship = child.GetComponent<RelationshipComponent>();
-					UUID nextChild = childRelationship.NextChild;
-					UUID prevChild = childRelationship.PrevChild;
-
-					// Get Next Child Relationship
-					auto& nextChildRelationship = RelationshipComponent{};
-					if (nextChild.IsValid())
-					{
-						Entity nextChildEntity = m_Scene->GetEntityWithUUID(nextChild);
-						nextChildRelationship = nextChildEntity.GetComponent<RelationshipComponent>();
-					}
-
-					// Get Prev Child Relationship
-					auto& prevChildRelationship = RelationshipComponent{};
-					if (prevChild.IsValid())
-					{
-						Entity prevChildEntity = m_Scene->GetEntityWithUUID(prevChild);
-						prevChildRelationship = prevChildEntity.GetComponent<RelationshipComponent>();
-					}
 
 					// Update references
-					if (prevChild.IsValid())
+					if (childRelationship.PrevChild.IsValid())
 					{
-						if (nextChild.IsValid())	// Middle Child Removed
+						Entity prevChildEntity = m_Scene->GetEntityWithUUID(childRelationship.PrevChild);
+						auto& prevChildRelationship = prevChildEntity.GetComponent<RelationshipComponent>();
+
+						if (childRelationship.NextChild.IsValid())	// Middle Child Removed
 						{
-							prevChildRelationship.NextChild = nextChild;
-							nextChildRelationship.PrevChild = prevChild;
+							Entity nextChildEntity = m_Scene->GetEntityWithUUID(childRelationship.NextChild);
+							auto& nextChildRelationship = nextChildEntity.GetComponent<RelationshipComponent>();
+
+							prevChildRelationship.NextChild = childRelationship.NextChild;
+							nextChildRelationship.PrevChild = childRelationship.PrevChild;
 						}
-						else						// Last Child Removed
+						else										// Last Child Removed
 						{
 							prevChildRelationship.NextChild = UUID::INVALID();
 						}
 					}
 					else
 					{
-						if (nextChild.IsValid())	// First Child Removed with Valid Next
+						if (childRelationship.NextChild.IsValid())	// First Child Removed with Valid Next
 						{
-							relationship.FirstChild = nextChild;
+							Entity nextChildEntity = m_Scene->GetEntityWithUUID(childRelationship.NextChild);
+							auto& nextChildRelationship = nextChildEntity.GetComponent<RelationshipComponent>();
+
+							relationship.FirstChild = childRelationship.NextChild;
 							nextChildRelationship.PrevChild = UUID::INVALID();
 						}
-						else						// First and Only Child Removed
+						else										// First and Only Child Removed
 						{
 							relationship.FirstChild = UUID::INVALID();
 						}
@@ -215,7 +206,7 @@ namespace Engine
 				return childEntities;
 
 			UUID childIterator = relationship.FirstChild;
-			for (std::size_t i{}; i < relationship.ChildrenCount; ++i)
+			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
 			{
 				if (!childIterator.IsValid())
 					break;

@@ -114,8 +114,15 @@ namespace Engine
 			}
 		}
 
+		if (entity.GetComponent<RelationshipComponent>().Parent.IsValid())
+		{
+			Entity parent = entity.GetParent();
+			parent.RemoveChild(entity);
+		}
+
 		for (auto& child : entity.Children())
 		{
+			entity.RemoveChild(child);
 			DestroyEntity(child);
 		}
 
