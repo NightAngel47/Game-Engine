@@ -156,6 +156,24 @@ namespace Engine
 		std::string name = entity.GetName();
 		Entity newEntity = CreateEntity(name);
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
+
+		auto& relationship = entity.GetComponent<RelationshipComponent>();
+
+		if (relationship.HasChildren())
+		{
+			UUID childIterator = relationship.FirstChild;
+			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
+			{
+				Entity childEntity = GetEntityWithUUID(childIterator);
+				Entity newChildEntity = DuplicateEntity(childEntity);
+				newEntity.AddChild(newChildEntity);
+				
+				childIterator = childEntity.GetComponent<RelationshipComponent>().NextChild;
+				if (!childIterator.IsValid())
+					break;
+			}
+		}
+
 		return newEntity;
 	}
 
