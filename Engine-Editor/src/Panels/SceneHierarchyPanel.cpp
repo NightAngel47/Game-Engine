@@ -83,7 +83,10 @@ namespace Engine
 				ImGui::EndPopup();
 			}
 
-			ImGui::InvisibleButton("##DragDropTarget", ImGui::GetContentRegionAvail());
+			glm::vec2 DDTASize = glm::vec2( 1.0f, 1.0f );
+			ImVec2 ContentRegionAvailable = ImGui::GetContentRegionAvail();
+			DDTASize += glm::vec2(ContentRegionAvailable.x, ContentRegionAvailable.y);
+			ImGui::InvisibleButton("##DragDropTargetArea", ImVec2(DDTASize.x, DDTASize.y));
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
