@@ -1,5 +1,7 @@
 ﻿using Engine.Math;
 using Engine.Core;
+using Engine.Physics;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace Engine.Scene
 {
@@ -76,6 +78,17 @@ namespace Engine.Scene
 			}
 		}
 
+		public BodyType Type
+		{
+			get
+			{
+				InternalCalls.Rigidbody2DComponent_GetType(Entity.ID, out int bodyType);
+				return (BodyType)bodyType;
+			}
+
+			set => InternalCalls.Rigidbody2DComponent_SetType(Entity.ID, (int)value);
+		}
+
 		public void ApplyLinearImpulse(Vector2 impulse, Vector2 worldPosition, bool wake)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulse(Entity.ID, ref impulse, ref worldPosition, wake);
@@ -85,5 +98,10 @@ namespace Engine.Scene
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
 		}
+	}
+
+	public class BoxCollider2DComponent : Component
+	{
+
 	}
 }

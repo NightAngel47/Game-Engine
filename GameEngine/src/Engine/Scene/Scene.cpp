@@ -5,7 +5,7 @@
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Renderer/Renderer2D.h"
-
+#include "Engine/Physics/Physics2D.h"
 #include "Engine/Scripting/ScriptEngine.h"
 
 #include <glm/glm.hpp>
@@ -13,26 +13,11 @@
 // box2d
 #include <box2d/b2_world.h>
 #include <box2d/b2_body.h>
-#include <box2d/b2_fixture.h>
-#include <box2d/b2_polygon_shape.h>
-#include "box2d/b2_circle_shape.h"
 #include <box2d/b2_types.h>
+
 
 namespace Engine
 {
-	static b2BodyType Rigidbody2DTypeToBox2DBodyType(Rigidbody2DComponent::BodyType bodyType)
-	{
-		switch (bodyType)
-		{
-			case Rigidbody2DComponent::BodyType::Static:	return b2BodyType::b2_staticBody;
-			case Rigidbody2DComponent::BodyType::Dynamic:	return b2BodyType::b2_dynamicBody;
-			case Rigidbody2DComponent::BodyType::Kinematic:	return b2BodyType::b2_kinematicBody;
-		}
-
-		ENGINE_ASSERT(false, "Unknown body type!");
-		return b2_staticBody;
-	}
-
 	template<typename... Component>
 	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap)
 	{
@@ -87,10 +72,13 @@ namespace Engine
 		{
 			UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
 			const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
+			auto& relationship = srcSceneRegistry.get<RelationshipComponent>(e);
 			Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
+			auto& newRelationship = newEntity.GetComponent<RelationshipComponent>();
+			newRelationship = relationship;
 		}
 
-		// Copy Components (Except ID and Tag Components)
+		// Copy Components (Except ID, Tag, and Relationship Components)
 		CopyComponent(AllComponents{}, dstceneRegistry, srcSceneRegistry, newScene->m_EntityMap);
 
 		return newScene;
@@ -107,6 +95,7 @@ namespace Engine
 
 		entity.AddComponent<IDComponent>(uuid);
 		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<RelationshipComponent>();
 		entity.AddComponent<TagComponent>().Tag = name.empty() ? "Entity" : name;
 
 		m_EntityMap[uuid] = entity;
@@ -116,6 +105,27 @@ namespace Engine
 
 	void Scene::DestroyEntity(Entity entity)
 	{
+		if (m_IsRunning)
+		{
+			if (entity.HasComponent<Rigidbody2DComponent>())
+			{
+				b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+				m_PhysicsWorld->DestroyBody(body);
+			}
+		}
+
+		if (entity.GetComponent<RelationshipComponent>().Parent.IsValid())
+		{
+			Entity parent = entity.GetParent();
+			parent.RemoveChild(entity);
+		}
+
+		for (auto& child : entity.Children())
+		{
+			entity.RemoveChild(child);
+			DestroyEntity(child);
+		}
+
 		m_EntityMap.erase(entity.GetUUID());
 		m_Registry.destroy(entity);
 	}
@@ -158,7 +168,30 @@ namespace Engine
 		std::string name = entity.GetName();
 		Entity newEntity = CreateEntity(name);
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
+
+		auto& relationship = entity.GetComponent<RelationshipComponent>();
+
+		if (relationship.HasChildren())
+		{
+			UUID childIterator = relationship.FirstChild;
+			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
+			{
+				Entity childEntity = GetEntityWithUUID(childIterator);
+				Entity newChildEntity = DuplicateEntity(childEntity);
+				newEntity.AddChild(newChildEntity);
+				
+				childIterator = childEntity.GetComponent<RelationshipComponent>().NextChild;
+				if (!childIterator.IsValid())
+					break;
+			}
+		}
+
 		return newEntity;
+	}
+
+	bool Scene::DoesEntityExist(UUID uuid)
+	{
+		return m_EntityMap.find(uuid) != m_EntityMap.end();
 	}
 
 	Entity Scene::GetEntityWithUUID(UUID uuid)
@@ -233,15 +266,16 @@ namespace Engine
 		Camera* mainCamera = nullptr;
 		glm::mat4 cameraTransform;
 		{
-			auto view = m_Registry.view<TransformComponent, CameraComponent>();
-			for (auto entity : view)
+			auto view = m_Registry.view<CameraComponent>();
+			for (auto e : view)
 			{
-				auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+				Entity entity = { e, this };
+				auto& camera = entity.GetComponent<CameraComponent>();
 				
 				if (camera.Primary)
 				{
 					mainCamera = &camera.Camera;
-					cameraTransform = transform.GetTransform();
+					cameraTransform = entity.GetWorldTransform();
 					break;
 				}
 			}
@@ -289,53 +323,18 @@ namespace Engine
 			Entity entity = { e, this };
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-
-			b2BodyDef bodyDef;
-			bodyDef.type = Rigidbody2DTypeToBox2DBodyType(rb2d.Type);
-			bodyDef.position.Set(transform.Position.x, transform.Position.y);
-			bodyDef.angle = transform.Rotation.z;
-
-			rb2d.previousPosition = transform.Position;
-			rb2d.previousAngle = transform.Rotation.z;
-
-			b2Body* body = m_PhysicsWorld->CreateBody(&bodyDef);
-
-			body->SetFixedRotation(rb2d.FixedRotation);
-			rb2d.RuntimeBody = body;
+			rb2d.RuntimeBody = Physics2D::CreateRigidbody(transform, rb2d, m_PhysicsWorld);
 
 			if (entity.HasComponent<BoxCollider2DComponent>())
 			{
 				auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-
-				b2PolygonShape boxShape;
-				boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0);
-
-				b2FixtureDef fixtureDef;
-				fixtureDef.shape = &boxShape;
-				fixtureDef.density = bc2d.Density;
-				fixtureDef.friction = bc2d.Friction;
-				fixtureDef.restitution = bc2d.Restitution;
-				fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
-
-				body->CreateFixture(&fixtureDef);
+				Physics2D::CreateCollider(transform, rb2d, bc2d);
 			}
 
 			if (entity.HasComponent<CircleCollider2DComponent>())
 			{
 				auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
-
-				b2CircleShape circleShape;
-				circleShape.m_p.Set(cc2d.Offset.x, cc2d.Offset.y);
-				circleShape.m_radius = transform.Scale.x * cc2d.Radius;
-
-				b2FixtureDef fixtureDef;
-				fixtureDef.shape = &circleShape;
-				fixtureDef.density = cc2d.Density;
-				fixtureDef.friction = cc2d.Friction;
-				fixtureDef.restitution = cc2d.Restitution;
-				fixtureDef.restitutionThreshold = cc2d.RestitutionThreshold;
-
-				body->CreateFixture(&fixtureDef);
+				Physics2D::CreateCollider(transform, rb2d, cc2d);
 			}
 		}
 	}
@@ -432,6 +431,7 @@ namespace Engine
 				auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
 				b2Body* body = (b2Body*)rb2d.RuntimeBody;
+				ENGINE_CORE_ASSERT(body, "Entiy has Rigidbody2DComponent, but no b2Body!");
 				if (body->GetType() == b2_staticBody)
 				{
 					continue;
@@ -474,6 +474,7 @@ namespace Engine
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
 			b2Body* body = (b2Body*)rb2d.RuntimeBody;
+			ENGINE_CORE_ASSERT(body, "Entiy has Rigidbody2DComponent, but no b2Body!");
 			if (body->GetType() == b2_staticBody)
 			{
 				continue;
@@ -522,22 +523,22 @@ namespace Engine
 	void Scene::OnRender2DUpdate()
 	{
 		{ // Draw Sprites
-			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-			for (auto entity : group)
+			auto view = m_Registry.view<SpriteRendererComponent>();
+			for (auto e : view)
 			{
-				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-				Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+				Entity entity = { e, this };
+				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
+				Renderer2D::DrawSprite(entity.GetWorldTransform(), sprite, (int)e);
 			}
 		}
 
 		{ // Draw Circles
-			auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
-			for (auto entity : view)
+			auto view = m_Registry.view<CircleRendererComponent>();
+			for (auto e : view)
 			{
-				auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
-
-				Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
+				Entity entity = { e, this };
+				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
+				Renderer2D::DrawCircle(entity.GetWorldTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
 			}
 		}
 	}
@@ -556,6 +557,11 @@ namespace Engine
 
 	template<>
 	void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
 	{
 	}
 
@@ -584,16 +590,33 @@ namespace Engine
 	template<>
 	void Scene::OnComponentAdded<Rigidbody2DComponent>(Entity entity, Rigidbody2DComponent& component)
 	{
+		if (m_IsRunning)
+		{
+			auto& transform = entity.GetComponent<TransformComponent>();
+			component.RuntimeBody = Physics2D::CreateRigidbody(transform, component, m_PhysicsWorld);
+		}
 	}
 
 	template<>
 	void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
 	{
+		if (m_IsRunning)
+		{
+			auto& transform = entity.GetComponent<TransformComponent>();
+			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+			Physics2D::CreateCollider(transform, rb2d, component);
+		}
 	}
 
 	template<>
 	void Scene::OnComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component)
 	{
+		if (m_IsRunning)
+		{
+			auto& transform = entity.GetComponent<TransformComponent>();
+			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+			Physics2D::CreateCollider(transform, rb2d, component);
+		}
 	}
 
 	template<>

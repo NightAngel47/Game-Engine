@@ -2,6 +2,7 @@
 #include "Engine/Core/UUID.h"
 #include "Engine/Core/KeyCodes.h"
 #include "Engine/Core/MouseCodes.h"
+#include "Engine/Scene/Components.h"
 
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/object.h>
@@ -81,8 +82,11 @@ namespace InternalCalls
 #pragma region Entity
 
 		static bool Entity_HasComponent(Engine::UUID entityID, MonoReflectionType* componentType);
+		static void Entity_AddComponent(Engine::UUID entityID, MonoReflectionType* componentType);
 		static uint64_t Entity_FindEntityByName(MonoString* name);
+		static uint64_t Entity_CreateEntity(MonoString* name);
 		static MonoObject* Entity_GetScriptInstance(Engine::UUID entityID);
+		static void Entity_DestroyEntity(Engine::UUID entityID);
 
 #pragma endregion Entity
 
@@ -114,6 +118,8 @@ namespace InternalCalls
 		static void Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity);
 		static void Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake);
 		static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(Engine::UUID entityID, glm::vec2& impulse, bool wake);
+		static void Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType);
+		static void Rigidbody2DComponent_SetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType bodyType);
 
 #pragma endregion Rigidbody2DComponent
 	};

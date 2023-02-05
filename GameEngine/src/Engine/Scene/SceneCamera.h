@@ -46,4 +46,28 @@ namespace Engine
 
 		float m_AspectRatio = 0.0f;
 	};
+
+	namespace Utils
+	{
+		inline static std::string SceneCameraProjectionTypeToString(SceneCamera::ProjectionType projectionType)
+		{
+			switch (projectionType)
+			{
+			case SceneCamera::ProjectionType::Perspective:	return "Perspective";
+			case SceneCamera::ProjectionType::Orthographic:	return "Orthographic";
+			}
+
+			ENGINE_CORE_ASSERT(false, "Unknown projection type!");
+			return {};
+		}
+
+		inline static SceneCamera::ProjectionType SceneCameraProjectionTypeFromString(const std::string& projectionTypeString)
+		{
+			if (projectionTypeString == "Perspective")	return SceneCamera::ProjectionType::Perspective;
+			if (projectionTypeString == "Orthographic")	return SceneCamera::ProjectionType::Orthographic;
+
+			ENGINE_CORE_ASSERT(false, "Unknown projection type!");
+			return SceneCamera::ProjectionType::Orthographic;
+		}
+	}
 }

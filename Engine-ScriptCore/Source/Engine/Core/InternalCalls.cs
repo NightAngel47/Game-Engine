@@ -107,10 +107,19 @@ namespace Engine.Core
 		internal static extern bool Entity_HasComponent(ulong entityID, System.Type componentType);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_AddComponent(ulong entityID, System.Type componentType);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern ulong Entity_FindEntityByName(string name);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern ulong Entity_CreateEntity(string name);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern object Entity_GetScriptInstance(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_DestroyEntity(ulong entityID);
 
 		#endregion Entity
 
@@ -162,6 +171,12 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_ApplyLinearImpulseToCenter(ulong entityID, ref Vector2 impulse, bool wake);
+		
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_GetType(ulong entityID, out int bodyType);
+		
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_SetType(ulong entityID, int bodyType);
 
 		#endregion Rigidbody2DComponent
 	}

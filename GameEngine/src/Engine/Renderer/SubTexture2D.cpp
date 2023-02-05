@@ -14,8 +14,10 @@ namespace Engine
 
 	Ref<SubTexture2D> SubTexture2D::CreateFromCoords(const Ref<Texture2D>& texture, const glm::vec2& coords, const glm::vec2& cellSize, const glm::vec2& spriteSize)
 	{
-		glm::vec2 min = { (coords.x * cellSize.x) / texture->GetWidth(), (coords.y * cellSize.y) / texture->GetHeight()};
-		glm::vec2 max = { ((coords.x + spriteSize.x) * cellSize.x) / texture->GetWidth(), ((coords.y + spriteSize.y) * cellSize.y) / texture->GetHeight()};
+		uint32_t width = texture->GetWidth();
+		uint32_t height = texture->GetHeight();
+		glm::vec2 min = { (coords.x * cellSize.x) / width, (coords.y * cellSize.y) / height };
+		glm::vec2 max = { ((coords.x + spriteSize.x) * cellSize.x) / width, ((coords.y + spriteSize.y) * cellSize.y) / height };
 		return CreateRef<SubTexture2D>(texture, min, max);
 	}
 	

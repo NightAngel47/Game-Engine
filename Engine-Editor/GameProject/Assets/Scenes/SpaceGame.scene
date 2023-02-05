@@ -1,33 +1,30 @@
-Scene: NewScriptTest.scene
+Scene: SpaceGame.scene
 Entities:
-  - Entity: 8412092258379128351
+  - Entity: 14915008708924800273
     TagComponent:
-      Tag: Background
+      Tag: Colored Background
     TransformComponent:
-      Position: [-0.0203680098, 0, -0.300000012]
+      Position: [0, 0, -1]
       Rotation: [0, 0, 0]
-      Scale: [100, 100, 1]
+      Scale: [100, 10000, 1]
     SpriteRendererComponent:
-      Color: [0.208188787, 0.127864107, 0.265822768, 1]
-      Path: textures\Checkerboard.png
-      Tiling: 15
-      IsSubTexture: false
+      Color: [1, 1, 1, 1]
+      Path: Textures\Checkerboard.png
+      Tiling: 2
+      IsSubTexture: true
       SubCoords: [0, 0]
-      SubCellSize: [0, 0]
+      SubCellSize: [100, 10000]
       SubSpriteSize: [1, 1]
     ScriptComponent:
       ClassName: GameProject.Source.ColorChanger
       ScriptFields:
-        - Name: maxTilingAmount
-          Type: Int
-          Data: 10
         - Name: secondsBetween
           Type: Float
-          Data: 1
+          Data: 5
         - Name: color
           Type: Vector4
           Data: [0, 0, 0, 0]
-  - Entity: 17540509940495339677
+  - Entity: 12940202294083603207
     TagComponent:
       Tag: Camera
     TransformComponent:
@@ -36,13 +33,13 @@ Entities:
       Scale: [1, 1, 1]
     CameraComponent:
       Camera:
-        ProjectionType: Orthographic
-        PerspectiveFOV: 0.785398185
+        ProjectionType: Perspective
+        PerspectiveFOV: 1.04719758
         PerspectiveNear: 0.00999999978
-        PerspectiveFar: 1000
+        PerspectiveFar: 100
         OrthographicSize: 10
         OrthographicNear: -1
-        OrthographicFar: 1
+        OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
     ScriptComponent:
@@ -50,29 +47,55 @@ Entities:
       ScriptFields:
         - Name: DistanceFromPlayerMax
           Type: Float
-          Data: 50
+          Data: 16
         - Name: DistanceFromPlayer
           Type: Float
           Data: 0
         - Name: DistanceFromPlayerMin
           Type: Float
-          Data: 5
+          Data: 8
         - Name: offSet
           Type: Vector2
           Data: [0, -2]
         - Name: zoomSpeedPercentIncrease
           Type: Float
-          Data: 1
-  - Entity: 1594666678092074743
+          Data: 0.00999999978
+  - Entity: 9803254290711981613
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Position: [0, -3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [20, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.303797483, 0.303794444, 0.303794444, 1]
+      Path: ""
+      Tiling: 1
+      IsSubTexture: false
+      SubCoords: [0, 0]
+      SubCellSize: [0, 0]
+      SubSpriteSize: [1, 1]
+    Rigidbody2DComponent:
+      Type: Static
+      FixedRotation: false
+      Smoothing: None
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 1353344786687538892
     TagComponent:
       Tag: Player
     TransformComponent:
-      Position: [2.38418579e-07, 0, 0]
+      Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [0, 1, 0.630952358, 1]
-      Path: textures\shipGreen_manned.png
+      Color: [1, 1, 1, 1]
+      Path: Textures\shipGreen_manned.png
       Tiling: 1
       IsSubTexture: false
       SubCoords: [0, 0]
@@ -86,10 +109,21 @@ Entities:
           Data: 50
         - Name: rotSpeeed
           Type: Float
-          Data: 2.20000005
+          Data: 5
         - Name: movement
           Type: Vector2
           Data: [0, 0]
         - Name: exampleString
           Type: String
-          Data: Chicken
+          Data: Example
+    Rigidbody2DComponent:
+      Type: Dynamic
+      FixedRotation: false
+      Smoothing: Interpolation
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5

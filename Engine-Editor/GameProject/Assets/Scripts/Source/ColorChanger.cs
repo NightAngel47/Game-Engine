@@ -8,7 +8,6 @@ namespace GameProject.Source
 	{
 		SpriteRendererComponent sprite;
 		public float secondsBetween = 1.0f;
-		public int maxTilingAmount = 100;
 
 		public Vector4 color;
 		
@@ -26,7 +25,6 @@ namespace GameProject.Source
 			{
 				color = new Vector4(Random.Float(), Random.Float(), Random.Float(), 1.0f);
 				sprite.Color = color;
-				sprite.Tiling = Random.Range(1, maxTilingAmount);
 				timeElapsed = 0;
 			}
 		}

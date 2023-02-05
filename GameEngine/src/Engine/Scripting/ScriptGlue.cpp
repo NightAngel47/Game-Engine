@@ -4,14 +4,15 @@
 
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Entity.h"
-#include "Engine/Scene/Components.h"
 #include "Engine/Math/Random.h"
+#include "Engine/Physics/Physics2D.h"
 
 #include <box2d/b2_body.h>
 
 namespace InternalCalls
 {
 	static std::unordered_map < MonoType*, std::function<bool(Engine::Entity) >> s_EntityHasComponentFuncs;
+	static std::unordered_map < MonoType*, std::function<void(Engine::Entity) >> s_EntityAddComponentFuncs;
 
 	static Engine::Entity GetEntityFromScene(Engine::UUID entityID)
 	{
@@ -70,8 +71,11 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector4_sqrMagnitude);
 
 		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
+		ENGINE_ADD_INTERNAL_CALL(Entity_AddComponent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_FindEntityByName);
+		ENGINE_ADD_INTERNAL_CALL(Entity_CreateEntity);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetScriptInstance);
+		ENGINE_ADD_INTERNAL_CALL(Entity_DestroyEntity);
 
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetPosition);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetPosition);
@@ -88,6 +92,8 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulse);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
 	}
 
 	template<typename... Component>
@@ -107,6 +113,7 @@ namespace InternalCalls
 				return;
 			}
 			s_EntityHasComponentFuncs[managedType] = [](Engine::Entity entity) { return entity.HasComponent<Component>(); };
+			s_EntityAddComponentFuncs[managedType] = [](Engine::Entity entity) { entity.AddComponent<Component>(); };
 		}(), ... );
 	}
 
@@ -275,6 +282,14 @@ namespace InternalCalls
 		return s_EntityHasComponentFuncs.at(managedType)(entity);
 	}
 
+	void ScriptGlue::Entity_AddComponent(Engine::UUID entityID, MonoReflectionType* componentType)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		MonoType* managedType = mono_reflection_type_get_type(componentType);
+		ENGINE_CORE_ASSERT(s_EntityAddComponentFuncs.find(managedType) != s_EntityAddComponentFuncs.end());
+		s_EntityAddComponentFuncs.at(managedType)(entity);
+	}
+
 	uint64_t ScriptGlue::Entity_FindEntityByName(MonoString* name)
 	{
 		std::string entityName = Engine::ScriptEngine::MonoStringToUTF8(name);
@@ -288,13 +303,34 @@ namespace InternalCalls
 		return entity.GetUUID();
 	}
 
+	uint64_t ScriptGlue::Entity_CreateEntity(MonoString* name)
+	{
+		std::string entityName = Engine::ScriptEngine::MonoStringToUTF8(name);
+		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
+		Engine::Entity entity = scene->CreateEntity(entityName);
+
+		if (!entity)
+		{
+			return 0;
+		}
+		return entity.GetUUID();
+	}
+
 	MonoObject* ScriptGlue::Entity_GetScriptInstance(Engine::UUID entityID)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
-
 		auto& instance = Engine::ScriptEngine::GetEntityInstance(entity);
-
 		return instance->GetMonoObject();
+	}
+
+	void ScriptGlue::Entity_DestroyEntity(Engine::UUID entityID)
+	{
+		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
+		Engine::Entity entity = scene->GetEntityWithUUID(entityID);
+		ENGINE_CORE_ASSERT(entity, "Entity with UUID: " + std::to_string(entityID) + " was not found in Scene!");
+		scene->DestroyEntity(entity);
 	}
 
 #pragma endregion Entity
@@ -403,6 +439,20 @@ namespace InternalCalls
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
 		body->ApplyLinearImpulseToCenter(b2Vec2(impulse.x, impulse.y), wake);
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		*bodyType = Engine::Utils::Box2DBodyTypeToRigidbody2DType(body->GetType());
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_SetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType bodyType)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		body->SetType(Engine::Utils::Rigidbody2DTypeToBox2DBodyType(bodyType));
 	}
 
 #pragma endregion Rigidbody2DComponent

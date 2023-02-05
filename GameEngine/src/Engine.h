@@ -25,11 +25,14 @@
 #include "Engine/Math/Math.h"
 #include "Engine/Math/Random.h"
 
+#include "Engine/Physics/Physics2D.h"
+
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/SceneSerializer.h"
+#include "Engine/Scene/PrefabSerializer.h"
 
 #include "Engine/Scripting/ScriptEngine.h"
 

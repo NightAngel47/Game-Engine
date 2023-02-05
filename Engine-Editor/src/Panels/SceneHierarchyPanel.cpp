@@ -37,6 +37,7 @@ namespace Engine
 	}
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
+		:m_SelectionContext(UUID::INVALID())
 	{
 		SetContext(context);
 	}
@@ -44,7 +45,7 @@ namespace Engine
 	void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
 	{
 		m_Context = context;
-		m_SelectionContext = {};
+		m_SelectionContext = UUID::INVALID();
 	}
 
 	void SceneHierarchyPanel::OnImGuiRender()
@@ -53,46 +54,65 @@ namespace Engine
 
 		if (m_Context)
 		{
-
 			m_Context->m_Registry.each([&](auto entityID)
 			{
 				Entity entity{ entityID, m_Context.get() };
+				if (entity.GetComponent<RelationshipComponent>().Parent.IsValid())
+					return;
+
 				DrawEntityNode(entity);
 			});
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-				m_SelectionContext = {};
+				m_SelectionContext = UUID::INVALID();
 
 			// Right-click on blank space
 			if (ImGui::BeginPopupContextWindow(0, 1, false))
 			{
-				if (ImGui::MenuItem("Create Empty Entity"))
-				{
+				if (ImGui::MenuItem("Create Entity"))
 					m_Context->CreateEntity();
-				}
 				else if (ImGui::MenuItem("Create Sprite"))
-				{
 					m_Context->CreateEntity("Sprite").AddComponent<SpriteRendererComponent>();
-				}
 				else if (ImGui::MenuItem("Create Circle"))
-				{
 					m_Context->CreateEntity("Circle").AddComponent<CircleRendererComponent>();
-				}
 				else if (ImGui::MenuItem("Create Camera"))
-				{
 					m_Context->CreateEntity("Camera").AddComponent<CameraComponent>();
-				}
+				else if (ImGui::MenuItem("Create from Prefab"))
+					CreateFromPrefab();
 
 				ImGui::EndPopup();
+			}
+
+			ImGui::InvisibleButton("##DragDropTarget", ImGui::GetContentRegionAvail());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					const wchar_t* fileExtension = std::wcsrchr(path, '.');
+
+					if (std::wcscmp(fileExtension, L".prefab") == 0)
+					{
+						CreateFromPrefab(path);
+					}
+					else
+					{
+						std::wstring ws(fileExtension);
+						ENGINE_CORE_WARN("File type is not supported by drag and drop in the Scene Hierarchy Panel: " + std::string(ws.begin(), ws.end()));
+					}
+				}
+
+				ImGui::EndDragDropTarget();
 			}
 		}
 		
 		ImGui::End();
 
 		ImGui::Begin("Properties");
-		if(m_SelectionContext)
+		if(IsSelectedEntityValid())
 		{
-			DrawComponents(m_SelectionContext);
+			Entity selectedEntity = GetSelectedEntity();
+			DrawComponents(selectedEntity);
 		}
 		
 		ImGui::End();
@@ -100,19 +120,45 @@ namespace Engine
 
 	void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
 	{
-		m_SelectionContext = entity;
+		m_SelectionContext = entity.GetUUID();
+	}
+
+	void SceneHierarchyPanel::SetSelectedEntity(UUID entityID)
+	{
+		m_SelectionContext = entityID;
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
 	{
-		auto& tag = entity.GetComponent<TagComponent>().Tag;
+		auto& tag = entity.GetName();
 
-		ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGuiTreeNodeFlags flags = (IsSelectedEntityValid() && (GetSelectedEntity() == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+		flags |= (entity.GetComponent<RelationshipComponent>().HasChildren()) ? 0 : ImGuiTreeNodeFlags_Leaf;
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+
+		if (ImGui::BeginDragDropSource())
+		{
+			const UUID* entityItem = &entity.GetUUID();
+			ImGui::SetDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM", entityItem, sizeof(UUID*), ImGuiCond_Once);
+			ImGui::EndDragDropSource();
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
+			{
+				const UUID* entityItemID = (const UUID*)payload->Data;
+				Entity entityItem = m_Context->GetEntityWithUUID(*entityItemID);
+				entity.AddChild(entityItem);
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
 		if(ImGui::IsItemClicked())
 		{
-			m_SelectionContext = entity;
+			m_SelectionContext = entity.GetUUID();
 		}
 
 		bool entityDeleted = false;
@@ -120,19 +166,28 @@ namespace Engine
 		{
 			if (ImGui::MenuItem("Delete Entity"))
 				entityDeleted = true;
+			else if (ImGui::MenuItem("Create Prefab"))
+				SavePrefabAs();
+			else if (ImGui::MenuItem("Create Child Entity"))
+				CreateChildEntity();
 
 			ImGui::EndPopup();
 		}
 
 		if(opened)
 		{
+			for (Entity childEntity : entity.Children())
+			{
+				DrawEntityNode(childEntity);
+			}
+
 			ImGui::TreePop();
 		}
 
 		if(entityDeleted)
 		{
-			if (m_SelectionContext == entity)
-				m_SelectionContext = {};
+			if (IsSelectedEntityValid() && GetSelectedEntity() == entity)
+				m_SelectionContext = UUID::INVALID();
 			m_Context->DestroyEntity(entity);
 		}
 	}
@@ -380,6 +435,24 @@ namespace Engine
 			}
 			
 			ImGui::DragFloat("Tiling", &component.Tiling, 0.1f);
+
+			ImGui::Separator();
+			bool subtextureInvalidated = false;
+			ImGui::Text("Sub-Texture Settings");
+
+			if (ImGui::Checkbox("Is Sub-Texture", &component.IsSubTexture))
+				subtextureInvalidated = true;
+			if (ImGui::DragFloat2("Sub-Coords", glm::value_ptr(component.SubCoords), 1.0f, 0.0f, std::numeric_limits<float>().max(), "%.0f"))
+				subtextureInvalidated = true;
+			if (ImGui::DragFloat2("Sub-CellSize", glm::value_ptr(component.SubCellSize), 1.0f, 0.0f, std::numeric_limits<float>().max(), "%.0f"))
+				subtextureInvalidated = true;
+			if (ImGui::DragFloat2("Sub-SpriteSize", glm::value_ptr(component.SubSpriteSize), 1.0f, 1.0f, std::numeric_limits<float>().max(), "%.0f"))
+				subtextureInvalidated = true;
+
+			if (subtextureInvalidated)
+			{
+				component.GenerateSubTexture();
+			}
 		});
 		
 		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
@@ -390,10 +463,14 @@ namespace Engine
 			ImGui::DragFloat("Fade", &component.Fade, 0.0001f, 0.0f, 1.0f);
 		});
 		
-		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
+		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [&](auto& component)
 		{
+			bool sceneRunning = m_Context->IsRunning();
+			auto body = (b2Body*)component.RuntimeBody;
+
 			const char* bodyTypeStrings[3] = { "Static", "Dynamic", "Kinematic" };
-			const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
+			int bodyTypeIndex = sceneRunning ? (int)Engine::Utils::Box2DBodyTypeToRigidbody2DType(body->GetType()) : (int)component.Type;
+			const char* currentBodyTypeString = bodyTypeStrings[bodyTypeIndex];
 
 			if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
 			{
@@ -401,7 +478,13 @@ namespace Engine
 				{
 					bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
 					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
-						component.Type = (Rigidbody2DComponent::BodyType)i;
+					{
+						Rigidbody2DComponent::BodyType selectedBody = (Rigidbody2DComponent::BodyType)i;
+						if (sceneRunning)
+							body->SetType(Engine::Utils::Rigidbody2DTypeToBox2DBodyType(selectedBody));
+						else
+							component.Type = selectedBody;
+					}
 
 					if (isSelected)
 						ImGui::SetItemDefaultFocus();
@@ -719,14 +802,57 @@ namespace Engine
 	}
 
 	template<typename T>
-	void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName) {
-		if (!m_SelectionContext.HasComponent<T>())
+	void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName)
+	{
+		Entity selectedEntity = GetSelectedEntity();
+		if (!selectedEntity.HasComponent<T>())
 		{
 			if (ImGui::MenuItem(entryName.c_str()))
 			{
-				m_SelectionContext.AddComponent<T>();
+				selectedEntity.AddComponent<T>();
 				ImGui::CloseCurrentPopup();
 			}
 		}
 	}
+
+	void SceneHierarchyPanel::SavePrefabAs()
+	{
+		std::filesystem::path filepath = FileDialogs::SaveFile("Prefab (*.prefab)\0*.prefab\0");
+
+		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
+		serializer.Serialize(filepath);
+	}
+
+	void SceneHierarchyPanel::CreateFromPrefab()
+	{
+		std::string filepath = FileDialogs::OpenFile("Prefab (*.prefab)\0*.prefab\0");
+		if (filepath.empty())
+			return;
+
+		auto relativePath = std::filesystem::relative(filepath, Project::GetAssetDirectory());
+		CreateFromPrefab(relativePath);
+	}
+
+	void SceneHierarchyPanel::CreateFromPrefab(const std::filesystem::path& filepath)
+	{
+		if (filepath.extension().string() != ".prefab")
+		{
+			ENGINE_CORE_WARN("Could not load {0} - not a prefab file", filepath.filename().string());
+			return;
+		}
+
+		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
+		serializer.Deserialize(filepath);
+	}
+
+	void SceneHierarchyPanel::CreateChildEntity()
+	{
+		if (!m_SelectionContext.IsValid())
+			return;
+
+		Entity selectedEntity = GetSelectedEntity();
+		Entity childEntity = m_Context->CreateEntity("Child");
+		selectedEntity.AddChild(childEntity);
+	}
+
 }

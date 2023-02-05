@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Renderer/Texture.h"
+#include "Engine/Renderer/SubTexture2D.h"
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/Core/UUID.h"
@@ -13,6 +14,10 @@
 
 namespace Engine
 {
+
+#pragma region Entity Components
+	// Default Components for All Entities
+
 	struct IDComponent 
 	{
 		UUID ID;
@@ -30,6 +35,20 @@ namespace Engine
 		TagComponent(const std::string& tag)
 			: Tag(tag) {}
 	};
+
+	struct RelationshipComponent
+	{
+		uint64_t ChildrenCount{};
+		UUID FirstChild = UUID::INVALID();
+		UUID NextChild = UUID::INVALID();
+		UUID PrevChild = UUID::INVALID();
+		UUID Parent = UUID::INVALID();
+
+		RelationshipComponent() = default;
+		RelationshipComponent(const RelationshipComponent&) = default;
+
+		bool const HasChildren() const { return ChildrenCount > 0; }
+	};
 	
 	struct TransformComponent
 	{
@@ -45,19 +64,31 @@ namespace Engine
 		glm::mat4 GetTransform() const
 		{
 			glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
-			
+
 			return glm::translate(glm::mat4(1.0f), Position)
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
 	};
-	
+
+#pragma endregion Entity Components
+
+#pragma region Game Components
+	// Components Available to Entities
+
 	struct SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
 		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
 		std::filesystem::path Path = "";
+
+		//Sub Texture
+		bool IsSubTexture = false;
+		Ref<SubTexture2D> SubTexture = nullptr;
+		glm::vec2 SubCoords = { 0.0f, 0.0f };
+		glm::vec2 SubCellSize = { 0.0f, 0.0f };
+		glm::vec2 SubSpriteSize = { 1.0f, 1.0f };
 	
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -70,6 +101,16 @@ namespace Engine
 			{
 				Path = path;
 				Texture = Texture2D::Create(Project::GetAssetFileSystemPath(path).string());
+
+				GenerateSubTexture();
+			}
+		}
+
+		void GenerateSubTexture()
+		{
+			if (IsSubTexture)
+			{
+				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
 			}
 		}
 	};
@@ -134,6 +175,7 @@ namespace Engine
 			Static = 0, Dynamic, Kinematic
 		};
 		BodyType Type = BodyType::Static;
+
 		bool FixedRotation = false;
 
 		enum class SmoothingType {
@@ -185,6 +227,8 @@ namespace Engine
 		CircleCollider2DComponent() = default;
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
+
+#pragma endregion GameComponents
 
 	template<typename... Component>
 	struct ComponentGroup

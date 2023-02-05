@@ -19,7 +19,6 @@
 
 namespace Engine
 {				
-				
 	static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
 	{
 		{ "System.Single",			ScriptFieldType::Float },

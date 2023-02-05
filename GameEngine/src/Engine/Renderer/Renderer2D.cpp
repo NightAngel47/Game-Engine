@@ -429,7 +429,15 @@ namespace Engine
 
 		if(src.Texture)
 		{
-			DrawQuad(transform, src.Texture, src.Tiling, src.Color, entityID);
+			if (src.IsSubTexture)
+			{
+				DrawQuad(transform, src.SubTexture, src.Tiling, src.Color, entityID);
+			}
+			else
+			{
+				DrawQuad(transform, src.Texture, src.Tiling, src.Color, entityID);
+			}
+
 			return;
 		}
 		
