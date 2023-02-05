@@ -61,21 +61,24 @@ namespace InternalCalls
 #pragma region Vector2
 
 		static float Vector2_Magnitude(glm::vec2& vector2);
-		static float Vector2_sqrMagnitude(glm::vec2& vector2);
+		static float Vector2_SqrMagnitude(glm::vec2& vector2);
+		static void Vector2_Normalize(glm::vec2* vector2);
 
 #pragma endregion Vector2
 
 #pragma region Vector3
 
 		static float Vector3_Magnitude(glm::vec3& vector3);
-		static float Vector3_sqrMagnitude(glm::vec3& vector3);
+		static float Vector3_SqrMagnitude(glm::vec3& vector3);
+		static void Vector3_Normalize(glm::vec3* vector3);
 
 #pragma endregion Vector3
 
 #pragma region Vector4
 
 		static float Vector4_Magnitude(glm::vec4& vector4);
-		static float Vector4_sqrMagnitude(glm::vec4& vector4);
+		static float Vector4_SqrMagnitude(glm::vec4& vector4);
+		static void Vector4_Normalize(glm::vec4* vector4);
 
 #pragma endregion Vector4
 

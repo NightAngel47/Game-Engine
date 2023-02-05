@@ -9,16 +9,16 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Trace(string message);
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Info(string message);
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Warn(string message);
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Error(string message);
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Log_Critical(string message);
 
@@ -28,16 +28,16 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern bool Input_IsKeyPressed(int key);
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern bool Input_IsMouseButtonPressed(int key);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Input_GetMousePosition(out Vector2 mousePos);
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern float Input_GetMouseY();
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern float Input_GetMouseX();
 
@@ -77,7 +77,10 @@ namespace Engine.Core
 		internal static extern float Vector2_Magnitude(ref Vector2 vector2);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern float Vector2_sqrMagnitude(ref Vector2 vector2);
+		internal static extern float Vector2_SqrMagnitude(ref Vector2 vector2);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Vector2_Normalize(out Vector2 vector2);
 
 		#endregion Vector2
 
@@ -87,7 +90,10 @@ namespace Engine.Core
 		internal static extern float Vector3_Magnitude(ref Vector3 vector3);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern float Vector3_sqrMagnitude(ref Vector3 vector3);
+		internal static extern float Vector3_SqrMagnitude(ref Vector3 vector3);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Vector3_Normalize(out Vector3 vector3);
 
 		#endregion Vector3
 
@@ -97,7 +103,10 @@ namespace Engine.Core
 		internal static extern float Vector4_Magnitude(ref Vector4 vector4);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern float Vector4_sqrMagnitude(ref Vector4 vector4);
+		internal static extern float Vector4_SqrMagnitude(ref Vector4 vector4);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Vector4_Normalize(out Vector4 vector4);
 
 		#endregion Vector4
 
@@ -171,10 +180,10 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_ApplyLinearImpulseToCenter(ulong entityID, ref Vector2 impulse, bool wake);
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_GetType(ulong entityID, out int bodyType);
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_SetType(ulong entityID, int bodyType);
 

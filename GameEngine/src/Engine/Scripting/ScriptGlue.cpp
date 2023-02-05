@@ -62,13 +62,16 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Random_Range_Int_Seed);
 
 		ENGINE_ADD_INTERNAL_CALL(Vector2_Magnitude);
-		ENGINE_ADD_INTERNAL_CALL(Vector2_sqrMagnitude);
+		ENGINE_ADD_INTERNAL_CALL(Vector2_SqrMagnitude);
+		ENGINE_ADD_INTERNAL_CALL(Vector2_Normalize);
 
 		ENGINE_ADD_INTERNAL_CALL(Vector3_Magnitude);
-		ENGINE_ADD_INTERNAL_CALL(Vector3_sqrMagnitude);
+		ENGINE_ADD_INTERNAL_CALL(Vector3_SqrMagnitude);
+		ENGINE_ADD_INTERNAL_CALL(Vector3_Normalize);
 
 		ENGINE_ADD_INTERNAL_CALL(Vector4_Magnitude);
-		ENGINE_ADD_INTERNAL_CALL(Vector4_sqrMagnitude);
+		ENGINE_ADD_INTERNAL_CALL(Vector4_SqrMagnitude);
+		ENGINE_ADD_INTERNAL_CALL(Vector3_Normalize);
 
 		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_AddComponent);
@@ -237,9 +240,14 @@ namespace InternalCalls
 		return glm::length(vector2);
 	}
 
-	float ScriptGlue::Vector2_sqrMagnitude(glm::vec2& vector2)
+	float ScriptGlue::Vector2_SqrMagnitude(glm::vec2& vector2)
 	{
 		return glm::dot(vector2, vector2);
+	}
+
+	void ScriptGlue::Vector2_Normalize(glm::vec2* vector2)
+	{
+		*vector2 = glm::normalize(*vector2);
 	}
 
 #pragma endregion Vector2
@@ -251,9 +259,14 @@ namespace InternalCalls
 		return glm::length(vector3);
 	}
 
-	float ScriptGlue::Vector3_sqrMagnitude(glm::vec3& vector3)
+	float ScriptGlue::Vector3_SqrMagnitude(glm::vec3& vector3)
 	{
 		return glm::dot(vector3, vector3);
+	}
+
+	void ScriptGlue::Vector3_Normalize(glm::vec3* vector3)
+	{
+		*vector3 = glm::normalize(*vector3);
 	}
 
 #pragma endregion Vector3
@@ -265,9 +278,14 @@ namespace InternalCalls
 		return glm::length(vector4);
 	}
 
-	float ScriptGlue::Vector4_sqrMagnitude(glm::vec4& vector4)
+	float ScriptGlue::Vector4_SqrMagnitude(glm::vec4& vector4)
 	{
 		return glm::dot(vector4, vector4);
+	}
+
+	void ScriptGlue::Vector4_Normalize(glm::vec4* vector4)
+	{
+		*vector4 = glm::normalize(*vector4);
 	}
 
 #pragma endregion Vector4
