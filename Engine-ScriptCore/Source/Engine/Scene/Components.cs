@@ -76,6 +76,8 @@ namespace Engine.Scene
 				InternalCalls.Rigidbody2DComponent_GetLinearVelocity(Entity.ID, out Vector2 velocity);
 				return velocity;
 			}
+
+			set => InternalCalls.Rigidbody2DComponent_SetLinearVelocity(Entity.ID, ref value);
 		}
 
 		public BodyType Type
@@ -97,6 +99,16 @@ namespace Engine.Scene
 		public void ApplyLinearImpulse(Vector2 impulse, bool wake)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
+		}
+
+		public void ApplyForce(Vector2 force, Vector2 worldPosition, bool wake)
+		{
+			InternalCalls.Rigidbody2DComponent_ApplyForce(Entity.ID, ref force, ref worldPosition, wake);
+		}
+
+		public void ApplyForce(Vector2 force, bool wake)
+		{
+			InternalCalls.Rigidbody2DComponent_ApplyForceToCenter(Entity.ID, ref force, wake);
 		}
 	}
 

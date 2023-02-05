@@ -92,11 +92,14 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_GetTiling);
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_SetTiling);
 
-		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
-		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulse);
-		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetLinearVelocity);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulse);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyForce);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyForceToCenter);
 	}
 
 	template<typename... Component>
@@ -437,12 +440,35 @@ namespace InternalCalls
 
 #pragma region Rigidbody2DComponent
 
+
+
+	void ScriptGlue::Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		*bodyType = Engine::Utils::Box2DBodyTypeToRigidbody2DType(body->GetType());
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_SetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType bodyType)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		body->SetType(Engine::Utils::Rigidbody2DTypeToBox2DBodyType(bodyType));
+	}
+
 	void ScriptGlue::Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
 		const b2Vec2& rb2dVelocity = body->GetLinearVelocity();
 		*velocity = { rb2dVelocity.x, rb2dVelocity.y };
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_SetLinearVelocity(Engine::UUID entityID, glm::vec2& velocity)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		body->SetLinearVelocity(b2Vec2(velocity.x, velocity.y));
 	}
 
 	void ScriptGlue::Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake)
@@ -459,18 +485,18 @@ namespace InternalCalls
 		body->ApplyLinearImpulseToCenter(b2Vec2(impulse.x, impulse.y), wake);
 	}
 
-	void ScriptGlue::Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType)
+	void ScriptGlue::Rigidbody2DComponent_ApplyForce(Engine::UUID entityID, glm::vec2& force, glm::vec2& worldPosition, bool wake)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
-		*bodyType = Engine::Utils::Box2DBodyTypeToRigidbody2DType(body->GetType());
+		body->ApplyForce(b2Vec2(force.x, force.y), b2Vec2(worldPosition.x, worldPosition.y), wake);
 	}
 
-	void ScriptGlue::Rigidbody2DComponent_SetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType bodyType)
+	void ScriptGlue::Rigidbody2DComponent_ApplyForceToCenter(Engine::UUID entityID, glm::vec2& force, bool wake)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
-		body->SetType(Engine::Utils::Rigidbody2DTypeToBox2DBodyType(bodyType));
+		body->ApplyLinearImpulseToCenter(b2Vec2(force.x, force.y), wake);
 	}
 
 #pragma endregion Rigidbody2DComponent

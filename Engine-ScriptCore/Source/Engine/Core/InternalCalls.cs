@@ -173,7 +173,16 @@ namespace Engine.Core
 		#region Rigidbody2DComponent
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_GetType(ulong entityID, out int bodyType);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_SetType(ulong entityID, int bodyType);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_GetLinearVelocity(ulong entityID, out Vector2 velocity);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_SetLinearVelocity(ulong entityID, ref Vector2 velocity);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_ApplyLinearImpulse(ulong entityID, ref Vector2 impulse, ref Vector2 worldPosition, bool wake);
@@ -182,10 +191,11 @@ namespace Engine.Core
 		internal static extern void Rigidbody2DComponent_ApplyLinearImpulseToCenter(ulong entityID, ref Vector2 impulse, bool wake);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void Rigidbody2DComponent_GetType(ulong entityID, out int bodyType);
+		internal static extern void Rigidbody2DComponent_ApplyForce(ulong entityID, ref Vector2 force, ref Vector2 worldPosition, bool wake);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void Rigidbody2DComponent_SetType(ulong entityID, int bodyType);
+		internal static extern void Rigidbody2DComponent_ApplyForceToCenter(ulong entityID, ref Vector2 force, bool wake);
+
 
 		#endregion Rigidbody2DComponent
 	}
