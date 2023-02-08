@@ -21,6 +21,9 @@ namespace Engine.Scene
 		protected virtual void OnUpdate(float ts) { }
 		protected virtual void OnLateUpdate(float ts) { }
 
+		protected virtual void OnTriggerEnter2D() { }
+		protected virtual void OnTriggerExit2D() { }
+
 		public bool HasComponent<T>() where T : Component, new()
 		{
 			System.Type componentType = typeof(T);

@@ -197,6 +197,8 @@ namespace Engine
 		glm::vec2 Offset{ 0.0f };
 		glm::vec2 Size{ 0.5f };
 
+		bool Sensor = false;
+
 		// TODO maybe make physics material
 		float Density = 1.0f;
 		float Friction = 0.5f;
@@ -214,6 +216,8 @@ namespace Engine
 	{
 		glm::vec2 Offset{ 0.0f };
 		float Radius = 0.5f;
+
+		bool Sensor = false;
 
 		// TODO maybe make physics material
 		float Density = 1.0f;

@@ -196,7 +196,6 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_ApplyForceToCenter(ulong entityID, ref Vector2 force, bool wake);
 
-
 		#endregion Rigidbody2DComponent
 	}
 }

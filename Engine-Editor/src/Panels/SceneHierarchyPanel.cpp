@@ -522,6 +522,8 @@ namespace Engine
 			ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset), 0.1f);
 			ImGui::DragFloat2("Size", glm::value_ptr(component.Size), 0.1f);
 
+			ImGui::Checkbox("Trigger", &component.Sensor);
+
 			ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
@@ -532,6 +534,8 @@ namespace Engine
 		{
 			ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset), 0.1f);
 			ImGui::DragFloat("Radius", &component.Radius, 0.1f);
+
+			ImGui::Checkbox("Trigger", &component.Sensor);
 
 			ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);

@@ -22,6 +22,9 @@ typedef void(*OnDestroy) (MonoObject* obj, MonoObject** exp);
 typedef void(*OnUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
 typedef void(*OnLateUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
 
+typedef void(*OnTriggerEnter2D) (MonoObject* obj, MonoObject** exp);
+typedef void(*OnTriggerExit2D) (MonoObject* obj, MonoObject** exp);
+
 // Created with help from this guide (Mono Embedding for Game Engines): https://peter1745.github.io/introduction.html
 
 namespace Engine
@@ -151,6 +154,9 @@ namespace Engine
 		static void OnUpdateEntity(Entity entity, Timestep ts);
 		static void OnLateUpdateEntity(Entity entity, Timestep ts);
 
+		static void OnTriggerEnter2D(Entity entity);
+		static void OnTriggerExit2D(Entity entity);
+
 		static bool EntityInstanceExists(Entity& entity);
 		static Ref<ScriptInstance> GetEntityInstance(Entity entity);
 
@@ -159,7 +165,7 @@ namespace Engine
 		static uint8_t GetPropertyAccessbility(MonoProperty* property);
 
 		static void HandleMonoException(MonoObject* ptrExObject);
-		static MonoString* CharToMonoString(char& charString);
+		static MonoString* CharToMonoString(char* charString);
 		static MonoString* StringToMonoString(const std::string& string);
 		static std::string MonoStringToUTF8(MonoString* monoString);
 	
@@ -236,6 +242,9 @@ namespace Engine
 		void InvokeOnUpdate(float ts);
 		void InvokeOnLateUpdate(float ts);
 
+		void InvokeOnTriggerEnter2D();
+		void InvokeOnTriggerExit2D();
+
 		MonoObject* GetMonoObject() { return m_Instance; }
 
 	private:
@@ -253,6 +262,9 @@ namespace Engine
 		OnDestroy OnDestroyThunk = nullptr;
 		OnUpdate OnUpdateThunk = nullptr;
 		OnLateUpdate OnLateUpdateThunk = nullptr;
+
+		OnTriggerEnter2D OnTriggerEnter2DThunk = nullptr;
+		OnTriggerExit2D OnTriggerExit2DThunk = nullptr;
 
 		inline static char s_FieldValueBuffer[64];
 

@@ -552,6 +552,32 @@ namespace Engine
 		}
 	}
 
+	void ScriptEngine::OnTriggerEnter2D(Entity entity)
+	{
+		const auto& sc = entity.GetComponent<ScriptComponent>();
+
+		if (EntityClassExists(sc.ClassName))
+		{
+			if (EntityInstanceExists(entity))
+			{
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerEnter2D();
+			}
+		}
+	}
+
+	void ScriptEngine::OnTriggerExit2D(Entity entity)
+	{
+		const auto& sc = entity.GetComponent<ScriptComponent>();
+
+		if (EntityClassExists(sc.ClassName))
+		{
+			if (EntityInstanceExists(entity))
+			{
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerExit2D();
+			}
+		}
+	}
+
 	bool ScriptEngine::EntityInstanceExists(Entity& entity)
 	{
 		const auto& entityInstances = s_ScriptEngineData->EntityInstances;
@@ -616,20 +642,32 @@ namespace Engine
 		// setup onDestroy method
 		MonoMethod* OnDestroyMethodPtr = mono_class_get_method_from_name(monoClass, "OnDestroy", 0);
 		OnDestroyThunk = OnDestroyMethodPtr ? (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr) : nullptr;
-		if (OnDestroyThunk)
+		if (!OnDestroyThunk)
 			ENGINE_CORE_WARN("Could not find destroy method desc in class!");
 
 		// setup onUpdate method
 		MonoMethod* OnUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnUpdate", 1);
 		OnUpdateThunk = OnUpdateMethodPtr ? (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr) : nullptr;
-		if (OnUpdateThunk)
+		if (!OnUpdateThunk)
 			ENGINE_CORE_WARN("Could not find update method desc in class!");
 
 		// setup onLateUpdate method
 		MonoMethod* OnLateUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnLateUpdate", 1);
 		OnLateUpdateThunk = OnLateUpdateMethodPtr ? (OnLateUpdate)mono_method_get_unmanaged_thunk(OnLateUpdateMethodPtr) : nullptr;
-		if (OnLateUpdateThunk)
+		if (!OnLateUpdateThunk)
 			ENGINE_CORE_WARN("Could not find late update method desc in class!");
+
+		// setup onTriggerEnter2D method
+		MonoMethod* OnTriggerEnter2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnTriggerEnter2D", 0);
+		OnTriggerEnter2DThunk = OnTriggerEnter2DMethodPtr ? (OnTriggerEnter2D)mono_method_get_unmanaged_thunk(OnTriggerEnter2DMethodPtr) : nullptr;
+		if (!OnTriggerEnter2DThunk)
+			ENGINE_CORE_WARN("Could not find trigger enter 2d method desc in class!");
+
+		// setup onTriggerExit2D method
+		MonoMethod* OnTriggerExit2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnTriggerExit2D", 0);
+		OnTriggerExit2DThunk = OnTriggerExit2DMethodPtr ? (OnTriggerExit2D)mono_method_get_unmanaged_thunk(OnTriggerExit2DMethodPtr) : nullptr;
+		if (!OnTriggerExit2DThunk)
+			ENGINE_CORE_WARN("Could not find trigger exit 2d method desc in class!");
 	}
 
 	void ScriptInstance::InvokeOnCreate()
@@ -674,6 +712,24 @@ namespace Engine
 
 		MonoObject* ptrExObject = nullptr;
 		OnLateUpdateThunk(m_Instance, &ts, &ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
+	}
+
+	void ScriptInstance::InvokeOnTriggerEnter2D()
+	{
+		if (!OnTriggerEnter2DThunk) return; // handle script without OnTriggerEnter2D
+
+		MonoObject* ptrExObject = nullptr;
+		OnTriggerEnter2DThunk(m_Instance, &ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
+	}
+
+	void ScriptInstance::InvokeOnTriggerExit2D()
+	{
+		if (!OnTriggerExit2DThunk) return; // handle script without OnTriggerExit2D
+
+		MonoObject* ptrExObject = nullptr;
+		OnTriggerExit2DThunk(m_Instance, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
@@ -852,6 +908,11 @@ namespace Engine
 		mono_free(utf8);
 
 		ENGINE_CORE_ERROR(result);
+	}
+
+	MonoString* ScriptEngine::CharToMonoString(char* charString)
+	{
+		return mono_string_new(s_ScriptEngineData->AppDomain, charString);
 	}
 
 	MonoString* ScriptEngine::StringToMonoString(const std::string& string)
