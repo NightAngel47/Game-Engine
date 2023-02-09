@@ -325,6 +325,7 @@ namespace Engine
 			auto& boxCollider2DComponent = m_Entity.GetComponent<BoxCollider2DComponent>();
 			out << YAML::Key << "Offset" << YAML::Value << boxCollider2DComponent.Offset;
 			out << YAML::Key << "Size" << YAML::Value << boxCollider2DComponent.Size;
+			out << YAML::Key << "Sensor" << YAML::Value << boxCollider2DComponent.Sensor;
 			out << YAML::Key << "Density" << YAML::Value << boxCollider2DComponent.Density;
 			out << YAML::Key << "Friction" << YAML::Value << boxCollider2DComponent.Friction;
 			out << YAML::Key << "Restitution" << YAML::Value << boxCollider2DComponent.Restitution;
@@ -341,6 +342,7 @@ namespace Engine
 			auto& circleCollider2DComponent = m_Entity.GetComponent<CircleCollider2DComponent>();
 			out << YAML::Key << "Offset" << YAML::Value << circleCollider2DComponent.Offset;
 			out << YAML::Key << "Radius" << YAML::Value << circleCollider2DComponent.Radius;
+			out << YAML::Key << "Sensor" << YAML::Value << circleCollider2DComponent.Sensor;
 			out << YAML::Key << "Density" << YAML::Value << circleCollider2DComponent.Density;
 			out << YAML::Key << "Friction" << YAML::Value << circleCollider2DComponent.Friction;
 			out << YAML::Key << "Restitution" << YAML::Value << circleCollider2DComponent.Restitution;
@@ -531,6 +533,8 @@ namespace Engine
 			boxCollider2D.Offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
 			boxCollider2D.Size = boxCollider2DComponent["Size"].as<glm::vec2>();
 
+			boxCollider2D.Sensor = boxCollider2DComponent["Sensor"].as<bool>();
+
 			boxCollider2D.Density = boxCollider2DComponent["Density"].as<float>();
 			boxCollider2D.Friction = boxCollider2DComponent["Friction"].as<float>();
 			boxCollider2D.Restitution = boxCollider2DComponent["Restitution"].as<float>();
@@ -543,6 +547,8 @@ namespace Engine
 			auto& circleCollider2D = m_Entity.AddComponent<CircleCollider2DComponent>();
 			circleCollider2D.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
 			circleCollider2D.Radius = circleCollider2DComponent["Radius"].as<float>();
+
+			circleCollider2D.Sensor = circleCollider2DComponent["Sensor"].as<bool>();
 
 			circleCollider2D.Density = circleCollider2DComponent["Density"].as<float>();
 			circleCollider2D.Friction = circleCollider2DComponent["Friction"].as<float>();
