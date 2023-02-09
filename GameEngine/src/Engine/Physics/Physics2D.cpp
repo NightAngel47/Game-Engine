@@ -251,19 +251,13 @@ namespace Engine
 		if (!(sensorA ^ sensorB))
 			return;
 
+		UUID enteringEntityID = sensorA ? (UUID)fixtureB->GetBody()->GetUserData().pointer : (UUID)fixtureA->GetBody()->GetUserData().pointer;
+		if (!enteringEntityID.IsValid())
+			return;
 
-		if (sensorA)
-		{
-			Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureB->GetBody()->GetUserData().pointer);
-			if (entityB.HasComponent<ScriptComponent>())
-				ScriptEngine::OnTriggerEnter2D(entityB);
-		}
-		else
-		{
-			Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureA->GetBody()->GetUserData().pointer);
-			if (entityA.HasComponent<ScriptComponent>())
-				ScriptEngine::OnTriggerEnter2D(entityA);
-		}
+		Entity entity = s_physics2DEngineData->SceneContext->GetEntityWithUUID(enteringEntityID);
+		if (entity.HasComponent<ScriptComponent>())
+			ScriptEngine::OnTriggerEnter2D(entity);
 	}
 
 	void Physics2DContactListener::EndContact(b2Contact* contact)
@@ -277,17 +271,12 @@ namespace Engine
 		if (!(sensorA ^ sensorB))
 			return;
 
-		if (sensorA)
-		{
-			Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureB->GetBody()->GetUserData().pointer);
-			if (entityB.HasComponent<ScriptComponent>())
-				ScriptEngine::OnTriggerEnter2D(entityB);
-		}
-		else
-		{
-			Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureA->GetBody()->GetUserData().pointer);
-			if (entityA.HasComponent<ScriptComponent>())
-				ScriptEngine::OnTriggerEnter2D(entityA);
-		}
+		UUID enteringEntityID = sensorA ? (UUID)fixtureB->GetBody()->GetUserData().pointer : (UUID)fixtureA->GetBody()->GetUserData().pointer;
+		if (!enteringEntityID.IsValid())
+			return;
+
+		Entity entity = s_physics2DEngineData->SceneContext->GetEntityWithUUID(enteringEntityID);
+		if (entity.HasComponent<ScriptComponent>())
+			ScriptEngine::OnTriggerExit2D(entity);
 	}
 }
