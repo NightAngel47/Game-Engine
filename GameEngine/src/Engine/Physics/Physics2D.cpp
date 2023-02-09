@@ -254,17 +254,15 @@ namespace Engine
 
 		if (sensorA)
 		{
-			ENGINE_CORE_TRACE("Sensor A Enter");
-			//Entity entityA = m_ActiveScene->GetEntityWithUUID((UUID)fixtureA->GetBody()->GetUserData().pointer);
-			//ENGINE_CORE_TRACE("Entity {0} with trigger entered contact", entityA.GetName());
-			//ScriptEngine::OnTriggerEnter2D(entityA);
+			Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureB->GetBody()->GetUserData().pointer);
+			if (entityB.HasComponent<ScriptComponent>())
+				ScriptEngine::OnTriggerEnter2D(entityB);
 		}
 		else
 		{
-			ENGINE_CORE_TRACE("Sensor B Enter");
-			//Entity entityB = m_ActiveScene->GetEntityWithUUID((UUID)fixtureB->GetBody()->GetUserData().pointer);
-			//ENGINE_CORE_TRACE("Entity {0} with trigger entered contact", entityB.GetName());
-			//ScriptEngine::OnTriggerEnter2D(entityB);
+			Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureA->GetBody()->GetUserData().pointer);
+			if (entityA.HasComponent<ScriptComponent>())
+				ScriptEngine::OnTriggerEnter2D(entityA);
 		}
 	}
 
@@ -279,20 +277,17 @@ namespace Engine
 		if (!(sensorA ^ sensorB))
 			return;
 
-
 		if (sensorA)
 		{
-			ENGINE_CORE_TRACE("Sensor A Exit");
-			//Entity entityA = m_ActiveScene->GetEntityWithUUID((UUID)fixtureA->GetBody()->GetUserData().pointer);
-			//ENGINE_CORE_TRACE("Entity {0} with trigger exited contact", entityA.GetName());
-			//ScriptEngine::OnTriggerExit2D(entityA);
+			Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureB->GetBody()->GetUserData().pointer);
+			if (entityB.HasComponent<ScriptComponent>())
+				ScriptEngine::OnTriggerEnter2D(entityB);
 		}
 		else
 		{
-			ENGINE_CORE_TRACE("Sensor B Exit");
-			//Entity entityB = m_ActiveScene->GetEntityWithUUID((UUID)fixtureB->GetBody()->GetUserData().pointer);
-			//ENGINE_CORE_TRACE("Entity {0} with trigger exited contact", entityB.GetName());
-			//ScriptEngine::OnTriggerExit2D(entityB);
+			Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureA->GetBody()->GetUserData().pointer);
+			if (entityA.HasComponent<ScriptComponent>())
+				ScriptEngine::OnTriggerEnter2D(entityA);
 		}
 	}
 }
