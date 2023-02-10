@@ -113,6 +113,9 @@ namespace Engine.Core
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern string Entity_GetName(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern bool Entity_HasComponent(ulong entityID, System.Type componentType);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]

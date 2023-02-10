@@ -73,6 +73,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector4_SqrMagnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector3_Normalize);
 
+		ENGINE_ADD_INTERNAL_CALL(Entity_GetName);
 		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_AddComponent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_FindEntityByName);
@@ -294,6 +295,12 @@ namespace InternalCalls
 #pragma endregion Vector4
 
 #pragma region Entity
+
+	MonoString* ScriptGlue::Entity_GetName(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		return Engine::ScriptEngine::StringToMonoString(entity.GetName());
+	}
 
 	bool ScriptGlue::Entity_HasComponent(Engine::UUID entityID, MonoReflectionType* componentType)
 	{

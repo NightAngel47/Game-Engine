@@ -84,6 +84,7 @@ namespace InternalCalls
 
 #pragma region Entity
 
+		static MonoString* Entity_GetName(Engine::UUID entityID);
 		static bool Entity_HasComponent(Engine::UUID entityID, MonoReflectionType* componentType);
 		static void Entity_AddComponent(Engine::UUID entityID, MonoReflectionType* componentType);
 		static uint64_t Entity_FindEntityByName(MonoString* name);

@@ -6,6 +6,7 @@ namespace Engine.Scene
 	public class Entity
 	{
 		public readonly ulong ID;
+		public string Name => InternalCalls.Entity_GetName(ID);
 		public TransformComponent Transform => GetComponent<TransformComponent>();
 
 		protected Entity() { ID = 0; }
@@ -13,6 +14,10 @@ namespace Engine.Scene
 		internal Entity(ulong id)
 		{
 			ID = id;
+		}
+		public override string ToString()
+		{
+			return $"({Name} : {ID})";
 		}
 
 		protected virtual void OnCreate() { }
