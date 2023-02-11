@@ -199,8 +199,11 @@ namespace Engine
 		ImGui::Begin("Stats");
 
 		std::string name = "None";
-		if (m_HoveredEntity)
-			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
+		if (m_HoveredEntityID.IsValid())
+		{
+			Entity hoveredEntity = m_ActiveScene->GetEntityWithUUID(m_HoveredEntityID);
+			name = hoveredEntity.GetComponent<TagComponent>().Tag;
+		}
 		ImGui::Text("Hovered Entity: %s", name.c_str());
 		
 		ImGui::Text("Frametime: %fms", m_FrameTime);
@@ -520,7 +523,7 @@ namespace Engine
 		{
 			if(m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
 			{
-				m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+				m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntityID);
 			}
 		}
 		
@@ -713,11 +716,11 @@ namespace Engine
 		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
 		{
 			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
-			m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
+			m_HoveredEntityID = pixelData == -1 ? UUID::INVALID() : Entity((entt::entity)pixelData, m_ActiveScene.get()).GetUUID();
 		}
 		else
 		{
-			m_HoveredEntity = Entity();
+			m_HoveredEntityID = UUID::INVALID();
 		}
 	}
 

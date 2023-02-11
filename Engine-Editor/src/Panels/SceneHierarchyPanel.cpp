@@ -83,7 +83,10 @@ namespace Engine
 				ImGui::EndPopup();
 			}
 
-			ImGui::InvisibleButton("##DragDropTarget", ImGui::GetContentRegionAvail());
+			glm::vec2 DDTASize = glm::vec2( 1.0f, 1.0f );
+			ImVec2 ContentRegionAvailable = ImGui::GetContentRegionAvail();
+			DDTASize += glm::vec2(ContentRegionAvailable.x, ContentRegionAvailable.y);
+			ImGui::InvisibleButton("##DragDropTargetArea", ImVec2(DDTASize.x, DDTASize.y));
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -519,6 +522,8 @@ namespace Engine
 			ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset), 0.1f);
 			ImGui::DragFloat2("Size", glm::value_ptr(component.Size), 0.1f);
 
+			ImGui::Checkbox("Trigger", &component.Sensor);
+
 			ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
@@ -529,6 +534,8 @@ namespace Engine
 		{
 			ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset), 0.1f);
 			ImGui::DragFloat("Radius", &component.Radius, 0.1f);
+
+			ImGui::Checkbox("Trigger", &component.Sensor);
 
 			ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);

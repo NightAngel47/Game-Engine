@@ -1,11 +1,13 @@
 ﻿using Engine.Core;
 using Engine.Math;
+using Engine.Physics;
 
 namespace Engine.Scene
 {
 	public class Entity
 	{
 		public readonly ulong ID;
+		public string Name => InternalCalls.Entity_GetName(ID);
 		public TransformComponent Transform => GetComponent<TransformComponent>();
 
 		protected Entity() { ID = 0; }
@@ -15,11 +17,19 @@ namespace Engine.Scene
 			ID = id;
 		}
 
+		public override string ToString()
+		{
+			return $"({Name} : {ID})";
+		}
+
 		protected virtual void OnCreate() { }
 		protected virtual void OnStart() { }
 		protected virtual void OnDestroy() { }
 		protected virtual void OnUpdate(float ts) { }
 		protected virtual void OnLateUpdate(float ts) { }
+
+		protected virtual void OnTriggerEnter2D(Physics2DContact contact2D) { }
+		protected virtual void OnTriggerExit2D(Physics2DContact contact2D) { }
 
 		public bool HasComponent<T>() where T : Component, new()
 		{

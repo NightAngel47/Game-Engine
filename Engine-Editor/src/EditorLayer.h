@@ -53,7 +53,7 @@ namespace Engine
 		Ref<Scene> m_EditorScene;
 		std::filesystem::path m_EditorScenePath;
 		
-		Entity m_HoveredEntity;
+		UUID m_HoveredEntityID = UUID::INVALID();
 
 		bool m_PrimaryCamera = true;
 		EditorCamera m_EditorCamera;

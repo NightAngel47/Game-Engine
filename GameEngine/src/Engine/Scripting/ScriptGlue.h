@@ -61,26 +61,36 @@ namespace InternalCalls
 #pragma region Vector2
 
 		static float Vector2_Magnitude(glm::vec2& vector2);
-		static float Vector2_sqrMagnitude(glm::vec2& vector2);
+		static float Vector2_SqrMagnitude(glm::vec2& vector2);
+		static void Vector2_Normalize(glm::vec2* vector2);
 
 #pragma endregion Vector2
 
 #pragma region Vector3
 
 		static float Vector3_Magnitude(glm::vec3& vector3);
-		static float Vector3_sqrMagnitude(glm::vec3& vector3);
+		static float Vector3_SqrMagnitude(glm::vec3& vector3);
+		static void Vector3_Normalize(glm::vec3* vector3);
 
 #pragma endregion Vector3
 
 #pragma region Vector4
 
 		static float Vector4_Magnitude(glm::vec4& vector4);
-		static float Vector4_sqrMagnitude(glm::vec4& vector4);
+		static float Vector4_SqrMagnitude(glm::vec4& vector4);
+		static void Vector4_Normalize(glm::vec4* vector4);
 
 #pragma endregion Vector4
 
+#pragma region Physics2DContact
+
+		static uint64_t Physics2DContact_GetEntityByID(Engine::UUID entityID);
+
+#pragma endregion Physics2DContact
+
 #pragma region Entity
 
+		static MonoString* Entity_GetName(Engine::UUID entityID);
 		static bool Entity_HasComponent(Engine::UUID entityID, MonoReflectionType* componentType);
 		static void Entity_AddComponent(Engine::UUID entityID, MonoReflectionType* componentType);
 		static uint64_t Entity_FindEntityByName(MonoString* name);
@@ -115,11 +125,14 @@ namespace InternalCalls
 
 #pragma region Rigidbody2DComponent
 
-		static void Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity);
-		static void Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake);
-		static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(Engine::UUID entityID, glm::vec2& impulse, bool wake);
 		static void Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType);
 		static void Rigidbody2DComponent_SetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType bodyType);
+		static void Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity);
+		static void Rigidbody2DComponent_SetLinearVelocity(Engine::UUID entityID, glm::vec2& velocity);
+		static void Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake);
+		static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(Engine::UUID entityID, glm::vec2& impulse, bool wake);
+		static void Rigidbody2DComponent_ApplyForce(Engine::UUID entityID, glm::vec2& force, glm::vec2& worldPosition, bool wake);
+		static void Rigidbody2DComponent_ApplyForceToCenter(Engine::UUID entityID, glm::vec2& force, bool wake);
 
 #pragma endregion Rigidbody2DComponent
 	};

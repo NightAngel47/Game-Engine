@@ -30,7 +30,13 @@ namespace Engine.Math
 		}
 
 		public float Magnitude => InternalCalls.Vector3_Magnitude(ref this);
-		public float sqrMagnitude => InternalCalls.Vector3_sqrMagnitude(ref this);
+		public float SqrMagnitude => InternalCalls.Vector3_SqrMagnitude(ref this);
+
+		public Vector3 Normalize()
+		{
+			InternalCalls.Vector3_Normalize(out this);
+			return this;
+		}
 
 		public static Vector3 operator +(Vector3 lhs, Vector3 rhs) => new Vector3(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z);
 		public static Vector3 operator +(Vector3 lhs, Vector2 rhs) => new Vector3(lhs.X + rhs.X, lhs.Y + rhs.Y, 0.0f);

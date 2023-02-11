@@ -10,12 +10,6 @@
 
 #include <glm/glm.hpp>
 
-// box2d
-#include <box2d/b2_world.h>
-#include <box2d/b2_body.h>
-#include <box2d/b2_types.h>
-
-
 namespace Engine
 {
 	template<typename... Component>
@@ -107,11 +101,7 @@ namespace Engine
 	{
 		if (m_IsRunning)
 		{
-			if (entity.HasComponent<Rigidbody2DComponent>())
-			{
-				b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
-				m_PhysicsWorld->DestroyBody(body);
-			}
+			Physics2DEngine::DestroyBody(entity);
 		}
 
 		if (entity.GetComponent<RelationshipComponent>().Parent.IsValid())
@@ -314,29 +304,7 @@ namespace Engine
 
 	void Scene::OnPhysics2DStart()
 	{
-		m_PhysicsWorld = new b2World({ 0.0f, -9.8f });
-		m_PhysicsWorld->SetAutoClearForces(false);
-
-		auto view = m_Registry.view<Rigidbody2DComponent>();
-		for (auto e : view)
-		{
-			Entity entity = { e, this };
-			auto& transform = entity.GetComponent<TransformComponent>();
-			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-			rb2d.RuntimeBody = Physics2D::CreateRigidbody(transform, rb2d, m_PhysicsWorld);
-
-			if (entity.HasComponent<BoxCollider2DComponent>())
-			{
-				auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-				Physics2D::CreateCollider(transform, rb2d, bc2d);
-			}
-
-			if (entity.HasComponent<CircleCollider2DComponent>())
-			{
-				auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
-				Physics2D::CreateCollider(transform, rb2d, cc2d);
-			}
-		}
+		Physics2DEngine::OnPhysicsStart(this);
 	}
 
 	void Scene::OnScriptsCreate()
@@ -365,8 +333,7 @@ namespace Engine
 
 	void Scene::OnPhysics2DStop()
 	{
-		delete m_PhysicsWorld;
-		m_PhysicsWorld = nullptr;
+		Physics2DEngine::OnPhysicsStop();
 	}
 
 	void Scene::OnScriptsStop()
@@ -405,108 +372,9 @@ namespace Engine
 		});
 	}
 
-	// Fixed timestep guide: 
-	// Original Article: https://gafferongames.com/post/fix_your_timestep/
-	// Box2d Specific: https://www.unagames.com/blog/daniele/2010/06/fixed-time-step-implementation-box2d#:~:text=If%20you%20are%20interested%20in,with%20a%20variable%20frame%2Drate.
 	void Scene::OnPhysics2DUpdate(Timestep ts)
 	{
-		const int maxSteps = 5;
-		m_Accumulator += ts;
-		const int nSteps = std::floor(m_Accumulator / m_PhysicsTimestep);
-		if (nSteps > 0)
-		{
-			m_Accumulator -= nSteps * m_PhysicsTimestep;
-		}
-		m_AccumulatorRatio = m_Accumulator / m_PhysicsTimestep;
-
-		auto view = m_Registry.view<Rigidbody2DComponent>();
-
-		const int nStepsClamped = std::min(nSteps, maxSteps);
-		for (int i = 0; i < nStepsClamped; ++i)
-		{
-			// reset smoothing
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-
-				b2Body* body = (b2Body*)rb2d.RuntimeBody;
-				ENGINE_CORE_ASSERT(body, "Entiy has Rigidbody2DComponent, but no b2Body!");
-				if (body->GetType() == b2_staticBody)
-				{
-					continue;
-				}
-
-				auto& transform = entity.GetComponent<TransformComponent>();
-				switch (rb2d.Smoothing)
-				{
-					case Rigidbody2DComponent::SmoothingType::Interpolation:
-					{
-						auto& position = body->GetPosition();
-						transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-						rb2d.previousPosition = glm::vec2(position.x, position.y);
-						transform.Rotation.z = rb2d.previousAngle = body->GetAngle();
-						break;
-					}
-					case Rigidbody2DComponent::SmoothingType::Extrapolation:
-					case Rigidbody2DComponent::SmoothingType::None:
-					default:
-					{
-						auto& position = body->GetPosition();
-						transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-						transform.Rotation.z = body->GetAngle();
-						break;
-					}
-				}
-			}
-
-			m_PhysicsWorld->Step(m_PhysicsTimestep, m_VelocityIteractions, m_PositionIteractions);
-		}
-
-		m_PhysicsWorld->ClearForces();
-
-		// apply smoothing
-		const float oneMinusRatio = 1.0f - m_AccumulatorRatio;
-
-		for (auto e : view)
-		{
-			Entity entity = { e, this };
-			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-
-			b2Body* body = (b2Body*)rb2d.RuntimeBody;
-			ENGINE_CORE_ASSERT(body, "Entiy has Rigidbody2DComponent, but no b2Body!");
-			if (body->GetType() == b2_staticBody)
-			{
-				continue;
-			}
-
-			auto& transform = entity.GetComponent<TransformComponent>();
-			switch (rb2d.Smoothing)
-			{
-				case Rigidbody2DComponent::SmoothingType::Interpolation:
-				{
-					auto& position = m_AccumulatorRatio * body->GetPosition() + oneMinusRatio * b2Vec2(rb2d.previousPosition.x, rb2d.previousPosition.y);
-					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-					transform.Rotation.z = m_AccumulatorRatio * body->GetAngle() + oneMinusRatio * rb2d.previousAngle;
-					break;
-				}
-				case Rigidbody2DComponent::SmoothingType::Extrapolation:
-				{
-					auto& position = body->GetPosition() + ts * body->GetLinearVelocity();
-					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-					transform.Rotation.z = body->GetAngle() + ts * body->GetAngularVelocity();
-					break;
-				}
-				case Rigidbody2DComponent::SmoothingType::None:
-				default:
-				{
-					auto& position = body->GetPosition();
-					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-					transform.Rotation.z = body->GetAngle();
-					break;
-				}
-			}
-		}
+		Physics2DEngine::OnPhysicsUpdate(ts);
 	}
 
 	void Scene::OnScriptsLateUpdate(Timestep ts)
@@ -592,8 +460,7 @@ namespace Engine
 	{
 		if (m_IsRunning)
 		{
-			auto& transform = entity.GetComponent<TransformComponent>();
-			component.RuntimeBody = Physics2D::CreateRigidbody(transform, component, m_PhysicsWorld);
+			component.RuntimeBody = Physics2DEngine::CreateRigidbody(entity);
 		}
 	}
 
@@ -604,7 +471,7 @@ namespace Engine
 		{
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-			Physics2D::CreateCollider(transform, rb2d, component);
+			component.RuntimeFixture = Physics2DEngine::CreateCollider(transform, rb2d, component);
 		}
 	}
 
@@ -615,7 +482,7 @@ namespace Engine
 		{
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-			Physics2D::CreateCollider(transform, rb2d, component);
+			component.RuntimeFixture = Physics2DEngine::CreateCollider(transform, rb2d, component);
 		}
 	}
 

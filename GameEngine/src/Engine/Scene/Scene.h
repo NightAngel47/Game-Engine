@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Engine/Core/Timestep.h"
-#include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Core/UUID.h"
+#include "Engine/Renderer/EditorCamera.h"
 
 #include <entt.hpp>
 
@@ -91,14 +91,6 @@ namespace Engine
 		bool m_IsRunning = false;
 		bool m_IsPaused = false;
 		int m_StepFrames = 0;
-
-		// Physics
-		float m_Accumulator = 0.0f;
-		float m_AccumulatorRatio = 0.0f;
-		const float m_PhysicsTimestep = 1.0f / 60.0f;
-		b2World* m_PhysicsWorld = nullptr;
-		uint32_t m_VelocityIteractions = 20;
-		uint32_t m_PositionIteractions = 16;
 
 		friend class Entity;
 		friend class SceneSerializer;
