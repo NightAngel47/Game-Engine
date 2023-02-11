@@ -110,6 +110,13 @@ namespace Engine.Core
 
 		#endregion Vector4
 
+		#region Physics2DContact
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern ulong Physics2DContact_GetEntityByID(ulong entityID);
+
+		#endregion Physics2DContact
+
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]

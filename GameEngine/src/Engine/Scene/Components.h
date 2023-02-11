@@ -18,7 +18,7 @@ namespace Engine
 #pragma region Entity Components
 	// Default Components for All Entities
 
-	struct IDComponent 
+	struct IDComponent
 	{
 		UUID ID;
 
@@ -49,13 +49,13 @@ namespace Engine
 
 		bool const HasChildren() const { return ChildrenCount > 0; }
 	};
-	
+
 	struct TransformComponent
 	{
-		glm::vec3 Position {0.0f};
-		glm::vec3 Rotation {0.0f};
-		glm::vec3 Scale {1.0f};
-	
+		glm::vec3 Position{ 0.0f };
+		glm::vec3 Rotation{ 0.0f };
+		glm::vec3 Scale{ 1.0f };
+
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
 		TransformComponent(const glm::vec3& position)
@@ -89,15 +89,15 @@ namespace Engine
 		glm::vec2 SubCoords = { 0.0f, 0.0f };
 		glm::vec2 SubCellSize = { 0.0f, 0.0f };
 		glm::vec2 SubSpriteSize = { 1.0f, 1.0f };
-	
+
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
-		
+
 		void LoadTexture(const std::filesystem::path& path)
 		{
-			if(!path.empty())
+			if (!path.empty())
 			{
 				Path = path;
 				Texture = Texture2D::Create(Project::GetAssetFileSystemPath(path).string());
@@ -114,14 +114,14 @@ namespace Engine
 			}
 		}
 	};
-	
+
 	struct CircleRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
 		float Radius = 0.5f;
 		float Thickness = 1.0f;
 		float Fade = 0.005f;
-	
+
 		CircleRendererComponent() = default;
 		CircleRendererComponent(const CircleRendererComponent&) = default;
 		CircleRendererComponent(const glm::vec4& color)
@@ -133,7 +133,7 @@ namespace Engine
 		SceneCamera Camera;
 		bool Primary = true; // TODO: think about moving to scene
 		bool FixedAspectRatio = false;
-		
+
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
 	};

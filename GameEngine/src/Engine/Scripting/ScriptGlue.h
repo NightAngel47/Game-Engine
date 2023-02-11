@@ -82,6 +82,12 @@ namespace InternalCalls
 
 #pragma endregion Vector4
 
+#pragma region Physics2DContact
+
+		static uint64_t Physics2DContact_GetEntityByID(Engine::UUID entityID);
+
+#pragma endregion Physics2DContact
+
 #pragma region Entity
 
 		static MonoString* Entity_GetName(Engine::UUID entityID);

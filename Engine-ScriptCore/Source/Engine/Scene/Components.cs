@@ -1,7 +1,6 @@
 ﻿using Engine.Math;
 using Engine.Core;
 using Engine.Physics;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace Engine.Scene
 {
@@ -113,6 +112,11 @@ namespace Engine.Scene
 	}
 
 	public class BoxCollider2DComponent : Component
+	{
+
+	}
+
+	public class CircleCollider2DComponent : Component
 	{
 
 	}

@@ -71,6 +71,7 @@ namespace Engine
 		std::filesystem::path AppAssemblyPath;
 
 		MonoClass* EntityClass = nullptr;
+		MonoClass* Physics2DContactStruct = nullptr;
 
 		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
@@ -242,6 +243,7 @@ namespace Engine
 
 		MonoImage* image = mono_assembly_get_image(s_ScriptEngineData->CoreAssembly);
 		s_ScriptEngineData->EntityClass = mono_class_from_name(image, "Engine.Scene", "Entity");
+		s_ScriptEngineData->Physics2DContactStruct = mono_class_from_name(image, "Engine.Physics", "Physics2DContact");
 
 		return true;
 	}
@@ -552,7 +554,7 @@ namespace Engine
 		}
 	}
 
-	void ScriptEngine::OnTriggerEnter2D(Entity entity)
+	void ScriptEngine::OnTriggerEnter2D(Entity entity, Physics2DContact contact2D)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
@@ -560,12 +562,12 @@ namespace Engine
 		{
 			if (EntityInstanceExists(entity))
 			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerEnter2D();
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerEnter2D(contact2D);
 			}
 		}
 	}
 
-	void ScriptEngine::OnTriggerExit2D(Entity entity)
+	void ScriptEngine::OnTriggerExit2D(Entity entity, Physics2DContact contact2D)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
@@ -573,7 +575,7 @@ namespace Engine
 		{
 			if (EntityInstanceExists(entity))
 			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerExit2D();
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerExit2D(contact2D);
 			}
 		}
 	}
@@ -658,13 +660,13 @@ namespace Engine
 			ENGINE_CORE_WARN("Could not find late update method desc in class!");
 
 		// setup onTriggerEnter2D method
-		MonoMethod* OnTriggerEnter2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnTriggerEnter2D", 0);
+		MonoMethod* OnTriggerEnter2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnTriggerEnter2D", 1);
 		OnTriggerEnter2DThunk = OnTriggerEnter2DMethodPtr ? (OnTriggerEnter2D)mono_method_get_unmanaged_thunk(OnTriggerEnter2DMethodPtr) : nullptr;
 		if (!OnTriggerEnter2DThunk)
 			ENGINE_CORE_WARN("Could not find trigger enter 2d method desc in class!");
 
 		// setup onTriggerExit2D method
-		MonoMethod* OnTriggerExit2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnTriggerExit2D", 0);
+		MonoMethod* OnTriggerExit2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnTriggerExit2D", 1);
 		OnTriggerExit2DThunk = OnTriggerExit2DMethodPtr ? (OnTriggerExit2D)mono_method_get_unmanaged_thunk(OnTriggerExit2DMethodPtr) : nullptr;
 		if (!OnTriggerExit2DThunk)
 			ENGINE_CORE_WARN("Could not find trigger exit 2d method desc in class!");
@@ -715,21 +717,23 @@ namespace Engine
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
-	void ScriptInstance::InvokeOnTriggerEnter2D()
+	void ScriptInstance::InvokeOnTriggerEnter2D(Physics2DContact contact2D)
 	{
 		if (!OnTriggerEnter2DThunk) return; // handle script without OnTriggerEnter2D
 
 		MonoObject* ptrExObject = nullptr;
-		OnTriggerEnter2DThunk(m_Instance, &ptrExObject);
+		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
+		OnTriggerEnter2DThunk(m_Instance, paramBox, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
-	void ScriptInstance::InvokeOnTriggerExit2D()
+	void ScriptInstance::InvokeOnTriggerExit2D(Physics2DContact contact2D)
 	{
 		if (!OnTriggerExit2DThunk) return; // handle script without OnTriggerExit2D
 
 		MonoObject* ptrExObject = nullptr;
-		OnTriggerExit2DThunk(m_Instance, &ptrExObject);
+		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
+		OnTriggerExit2DThunk(m_Instance, paramBox, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 

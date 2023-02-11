@@ -73,6 +73,8 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector4_SqrMagnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector3_Normalize);
 
+		ENGINE_ADD_INTERNAL_CALL(Physics2DContact_GetEntityByID);
+
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetName);
 		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_AddComponent);
@@ -294,6 +296,22 @@ namespace InternalCalls
 
 #pragma endregion Vector4
 
+#pragma region Physics2DContact
+
+	uint64_t ScriptGlue::Physics2DContact_GetEntityByID(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+
+		if (!entity)
+		{
+			return 0;
+		}
+
+		return entity.GetUUID();
+	}
+
+#pragma endregion Physics2DContact
+
 #pragma region Entity
 
 	MonoString* ScriptGlue::Entity_GetName(Engine::UUID entityID)
@@ -447,8 +465,6 @@ namespace InternalCalls
 
 #pragma region Rigidbody2DComponent
 
-
-
 	void ScriptGlue::Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
@@ -507,4 +523,5 @@ namespace InternalCalls
 	}
 
 #pragma endregion Rigidbody2DComponent
+
 }

@@ -471,7 +471,7 @@ namespace Engine
 		{
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-			Physics2DEngine::CreateCollider(transform, rb2d, component);
+			component.RuntimeFixture = Physics2DEngine::CreateCollider(transform, rb2d, component);
 		}
 	}
 
@@ -482,7 +482,7 @@ namespace Engine
 		{
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-			Physics2DEngine::CreateCollider(transform, rb2d, component);
+			component.RuntimeFixture = Physics2DEngine::CreateCollider(transform, rb2d, component);
 		}
 	}
 

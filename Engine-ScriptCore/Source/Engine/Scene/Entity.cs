@@ -1,5 +1,6 @@
 ﻿using Engine.Core;
 using Engine.Math;
+using Engine.Physics;
 
 namespace Engine.Scene
 {
@@ -15,6 +16,7 @@ namespace Engine.Scene
 		{
 			ID = id;
 		}
+
 		public override string ToString()
 		{
 			return $"({Name} : {ID})";
@@ -26,8 +28,8 @@ namespace Engine.Scene
 		protected virtual void OnUpdate(float ts) { }
 		protected virtual void OnLateUpdate(float ts) { }
 
-		protected virtual void OnTriggerEnter2D() { }
-		protected virtual void OnTriggerExit2D() { }
+		protected virtual void OnTriggerEnter2D(Physics2DContact contact2D) { }
+		protected virtual void OnTriggerExit2D(Physics2DContact contact2D) { }
 
 		public bool HasComponent<T>() where T : Component, new()
 		{
