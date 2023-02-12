@@ -41,24 +41,6 @@ namespace Engine
 		return fixtureDef;
 	}
 
-	static Physics2DContact Create2DContact(b2Contact* contact, Entity& entityA, Entity& entityB)
-	{
-		b2Fixture* fixtureA = contact->GetFixtureA();
-		b2Fixture* fixtureB = contact->GetFixtureB();
-
-		bool sensorA = fixtureA->IsSensor();
-		bool sensorB = fixtureB->IsSensor();
-
-		if (!(sensorA ^ sensorB))
-			return{};
-
-		entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureA->GetBody()->GetUserData().pointer);
-		entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureB->GetBody()->GetUserData().pointer);
-
-		Physics2DContact contact2D = sensorA ? Physics2DContact{ entityA.GetUUID(), entityB.GetUUID() } : Physics2DContact{ entityB.GetUUID(), entityA.GetUUID() };
-		return contact2D;
-	}
-
 	void Physics2DEngine::OnPhysicsStart(Scene* gameScene)
 	{
 		s_physics2DEngineData = new Physics2DEngineData();
@@ -260,31 +242,65 @@ namespace Engine
 
 	void Physics2DContactListener::BeginContact(b2Contact* contact)
 	{
-		Entity entityA;
-		Entity entityB;
-		Physics2DContact contact2D = Create2DContact(contact, entityA, entityB);
+		b2Fixture* fixtureA = contact->GetFixtureA();
+		b2Fixture* fixtureB = contact->GetFixtureB();
 
-		if (contact2D.colliderEntityID == UUID::INVALID())
-			return;
+		bool sensorA = fixtureA->IsSensor();
+		bool sensorB = fixtureB->IsSensor();
 
-		if (contact2D.colliderEntityID == entityA.GetUUID() && entityB.HasComponent<ScriptComponent>())
-			ScriptEngine::OnTriggerEnter2D(entityB, contact2D);
-		else if(entityA.HasComponent<ScriptComponent>())
-			ScriptEngine::OnTriggerEnter2D(entityA, contact2D);
+		Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureA->GetBody()->GetUserData().pointer);
+		Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureB->GetBody()->GetUserData().pointer);
+
+		Physics2DContact contact2DA = Physics2DContact{ entityA.GetUUID(), entityB.GetUUID() };
+		Physics2DContact contact2DB = Physics2DContact{ entityB.GetUUID(), entityA.GetUUID() };
+
+		if (sensorA && entityB.HasComponent<ScriptComponent>())			// trigger A
+		{
+			ScriptEngine::OnTriggerEnter2D(entityB, contact2DA);
+		}
+		else if(sensorB && entityA.HasComponent<ScriptComponent>())		// trigger B
+		{
+			ScriptEngine::OnTriggerEnter2D(entityA, contact2DB);
+		}
+		else															// collision A & B
+		{
+			if (entityB.HasComponent<ScriptComponent>())
+				ScriptEngine::OnCollisionEnter2D(entityB, contact2DA);
+			
+			if (entityA.HasComponent<ScriptComponent>())
+				ScriptEngine::OnCollisionEnter2D(entityA, contact2DB);
+		}
 	}
 
 	void Physics2DContactListener::EndContact(b2Contact* contact)
 	{
-		Entity entityA;
-		Entity entityB;
-		Physics2DContact contact2D = Create2DContact(contact, entityA, entityB);
+		b2Fixture* fixtureA = contact->GetFixtureA();
+		b2Fixture* fixtureB = contact->GetFixtureB();
 
-		if (contact2D.colliderEntityID == UUID::INVALID())
-			return;
+		bool sensorA = fixtureA->IsSensor();
+		bool sensorB = fixtureB->IsSensor();
 
-		if (contact2D.colliderEntityID == entityA.GetUUID() && entityB.HasComponent<ScriptComponent>())
-			ScriptEngine::OnTriggerExit2D(entityB, contact2D);
-		else if (entityA.HasComponent<ScriptComponent>())
-			ScriptEngine::OnTriggerExit2D(entityA, contact2D);
+		Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureA->GetBody()->GetUserData().pointer);
+		Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID((UUID)fixtureB->GetBody()->GetUserData().pointer);
+
+		Physics2DContact contact2DA = Physics2DContact{ entityA.GetUUID(), entityB.GetUUID() };
+		Physics2DContact contact2DB = Physics2DContact{ entityB.GetUUID(), entityA.GetUUID() };
+
+		if (sensorA && entityB.HasComponent<ScriptComponent>())			// trigger A
+		{
+			ScriptEngine::OnTriggerExit2D(entityB, contact2DA);
+		}
+		else if (sensorB && entityA.HasComponent<ScriptComponent>())	// trigger B
+		{
+			ScriptEngine::OnTriggerExit2D(entityA, contact2DB);
+		}
+		else															// collision A & B
+		{
+			if (entityB.HasComponent<ScriptComponent>())
+				ScriptEngine::OnCollisionExit2D(entityB, contact2DA);
+
+			if (entityA.HasComponent<ScriptComponent>())
+				ScriptEngine::OnCollisionExit2D(entityA, contact2DB);
+		}
 	}
 }

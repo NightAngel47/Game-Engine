@@ -580,6 +580,32 @@ namespace Engine
 		}
 	}
 
+	void ScriptEngine::OnCollisionEnter2D(Entity entity, Physics2DContact contact2D)
+	{
+		const auto& sc = entity.GetComponent<ScriptComponent>();
+
+		if (EntityClassExists(sc.ClassName))
+		{
+			if (EntityInstanceExists(entity))
+			{
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnCollisionEnter2D(contact2D);
+			}
+		}
+	}
+
+	void ScriptEngine::OnCollisionExit2D(Entity entity, Physics2DContact contact2D)
+	{
+		const auto& sc = entity.GetComponent<ScriptComponent>();
+
+		if (EntityClassExists(sc.ClassName))
+		{
+			if (EntityInstanceExists(entity))
+			{
+				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnCollisionExit2D(contact2D);
+			}
+		}
+	}
+
 	bool ScriptEngine::EntityInstanceExists(Entity& entity)
 	{
 		const auto& entityInstances = s_ScriptEngineData->EntityInstances;
@@ -670,6 +696,18 @@ namespace Engine
 		OnTriggerExit2DThunk = OnTriggerExit2DMethodPtr ? (OnTriggerExit2D)mono_method_get_unmanaged_thunk(OnTriggerExit2DMethodPtr) : nullptr;
 		if (!OnTriggerExit2DThunk)
 			ENGINE_CORE_WARN("Could not find trigger exit 2d method desc in class!");
+
+		// setup onCollisionEnter2D method
+		MonoMethod* OnCollisionEnter2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnCollisionEnter2D", 1);
+		OnCollisionEnter2DThunk = OnCollisionEnter2DMethodPtr ? (OnCollisionEnter2D)mono_method_get_unmanaged_thunk(OnCollisionEnter2DMethodPtr) : nullptr;
+		if (!OnCollisionEnter2DThunk)
+			ENGINE_CORE_WARN("Could not find collision enter 2d method desc in class!");
+
+		// setup onCollisionExit2D method
+		MonoMethod* OnCollisionExit2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnCollisionExit2D", 1);
+		OnCollisionExit2DThunk = OnCollisionExit2DMethodPtr ? (OnCollisionExit2D)mono_method_get_unmanaged_thunk(OnCollisionExit2DMethodPtr) : nullptr;
+		if (!OnCollisionExit2DThunk)
+			ENGINE_CORE_WARN("Could not find collision exit 2d method desc in class!");
 	}
 
 	void ScriptInstance::InvokeOnCreate()
@@ -734,6 +772,26 @@ namespace Engine
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
 		OnTriggerExit2DThunk(m_Instance, paramBox, &ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
+	}
+
+	void ScriptInstance::InvokeOnCollisionEnter2D(Physics2DContact contact2D)
+	{
+		if (!OnCollisionEnter2DThunk) return; // handle script without OnCollisionEnter2D
+
+		MonoObject* ptrExObject = nullptr;
+		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
+		OnCollisionEnter2DThunk(m_Instance, paramBox, &ptrExObject);
+		ScriptEngine::HandleMonoException(ptrExObject);
+	}
+
+	void ScriptInstance::InvokeOnCollisionExit2D(Physics2DContact contact2D)
+	{
+		if (!OnCollisionExit2DThunk) return; // handle script without OnCollisionExit2D
+
+		MonoObject* ptrExObject = nullptr;
+		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
+		OnCollisionExit2DThunk(m_Instance, paramBox, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 

@@ -30,6 +30,8 @@ namespace Engine.Scene
 
 		protected virtual void OnTriggerEnter2D(Physics2DContact contact2D) { }
 		protected virtual void OnTriggerExit2D(Physics2DContact contact2D) { }
+		protected virtual void OnCollisionEnter2D(Physics2DContact contact2D) { }
+		protected virtual void OnCollisionExit2D(Physics2DContact contact2D) { }
 
 		public bool HasComponent<T>() where T : Component, new()
 		{

@@ -23,8 +23,10 @@ typedef void(*OnDestroy) (MonoObject* obj, MonoObject** exp);
 typedef void(*OnUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
 typedef void(*OnLateUpdate) (MonoObject* obj, float* ts, MonoObject** exp);
 
-typedef void(*OnTriggerEnter2D) (MonoObject* obj, MonoObject* collider2DComponent, MonoObject** exp);
-typedef void(*OnTriggerExit2D) (MonoObject* obj, MonoObject* collider2DComponent, MonoObject** exp);
+typedef void(*OnTriggerEnter2D) (MonoObject* obj, MonoObject* physics2DContact, MonoObject** exp);
+typedef void(*OnTriggerExit2D) (MonoObject* obj, MonoObject* physics2DContact, MonoObject** exp);
+typedef void(*OnCollisionEnter2D) (MonoObject* obj, MonoObject* physics2DContact, MonoObject** exp);
+typedef void(*OnCollisionExit2D) (MonoObject* obj, MonoObject* physics2DContact, MonoObject** exp);
 
 // Created with help from this guide (Mono Embedding for Game Engines): https://peter1745.github.io/introduction.html
 
@@ -157,6 +159,8 @@ namespace Engine
 
 		static void OnTriggerEnter2D(Entity entity, Physics2DContact contact2D);
 		static void OnTriggerExit2D(Entity entity, Physics2DContact contact2D);
+		static void OnCollisionEnter2D(Entity entity, Physics2DContact contact2D);
+		static void OnCollisionExit2D(Entity entity, Physics2DContact contact2D);
 
 		static bool EntityInstanceExists(Entity& entity);
 		static Ref<ScriptInstance> GetEntityInstance(Entity entity);
@@ -245,6 +249,8 @@ namespace Engine
 
 		void InvokeOnTriggerEnter2D(Physics2DContact contact2D);
 		void InvokeOnTriggerExit2D(Physics2DContact contact2D);
+		void InvokeOnCollisionEnter2D(Physics2DContact contact2D);
+		void InvokeOnCollisionExit2D(Physics2DContact contact2D);
 
 		MonoObject* GetMonoObject() { return m_Instance; }
 
@@ -266,6 +272,8 @@ namespace Engine
 
 		OnTriggerEnter2D OnTriggerEnter2DThunk = nullptr;
 		OnTriggerExit2D OnTriggerExit2DThunk = nullptr;
+		OnCollisionEnter2D OnCollisionEnter2DThunk = nullptr;
+		OnCollisionExit2D OnCollisionExit2DThunk = nullptr;
 
 		inline static char s_FieldValueBuffer[64];
 
