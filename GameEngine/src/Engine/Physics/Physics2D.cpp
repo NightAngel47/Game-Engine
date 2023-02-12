@@ -71,7 +71,8 @@ namespace Engine
 			}
 		}
 
-		s_physics2DEngineData->PhysicsWorld->SetContactListener(&g_ContactListener);
+		if (s_physics2DEngineData->SceneContext->IsRunning())
+			s_physics2DEngineData->PhysicsWorld->SetContactListener(&g_ContactListener);
 	}
 
 	// Fixed timestep guide: 
