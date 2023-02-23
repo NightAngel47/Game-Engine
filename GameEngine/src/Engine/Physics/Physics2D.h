@@ -108,7 +108,7 @@ namespace Engine
 
 	struct Physics2DContact
 	{
-		uint64_t colliderEntityID = UUID::INVALID();
 		uint64_t otherEntityID = UUID::INVALID();
+		uint64_t thisEntityID = UUID::INVALID();
 	};
 }

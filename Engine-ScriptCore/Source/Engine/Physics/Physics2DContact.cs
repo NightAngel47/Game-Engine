@@ -8,10 +8,10 @@ namespace Engine.Physics
 	[StructLayout(LayoutKind.Sequential)]
 	public readonly struct Physics2DContact
 	{
-		internal readonly ulong colliderEntityID;
 		internal readonly ulong otherEntityID;
+		internal readonly ulong thisEntityID;
 
-		public Entity ColliderEntity => new Entity(InternalCalls.Physics2DContact_GetEntityByID(colliderEntityID));
 		public Entity OtherEntity => new Entity(InternalCalls.Physics2DContact_GetEntityByID(otherEntityID));
+		public Entity ThisEntity => new Entity(InternalCalls.Physics2DContact_GetEntityByID(thisEntityID));
 	}
 }
