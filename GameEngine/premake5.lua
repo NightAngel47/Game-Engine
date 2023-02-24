@@ -54,6 +54,7 @@ project "GameEngine"
 		"ImGui",
 		"yaml-cpp",
 		"box2d",
+		"msdf-atlas-gen",
 		"opengl32.lib",
 		"%{Library.mono}"
 	}
