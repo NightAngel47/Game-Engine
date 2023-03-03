@@ -1,5 +1,7 @@
 #include "EditorLayer.h"
 
+#include "Engine/Renderer/Font.h"
+
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
 
@@ -10,6 +12,8 @@ namespace Engine
 {
 	void EditorLayer::OnAttach()
 	{
+		Font font("assets/fonts/jetbrainsmono/JetBrainsMonoNL-Regular.ttf");
+
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
 		m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");
 		m_IconStep = Texture2D::Create("Resources/Icons/StepButton.png");

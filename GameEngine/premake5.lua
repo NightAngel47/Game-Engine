@@ -44,6 +44,8 @@ project "GameEngine"
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.box2d}",
 		"%{IncludeDir.filewatch}",
+		"%{IncludeDir.msdfgen}",
+		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.mono}"
 	}
 
