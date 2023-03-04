@@ -1,21 +1,11 @@
 #include "enginepch.h"
 #include "Engine/Renderer/Font.h"
-
-#undef INFINITE
-#include <msdf-atlas-gen.h>
-#include <FontGeometry.h>
-#include <GlyphGeometry.h>
+#include "Engine/Renderer/MSDFData.h" 
 
 #define THREAD_COUNT 8
 
 namespace Engine
 {
-	struct MSDFData
-	{
-		std::vector<msdf_atlas::GlyphGeometry> Glyphs;
-		msdf_atlas::FontGeometry FontGeo;
-	};
-
 	template<typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenFunc>
 	static Ref<Texture2D> CreateAndCacheAtlas(const std::string& fontName, float fontSize, const std::vector<msdf_atlas::GlyphGeometry>& glyphs, const msdf_atlas::FontGeometry& fontGeometry, uint32_t width, uint32_t height)
 	{

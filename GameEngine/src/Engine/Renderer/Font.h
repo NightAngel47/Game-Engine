@@ -11,6 +11,7 @@ namespace Engine
 		Font(const std::filesystem::path& filepath);
 		~Font();
 
+		const MSDFData* GetMSDFData() const { return m_Data; }
 		Ref<Texture2D> GetAtlasTexture() const { return m_AtlasTexture; }
 	private:
 		MSDFData* m_Data = nullptr;
