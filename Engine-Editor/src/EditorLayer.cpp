@@ -10,9 +10,11 @@
 
 namespace Engine
 {
+	static Font* s_Font;
+
 	void EditorLayer::OnAttach()
 	{
-		Font font("assets/fonts/jetbrainsmono/JetBrainsMonoNL-Regular.ttf");
+		s_Font = new Font("assets/fonts/jetbrainsmono/JetBrainsMonoNL-Regular.ttf");
 
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
 		m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");
@@ -224,6 +226,10 @@ namespace Engine
 		ImGui::Begin("Settings");
 
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
+
+		// testing font
+		Ref<Texture2D> fontTexture = s_Font->GetAtlasTexture();
+		ImGui::Image((ImTextureID)fontTexture->GetRendererID(), { (float)fontTexture->GetWidth(), (float)fontTexture->GetHeight() }, {0, 1}, {1, 0});
 
 		ImGui::End();
 

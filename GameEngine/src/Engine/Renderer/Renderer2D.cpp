@@ -163,7 +163,7 @@ namespace Engine
 		s_Renderer2DData.LineVertexArray->AddVertexBuffer(s_Renderer2DData.LineVertexBuffer);
 		s_Renderer2DData.LineVertexBufferBase = new LineVertex[s_Renderer2DData.MaxVertices];
 
-		s_Renderer2DData.WhiteTexture = Texture2D::Create(1, 1);
+		s_Renderer2DData.WhiteTexture = Texture2D::Create(TextureSpecification());
 		uint32_t whiteTextureData = 0xffffffff;
 		s_Renderer2DData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 
