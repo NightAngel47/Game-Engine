@@ -10,11 +10,11 @@
 
 namespace Engine
 {
-	static Font* s_Font;
+	static Ref<Font> s_Font;
 
 	void EditorLayer::OnAttach()
 	{
-		s_Font = new Font("assets/fonts/jetbrainsmono/JetBrainsMonoNL-Regular.ttf");
+		s_Font = Font::GetDefault();
 
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
 		m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");

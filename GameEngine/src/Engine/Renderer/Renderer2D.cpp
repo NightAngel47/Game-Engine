@@ -45,6 +45,18 @@ namespace Engine
 		// Editor-only
 		int EntityID;
 	};
+
+	struct TextVertex
+	{
+		glm::vec3 Position;
+		glm::vec4 Color;
+		glm::vec2 TexCoord;
+
+		// TODO: bg color for outline/bg
+
+		// Editor-only
+		int EntityID;
+	};
 	
 	struct Render2DData
 	{
@@ -66,6 +78,10 @@ namespace Engine
 		Ref<VertexBuffer> LineVertexBuffer;
 		Ref<Shader> LineShader;
 
+		Ref<VertexArray> TextVertexArray;
+		Ref<VertexBuffer> TextVertexBuffer;
+		Ref<Shader> TextShader;
+
 		uint32_t QuadIndexCount = 0;
 		QuadVertex* QuadVertexBufferBase = nullptr;
 		QuadVertex* QuadVertexBufferPtr = nullptr;
@@ -78,10 +94,16 @@ namespace Engine
 		LineVertex* LineVertexBufferBase = nullptr;
 		LineVertex* LineVertexBufferPtr = nullptr;
 
+		uint32_t TextIndexCount = 0;
+		TextVertex* TextVertexBufferBase = nullptr;
+		TextVertex* TextVertexBufferPtr = nullptr;
+
 		float LineWidth = 2.0f;
 
 		std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
 		uint32_t TextureSlotIndex = 1; // 0 = white texture
+
+		Ref<Texture2D> FontAtlasTexture;
 
 		glm::vec4 QuadVertexPositions[4];
 
@@ -164,6 +186,20 @@ namespace Engine
 		s_Renderer2DData.LineVertexArray->AddVertexBuffer(s_Renderer2DData.LineVertexBuffer);
 		s_Renderer2DData.LineVertexBufferBase = new LineVertex[s_Renderer2DData.MaxVertices];
 
+		// Text
+		s_Renderer2DData.TextVertexArray = VertexArray::Create();
+
+		s_Renderer2DData.TextVertexBuffer = VertexBuffer::Create(s_Renderer2DData.MaxVertices * sizeof(TextVertex));
+		s_Renderer2DData.TextVertexBuffer->SetLayout({
+			{ ShaderDataType::Float3,	"a_Position"		},
+			{ ShaderDataType::Float4,	"a_Color"			},
+			{ ShaderDataType::Float2,	"a_TexCoord"		},
+			{ ShaderDataType::Int,		"a_EntityID"		}
+			});
+		s_Renderer2DData.TextVertexArray->AddVertexBuffer(s_Renderer2DData.TextVertexBuffer);
+		s_Renderer2DData.TextVertexBufferBase = new TextVertex[s_Renderer2DData.MaxVertices];
+		s_Renderer2DData.TextVertexArray->SetIndexBuffer(quadIB); // Use quad IB (identical implementation otherwise)
+
 		s_Renderer2DData.WhiteTexture = Texture2D::Create(TextureSpecification());
 		uint32_t whiteTextureData = 0xffffffff;
 		s_Renderer2DData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
@@ -175,6 +211,7 @@ namespace Engine
 		s_Renderer2DData.QuadShader = Shader::Create("assets/shaders/Renderer2D_Quad.glsl");
 		s_Renderer2DData.CircleShader = Shader::Create("assets/shaders/Renderer2D_Circle.glsl");
 		s_Renderer2DData.LineShader = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
+		s_Renderer2DData.TextShader = Shader::Create("assets/shaders/Renderer2D_Text.glsl");
 
 		// Set first texture to slot 0
 		s_Renderer2DData.TextureSlots[0] = s_Renderer2DData.WhiteTexture;
@@ -230,6 +267,9 @@ namespace Engine
 		s_Renderer2DData.LineVertexCount = 0;
 		s_Renderer2DData.LineVertexBufferPtr = s_Renderer2DData.LineVertexBufferBase;
 
+		s_Renderer2DData.TextIndexCount = 0;
+		s_Renderer2DData.TextVertexBufferPtr = s_Renderer2DData.TextVertexBufferBase;
+
 		s_Renderer2DData.TextureSlotIndex = 1;
 	}
 
@@ -271,6 +311,19 @@ namespace Engine
 			s_Renderer2DData.LineShader->Bind();
 			RenderCommand::SetLineWidth(s_Renderer2DData.LineWidth);
 			RenderCommand::DrawLines(s_Renderer2DData.LineVertexArray, s_Renderer2DData.LineVertexCount);
+
+			s_Renderer2DData.Stats.DrawCalls++;
+		}
+
+		if (s_Renderer2DData.TextIndexCount)
+		{
+			uint32_t dataSize = (uint32_t)((uint8_t*)s_Renderer2DData.TextVertexBufferPtr - (uint8_t*)s_Renderer2DData.TextVertexBufferBase);
+			s_Renderer2DData.TextVertexBuffer->SetData(s_Renderer2DData.TextVertexBufferBase, dataSize);
+
+			s_Renderer2DData.FontAtlasTexture->Bind();
+
+			s_Renderer2DData.TextShader->Bind();
+			RenderCommand::DrawIndexed(s_Renderer2DData.TextVertexArray, s_Renderer2DData.TextIndexCount);
 
 			s_Renderer2DData.Stats.DrawCalls++;
 		}
@@ -449,47 +502,95 @@ namespace Engine
 	{
 		const auto& fontGeo = font->GetMSDFData()->FontGeo;
 		const auto& metrics = fontGeo.getMetrics();
-		Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
+		s_Renderer2DData.FontAtlasTexture = font->GetAtlasTexture();
 
 		double x = 0.0;
 		double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
 		double y = 0.0;
+		float lineHeightOffset = 0.0f;
 
-		char character = 'A';
-		auto glyph = fontGeo.getGlyph(character);
-		if (!glyph)
-			glyph = fontGeo.getGlyph('?'); // missing character
-		if (!glyph)
-			return; //continue; // failsafe, missing character
+		for (size_t i = 0; i < string.size(); ++i)
+		{
+			char character = string[i];
 
-		double al, ab, ar, at;
-		glyph->getQuadAtlasBounds(al, ab, ar, at);
-		glm::vec2 texCoordMin((float)al, (float)ab);
-		glm::vec2 textCoordMax((float)ar, (float)at);
+			if (character == '\r')
+				continue;
 
-		double pl, pb, pr, pt;
-		glyph->getQuadPlaneBounds(pl, pb, pr, pt);
-		glm::vec2 quadMin((float)pl, (float)pb);
-		glm::vec2 quadMax((float)pr, (float)pt);
+			if (character == '\n')
+			{
+				x = 0;
+				y -= fsScale * metrics.lineHeight + lineHeightOffset;
+				continue;
+			}
 
-		quadMin *= fsScale;
-		quadMax *= fsScale;
-		quadMin += glm::vec2(x, y);
-		quadMax += glm::vec2(x, y);
+			auto glyph = fontGeo.getGlyph(character);
+			if (!glyph)
+				glyph = fontGeo.getGlyph('?'); // missing character
+			if (!glyph)
+				return; //continue; // failsafe, missing character
 
-		float texelWidth = 1.0f / fontAtlas->GetWidth();
-		float texelHeight = 1.0f / fontAtlas->GetHeight();
-		texCoordMin *= glm::vec2(texelWidth, texelHeight);
-		textCoordMax *= glm::vec2(texelWidth, texelHeight);
+			if (character == '\t')
+				glyph = fontGeo.getGlyph(' ');
 
-		// render here
+			double al, ab, ar, at;
+			glyph->getQuadAtlasBounds(al, ab, ar, at);
+			glm::vec2 texCoordMin((float)al, (float)ab);
+			glm::vec2 texCoordMax((float)ar, (float)at);
 
-		double advance = glyph->getAdvance();
-		char nextCharacter = 'B';
-		fontGeo.getAdvance(advance, character, nextCharacter);
+			double pl, pb, pr, pt;
+			glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+			glm::vec2 quadMin((float)pl, (float)pb);
+			glm::vec2 quadMax((float)pr, (float)pt);
 
-		float kerningOffset = 0.0f;
-		x += fsScale * advance + kerningOffset;
+			quadMin *= fsScale;
+			quadMax *= fsScale;
+			quadMin += glm::vec2(x, y);
+			quadMax += glm::vec2(x, y);
+
+			float texelWidth = 1.0f / s_Renderer2DData.FontAtlasTexture->GetWidth();
+			float texelHeight = 1.0f / s_Renderer2DData.FontAtlasTexture->GetHeight();
+			texCoordMin *= glm::vec2(texelWidth, texelHeight);
+			texCoordMax *= glm::vec2(texelWidth, texelHeight);
+
+			// render here
+
+			s_Renderer2DData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMin, 0.0f, 1.0f);
+			s_Renderer2DData.TextVertexBufferPtr->Color = color;
+			s_Renderer2DData.TextVertexBufferPtr->TexCoord = texCoordMin;
+			s_Renderer2DData.TextVertexBufferPtr->EntityID = 0; // TODO
+			s_Renderer2DData.TextVertexBufferPtr++;
+
+			s_Renderer2DData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMin.x, quadMax.y, 0.0f, 1.0f);
+			s_Renderer2DData.TextVertexBufferPtr->Color = color;
+			s_Renderer2DData.TextVertexBufferPtr->TexCoord = { texCoordMin.x, texCoordMax.y };
+			s_Renderer2DData.TextVertexBufferPtr->EntityID = 0; // TODO
+			s_Renderer2DData.TextVertexBufferPtr++;
+
+			s_Renderer2DData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMax, 0.0f, 1.0f);
+			s_Renderer2DData.TextVertexBufferPtr->Color = color;
+			s_Renderer2DData.TextVertexBufferPtr->TexCoord = texCoordMax;
+			s_Renderer2DData.TextVertexBufferPtr->EntityID = 0; // TODO
+			s_Renderer2DData.TextVertexBufferPtr++;
+
+			s_Renderer2DData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMax.x, quadMin.y, 0.0f, 1.0f);
+			s_Renderer2DData.TextVertexBufferPtr->Color = color;
+			s_Renderer2DData.TextVertexBufferPtr->TexCoord = { texCoordMax.x, texCoordMin.y };
+			s_Renderer2DData.TextVertexBufferPtr->EntityID = 0; // TODO
+			s_Renderer2DData.TextVertexBufferPtr++;
+
+			s_Renderer2DData.TextIndexCount += 6;
+			s_Renderer2DData.Stats.QuadCount++;
+
+			if (i < string.size() - 1)
+			{
+				double advance = glyph->getAdvance();
+				char nextCharacter = string[i + 1];
+				fontGeo.getAdvance(advance, character, nextCharacter);
+
+				float kerningOffset = 0.0f;
+				x += fsScale * advance + kerningOffset;
+			}
+		}
 	}
 
 	float Renderer2D::GetLineWidth()
@@ -502,7 +603,7 @@ namespace Engine
 		s_Renderer2DData.LineWidth = width;
 	}
 
-	void Renderer2D::SetQuadVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color,  const glm::vec2* textureCoords, const float textureIndex, const float tiling, int entityID)
+	void Renderer2D::SetQuadVertexBuffer(const glm::mat4& transform, const glm::vec4& color,  const glm::vec2* textureCoords, const float textureIndex, const float tiling, int entityID)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
@@ -511,7 +612,7 @@ namespace Engine
 		
 		for (uint32_t i = 0; i < 4; i++)
 		{
-			s_Renderer2DData.QuadVertexBufferPtr->Position = transfrom * s_Renderer2DData.QuadVertexPositions[i];
+			s_Renderer2DData.QuadVertexBufferPtr->Position = transform * s_Renderer2DData.QuadVertexPositions[i];
 			s_Renderer2DData.QuadVertexBufferPtr->Color = color;
 			s_Renderer2DData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			s_Renderer2DData.QuadVertexBufferPtr->TilingFactor = tiling;
@@ -521,11 +622,10 @@ namespace Engine
 		}
 
 		s_Renderer2DData.QuadIndexCount += 6;
-
 		s_Renderer2DData.Stats.QuadCount++;
 	}
 
-	void Renderer2D::SetCircleVertexBuffer(const glm::mat4& transfrom, const glm::vec4& color, const float thickness, const float fade, int entityID)
+	void Renderer2D::SetCircleVertexBuffer(const glm::mat4& transform, const glm::vec4& color, const float thickness, const float fade, int entityID)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
@@ -534,7 +634,7 @@ namespace Engine
 
 		for (uint32_t i = 0; i < 4; i++)
 		{
-			s_Renderer2DData.CircleVertexBufferPtr->WorldPosition = transfrom * s_Renderer2DData.QuadVertexPositions[i];
+			s_Renderer2DData.CircleVertexBufferPtr->WorldPosition = transform * s_Renderer2DData.QuadVertexPositions[i];
 			s_Renderer2DData.CircleVertexBufferPtr->LocalPosition = s_Renderer2DData.QuadVertexPositions[i] * 2.0f;
 			s_Renderer2DData.CircleVertexBufferPtr->Color = color;
 			s_Renderer2DData.CircleVertexBufferPtr->Thickness = thickness;
@@ -544,7 +644,6 @@ namespace Engine
 		}
 
 		s_Renderer2DData.CircleIndexCount += 6;
-
 		s_Renderer2DData.Stats.QuadCount++;
 	}
 

@@ -142,4 +142,14 @@ namespace Engine
 		delete m_Data;
 	}
 
+
+	Ref<Font> Font::GetDefault()
+	{
+		static Ref<Font> DefaultFont;
+		if (!DefaultFont)
+			DefaultFont = CreateRef<Font>("assets/fonts/OpenSans/OpenSans-Regular.ttf");
+
+		return DefaultFont;
+	}
+
 }
