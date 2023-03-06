@@ -411,30 +411,13 @@ namespace Engine
 		}
 
 		{ // Draw Text
-
-			Renderer2D::DrawString("Test String", Font::GetDefault(), glm::mat4(1.0f), glm::vec4(1.0f));
-			Renderer2D::DrawString(
-				R"(Test Stringasdf
-					Test asdfa asdfa
-					fdsasdf af  dfdf ds
-					fasd fdf f fds
-					f f
-					asdsd ffdff
-					asddf f sdfaw
-					fwer 
-					asdf2
-					asd 23er 23wer fa sdf
-					fassaf f
-					f
-					asdfas)", 
-				Font::GetDefault(), glm::mat4(1.0f), glm::vec4(1.0f));
-			//auto view = m_Registry.view<CircleRendererComponent>();
-			//for (auto e : view)
-			//{
-			//	Entity entity = { e, this };
-			//	CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
-			//	Renderer2D::DrawCircle(entity.GetWorldTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
-			//}
+			auto view = m_Registry.view<TextRendererComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
+				Renderer2D::DrawString(trc.TextString, entity.GetWorldTransform(), trc, (int)e);
+			}
 		}
 	}
 
@@ -520,6 +503,11 @@ namespace Engine
 
 	template<>
 	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<TextRendererComponent>(Entity entity, TextRendererComponent& component)
 	{
 	}
 #pragma endregion OnComponentAdded

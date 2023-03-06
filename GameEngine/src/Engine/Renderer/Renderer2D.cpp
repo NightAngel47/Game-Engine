@@ -498,29 +498,48 @@ namespace Engine
 		DrawQuad(transform, src.Color, entityID);
 	}
 
-	void Renderer2D::DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, const glm::vec4& color)
+	void Renderer2D::DrawString(const std::string& string, const glm::mat4& transform, const TextParams& textParams, int entityID)
 	{
-		const auto& fontGeo = font->GetMSDFData()->FontGeo;
+		const auto& fontGeo = textParams.Font->GetMSDFData()->FontGeo;
 		const auto& metrics = fontGeo.getMetrics();
-		s_Renderer2DData.FontAtlasTexture = font->GetAtlasTexture();
+		s_Renderer2DData.FontAtlasTexture = textParams.Font->GetAtlasTexture();
 
 		double x = 0.0;
 		double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
 		double y = 0.0;
-		float lineHeightOffset = 0.0f;
+
+		const float spaceGlyphAdvance = fontGeo.getGlyph(' ')->getAdvance();
 
 		for (size_t i = 0; i < string.size(); ++i)
 		{
 			char character = string[i];
 
-			if (character == '\r')
-				continue;
-
-			if (character == '\n')
+			// handle unique characters
+			switch (character)
 			{
-				x = 0;
-				y -= fsScale * metrics.lineHeight + lineHeightOffset;
-				continue;
+				case '\r':
+					continue;
+				case '\n':
+				{
+					x = 0;
+					y -= fsScale * metrics.lineHeight + textParams.LineSpacing;
+					continue;
+				}
+				case ' ':
+				{
+					if (i < string.size() - 1)
+					{
+						char nextCharacter = string[i + 1];
+						double advance;
+						fontGeo.getAdvance(advance, character, nextCharacter);
+
+						x += fsScale * advance + textParams.Kerning;
+					}
+					continue;
+				}
+				case '\t':
+					x += 4.0f * (fsScale * spaceGlyphAdvance + textParams.Kerning);
+					continue;
 			}
 
 			auto glyph = fontGeo.getGlyph(character);
@@ -528,9 +547,6 @@ namespace Engine
 				glyph = fontGeo.getGlyph('?'); // missing character
 			if (!glyph)
 				return; //continue; // failsafe, missing character
-
-			if (character == '\t')
-				glyph = fontGeo.getGlyph(' ');
 
 			double al, ab, ar, at;
 			glyph->getQuadAtlasBounds(al, ab, ar, at);
@@ -555,27 +571,27 @@ namespace Engine
 			// render here
 
 			s_Renderer2DData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMin, 0.0f, 1.0f);
-			s_Renderer2DData.TextVertexBufferPtr->Color = color;
+			s_Renderer2DData.TextVertexBufferPtr->Color = textParams.Color;
 			s_Renderer2DData.TextVertexBufferPtr->TexCoord = texCoordMin;
-			s_Renderer2DData.TextVertexBufferPtr->EntityID = 0; // TODO
+			s_Renderer2DData.TextVertexBufferPtr->EntityID = entityID;
 			s_Renderer2DData.TextVertexBufferPtr++;
 
 			s_Renderer2DData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMin.x, quadMax.y, 0.0f, 1.0f);
-			s_Renderer2DData.TextVertexBufferPtr->Color = color;
+			s_Renderer2DData.TextVertexBufferPtr->Color = textParams.Color;
 			s_Renderer2DData.TextVertexBufferPtr->TexCoord = { texCoordMin.x, texCoordMax.y };
-			s_Renderer2DData.TextVertexBufferPtr->EntityID = 0; // TODO
+			s_Renderer2DData.TextVertexBufferPtr->EntityID = entityID;
 			s_Renderer2DData.TextVertexBufferPtr++;
 
 			s_Renderer2DData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMax, 0.0f, 1.0f);
-			s_Renderer2DData.TextVertexBufferPtr->Color = color;
+			s_Renderer2DData.TextVertexBufferPtr->Color = textParams.Color;
 			s_Renderer2DData.TextVertexBufferPtr->TexCoord = texCoordMax;
-			s_Renderer2DData.TextVertexBufferPtr->EntityID = 0; // TODO
+			s_Renderer2DData.TextVertexBufferPtr->EntityID = entityID;
 			s_Renderer2DData.TextVertexBufferPtr++;
 
 			s_Renderer2DData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMax.x, quadMin.y, 0.0f, 1.0f);
-			s_Renderer2DData.TextVertexBufferPtr->Color = color;
+			s_Renderer2DData.TextVertexBufferPtr->Color = textParams.Color;
 			s_Renderer2DData.TextVertexBufferPtr->TexCoord = { texCoordMax.x, texCoordMin.y };
-			s_Renderer2DData.TextVertexBufferPtr->EntityID = 0; // TODO
+			s_Renderer2DData.TextVertexBufferPtr->EntityID = entityID;
 			s_Renderer2DData.TextVertexBufferPtr++;
 
 			s_Renderer2DData.TextIndexCount += 6;
@@ -587,10 +603,15 @@ namespace Engine
 				char nextCharacter = string[i + 1];
 				fontGeo.getAdvance(advance, character, nextCharacter);
 
-				float kerningOffset = 0.0f;
-				x += fsScale * advance + kerningOffset;
+				x += fsScale * advance + textParams.Kerning;
 			}
 		}
+	}
+
+	void Renderer2D::DrawString(const std::string& string, const glm::mat4& transform, TextRendererComponent& trc, int entityID)
+	{
+		TextParams textParams{ trc.FontAsset, trc.Color, trc.Kerning, trc.LineSpacing };
+		DrawString(string, transform, textParams, entityID);
 	}
 
 	float Renderer2D::GetLineWidth()
