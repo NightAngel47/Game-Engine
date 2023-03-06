@@ -100,6 +100,5 @@ void main()
 		discard;
 
 	o_Color = texColor;
-
 	o_EntityID = v_EntityID;
 }

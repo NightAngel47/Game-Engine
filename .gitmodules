@@ -24,3 +24,6 @@
 [submodule "GameEngine/vendor/box2d"]
 	path = GameEngine/vendor/box2d
 	url = https://github.com/NightAngel47/box2d
+[submodule "GameEngine/vendor/msdf-atlas-gen"]
+	path = GameEngine/vendor/msdf-atlas-gen
+	url = https://github.com/NightAngel47/msdf-atlas-gen

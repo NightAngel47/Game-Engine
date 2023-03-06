@@ -31,6 +31,7 @@ group "Dependencies"
 	include "GameEngine/vendor/imgui"
 	include "GameEngine/vendor/yaml-cpp"
 	include "GameEngine/vendor/box2d"
+	include "GameEngine/vendor/msdf-atlas-gen"
 group ""
 
 group "Core"

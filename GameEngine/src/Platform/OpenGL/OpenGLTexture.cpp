@@ -5,13 +5,95 @@
 
 namespace Engine
 {
-	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height)
-		: m_Width(width), m_Height(height)
+	namespace Utils
+	{
+		static GLenum EngineImageFormatToGLDataFormat(ImageFormat format)
+		{
+			switch (format)
+			{
+			case Engine::ImageFormat::R8:
+				return GL_R;
+			case Engine::ImageFormat::RGB8:
+				return GL_RGB;
+			case Engine::ImageFormat::RGBA8:
+			case Engine::ImageFormat::RGBA32F:
+				return GL_RGBA;
+			case Engine::ImageFormat::None:
+			default:
+				ENGINE_CORE_ASSERT(false, "Image Format not specified.");
+				break;
+			}
+
+			return GL_RGBA; // default
+		}
+
+		static GLenum EngineImageFormatToGLInternalFormat(ImageFormat format)
+		{
+			switch (format)
+			{
+			case Engine::ImageFormat::R8:
+				return GL_R8;
+			case Engine::ImageFormat::RGB8:
+				return GL_RGB8;
+			case Engine::ImageFormat::RGBA8:
+				return GL_RGBA8;
+			case Engine::ImageFormat::RGBA32F:
+				return GL_RGBA32F;
+			case Engine::ImageFormat::None:
+			default:
+				ENGINE_CORE_ASSERT(false, "Image Format not specified.");
+				break;
+			}
+
+			return GL_RGBA8; // default
+		}
+
+		static ImageFormat GLDataFormatToEngineImageFormat(GLenum format)
+		{
+			switch (format)
+			{
+			case GL_R:
+				return Engine::ImageFormat::R8;
+			case GL_RGB:
+				return Engine::ImageFormat::RGB8;
+			case GL_RGBA:
+				return Engine::ImageFormat::RGBA8; // Engine::ImageFormat::RGBA32F;
+			default:
+				ENGINE_CORE_ASSERT(false, "Image Format not specified.");
+				break;
+			}
+
+			return ImageFormat::RGBA8; // default
+		}
+
+		static ImageFormat GLInternalFormatToEngineImageFormat(GLenum format)
+		{
+			switch (format)
+			{
+			case GL_R8:
+				return Engine::ImageFormat::R8;
+			case GL_RGB8:
+				return Engine::ImageFormat::RGB8;
+			case GL_RGBA8:
+				return Engine::ImageFormat::RGBA8;
+			case GL_RGBA32F:
+				return Engine::ImageFormat::RGBA32F;
+			default:
+				ENGINE_CORE_ASSERT(false, "Image Format not specified.");
+				break;
+			}
+
+			return ImageFormat::RGBA8; // default
+		}
+	}
+
+	OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification& specification)
+		: m_Specification(specification), m_Width(specification.Width), m_Height(specification.Height)
 	{
 		ENGINE_PROFILE_FUNCTION();
-		
-		m_InternalFormat = GL_RGBA8;
-		m_DataFormat = GL_RGBA;
+
+		m_InternalFormat = Utils::EngineImageFormatToGLInternalFormat(specification.Format);
+		m_DataFormat = Utils::EngineImageFormatToGLDataFormat(specification.Format);
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
 		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Width, m_Height);

@@ -1,5 +1,7 @@
 #include "EditorLayer.h"
 
+#include "Engine/Renderer/Font.h"
+
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
 
@@ -8,8 +10,12 @@
 
 namespace Engine
 {
+	static Ref<Font> s_Font;
+
 	void EditorLayer::OnAttach()
 	{
+		s_Font = Font::GetDefault();
+
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
 		m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");
 		m_IconStep = Texture2D::Create("Resources/Icons/StepButton.png");
@@ -220,6 +226,10 @@ namespace Engine
 		ImGui::Begin("Settings");
 
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
+
+		// testing font
+		Ref<Texture2D> fontTexture = s_Font->GetAtlasTexture();
+		ImGui::Image((ImTextureID)fontTexture->GetRendererID(), { (float)fontTexture->GetWidth(), (float)fontTexture->GetHeight() }, {0, 1}, {1, 0});
 
 		ImGui::End();
 

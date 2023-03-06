@@ -1,10 +1,11 @@
 #pragma once
+#include "Engine/Core/UUID.h"
 #include "Engine/Renderer/Texture.h"
 #include "Engine/Renderer/SubTexture2D.h"
+#include "Engine/Renderer/Font.h"
 #include "Engine/Scene/SceneCamera.h"
-#include "Engine/Utils/PlatformUtils.h"
-#include "Engine/Core/UUID.h"
 #include "Engine/Project/Project.h"
+#include "Engine/Utils/PlatformUtils.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -78,7 +79,7 @@ namespace Engine
 
 	struct SpriteRendererComponent
 	{
-		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 Color{ 1.0f };
 		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
 		std::filesystem::path Path = "";
@@ -86,9 +87,9 @@ namespace Engine
 		//Sub Texture
 		bool IsSubTexture = false;
 		Ref<SubTexture2D> SubTexture = nullptr;
-		glm::vec2 SubCoords = { 0.0f, 0.0f };
-		glm::vec2 SubCellSize = { 0.0f, 0.0f };
-		glm::vec2 SubSpriteSize = { 1.0f, 1.0f };
+		glm::vec2 SubCoords{ 0.0f };
+		glm::vec2 SubCellSize{ 0.0f };
+		glm::vec2 SubSpriteSize{ 1.0f };
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -117,7 +118,7 @@ namespace Engine
 
 	struct CircleRendererComponent
 	{
-		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 Color{ 1.0f };
 		float Radius = 0.5f;
 		float Thickness = 1.0f;
 		float Fade = 0.005f;
@@ -232,6 +233,20 @@ namespace Engine
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
 
+	struct TextRendererComponent
+	{
+		std::string TextString;
+		Ref<Font> FontAsset = Font::GetDefault();
+
+		glm::vec4 Color{ 1.0f };
+
+		float Kerning = 0.0f;
+		float LineSpacing = 0.0f;
+
+		TextRendererComponent() = default;
+		TextRendererComponent(const TextRendererComponent&) = default;
+	};
+
 #pragma endregion GameComponents
 
 	template<typename... Component>
@@ -242,5 +257,6 @@ namespace Engine
 	using AllComponents = ComponentGroup<
 		TransformComponent, SpriteRendererComponent, CircleRendererComponent, 
 		CameraComponent, NativeScriptComponent, ScriptComponent, 
-		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
+		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
+		TextRendererComponent>;
 }

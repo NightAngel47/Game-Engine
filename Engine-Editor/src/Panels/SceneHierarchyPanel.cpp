@@ -4,6 +4,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <cstring>
@@ -308,15 +309,9 @@ namespace Engine
 	{
 		if(entity.HasComponent<TagComponent>())
 		{
-			auto& tag = entity.GetComponent<TagComponent>().Tag;
-			
-			char buffer[256];
-			memset(buffer, 0, sizeof(buffer));
-			strcpy_s(buffer, sizeof(buffer), tag.c_str());
-			if(ImGui::InputText("##Tag", buffer, sizeof(buffer)))
-			{
-				tag = std::string(buffer);
-			}
+			auto& component = entity.GetComponent<TagComponent>();
+			ImGui::InputText("##Tag", &component.Tag);
+
 		}
 
 		// Draw Add Component Button at the top right next to the tag input field.
@@ -330,6 +325,7 @@ namespace Engine
 			DisplayAddComponentEntry<CameraComponent>("Camera");
 			DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
 			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+			DisplayAddComponentEntry<TextRendererComponent>("Text Renderer");
 			DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody 2D");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
@@ -541,6 +537,16 @@ namespace Engine
 			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("RestitutionThreshold", &component.RestitutionThreshold, 0.01f, 0.0f, std::numeric_limits<float>::infinity());
+		});
+		
+		DrawComponent<TextRendererComponent>("Text Renderer", entity, [](auto& component)
+		{
+			ImGui::InputTextMultiline("Text String", &component.TextString);
+
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+
+			ImGui::DragFloat("Kerning", &component.Kerning, 0.01f);
+			ImGui::DragFloat("Line Spacing", &component.LineSpacing, 0.01f);
 		});
 
 		DrawComponent<ScriptComponent>("Script Component", entity, [&](auto& component)

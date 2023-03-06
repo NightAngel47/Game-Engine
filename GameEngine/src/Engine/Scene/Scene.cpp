@@ -409,6 +409,16 @@ namespace Engine
 				Renderer2D::DrawCircle(entity.GetWorldTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
 			}
 		}
+
+		{ // Draw Text
+			auto view = m_Registry.view<TextRendererComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
+				Renderer2D::DrawString(trc.TextString, entity.GetWorldTransform(), trc, (int)e);
+			}
+		}
 	}
 
 #pragma region OnComponentAdded
@@ -493,6 +503,11 @@ namespace Engine
 
 	template<>
 	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<TextRendererComponent>(Entity entity, TextRendererComponent& component)
 	{
 	}
 #pragma endregion OnComponentAdded

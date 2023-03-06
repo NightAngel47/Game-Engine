@@ -44,6 +44,8 @@ project "GameEngine"
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.box2d}",
 		"%{IncludeDir.filewatch}",
+		"%{IncludeDir.msdfgen}",
+		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.mono}"
 	}
 
@@ -54,6 +56,7 @@ project "GameEngine"
 		"ImGui",
 		"yaml-cpp",
 		"box2d",
+		"msdf-atlas-gen",
 		"opengl32.lib",
 		"%{Library.mono}"
 	}

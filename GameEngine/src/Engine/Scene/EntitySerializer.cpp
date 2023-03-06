@@ -245,6 +245,21 @@ namespace Engine
 			out << YAML::EndMap; // CircleRendererComponent
 		}
 
+		if (m_Entity.HasComponent<TextRendererComponent>())
+		{
+			out << YAML::Key << "TextRendererComponent";
+			out << YAML::BeginMap; // TextRendererComponent
+
+			auto& textRendererComponent = m_Entity.GetComponent<TextRendererComponent>();
+			out << YAML::Key << "TextString" << YAML::Value << textRendererComponent.TextString;
+			//out << YAML::Key << "FontAsset" << YAML::Value << textRendererComponent.FontAsset; // TODO
+			out << YAML::Key << "Color" << YAML::Value << textRendererComponent.Color;
+			out << YAML::Key << "Kerning" << YAML::Value << textRendererComponent.Kerning;
+			out << YAML::Key << "LineSpacing" << YAML::Value << textRendererComponent.LineSpacing;
+
+			out << YAML::EndMap; // TextRendererComponent
+		}
+
 		if (m_Entity.HasComponent<ScriptComponent>())
 		{
 			out << YAML::Key << "ScriptComponent";
@@ -454,6 +469,17 @@ namespace Engine
 			circleRenderer.Radius = circleRendererComponent["Radius"].as<float>();
 			circleRenderer.Thickness = circleRendererComponent["Thickness"].as<float>();
 			circleRenderer.Fade = circleRendererComponent["Fade"].as<float>();
+		}
+
+		auto textRendererComponent = entity["TextRendererComponent"];
+		if (textRendererComponent)
+		{
+			auto& textRenderer = m_Entity.AddComponent<TextRendererComponent>();
+			textRenderer.TextString = textRendererComponent["TextString"].as<std::string>();
+			// textRenderer.FontAsset = font; // TODO
+			textRenderer.Color = textRendererComponent["Color"].as<glm::vec4>();
+			textRenderer.Kerning = textRendererComponent["Kerning"].as<float>();
+			textRenderer.LineSpacing = textRendererComponent["LineSpacing"].as<float>();
 		}
 
 		auto scriptComponent = entity["ScriptComponent"];

@@ -3,8 +3,8 @@
 
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <backends/imgui_impl_opengl3.cpp>
-#include <backends/imgui_impl_glfw.cpp>
+#include <backends/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_glfw.h>
 
 #include "Engine/Core/Application.h"
 
@@ -15,11 +15,6 @@
 
 namespace Engine
 {
-	ImGuiLayer::ImGuiLayer()
-		: Layer("ImGuiLayer")
-	{
-	}
-
 	void ImGuiLayer::OnAttach()
 	{
 		ENGINE_PROFILE_FUNCTION();
