@@ -227,10 +227,6 @@ namespace Engine
 
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
 
-		// testing font
-		Ref<Texture2D> fontTexture = s_Font->GetAtlasTexture();
-		ImGui::Image((ImTextureID)fontTexture->GetRendererID(), { (float)fontTexture->GetWidth(), (float)fontTexture->GetHeight() }, {0, 1}, {1, 0});
-
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
