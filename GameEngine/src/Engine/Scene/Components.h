@@ -249,6 +249,49 @@ namespace Engine
 
 #pragma endregion GameComponents
 
+#pragma region GameUIComponents
+
+	struct UIImageComponent
+	{
+		glm::vec4 Color{ 1.0f };
+		Ref<Texture2D> Texture = nullptr;
+		float Tiling = 1.0f;
+		std::filesystem::path Path = "";
+
+		//Sub Texture
+		bool IsSubTexture = false;
+		Ref<SubTexture2D> SubTexture = nullptr;
+		glm::vec2 SubCoords{ 0.0f };
+		glm::vec2 SubCellSize{ 0.0f };
+		glm::vec2 SubSpriteSize{ 1.0f };
+
+		UIImageComponent() = default;
+		UIImageComponent(const UIImageComponent&) = default;
+		UIImageComponent(const glm::vec4& color)
+			: Color(color) {}
+
+		void LoadTexture(const std::filesystem::path& path)
+		{
+			if (!path.empty())
+			{
+				Path = path;
+				Texture = Texture2D::Create(Project::GetAssetFileSystemPath(path).string());
+
+				GenerateSubTexture();
+			}
+		}
+
+		void GenerateSubTexture()
+		{
+			if (IsSubTexture)
+			{
+				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
+			}
+		}
+	};
+
+#pragma endregion GameUIComponents
+
 	template<typename... Component>
 	struct ComponentGroup
 	{
@@ -258,5 +301,5 @@ namespace Engine
 		TransformComponent, SpriteRendererComponent, CircleRendererComponent, 
 		CameraComponent, NativeScriptComponent, ScriptComponent, 
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
-		TextRendererComponent>;
+		TextRendererComponent, UIImageComponent>;
 }

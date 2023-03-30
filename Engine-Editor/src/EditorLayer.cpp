@@ -227,6 +227,9 @@ namespace Engine
 
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
 
+		ImGui::Text("UI Settings");
+		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
+
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});

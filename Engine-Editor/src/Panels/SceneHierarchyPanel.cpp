@@ -326,6 +326,7 @@ namespace Engine
 			DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
 			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
 			DisplayAddComponentEntry<TextRendererComponent>("Text Renderer");
+			DisplayAddComponentEntry<UIImageComponent>("UI Image Component");
 			DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody 2D");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
@@ -460,6 +461,60 @@ namespace Engine
 
 			ImGui::DragFloat("Thickness", &component.Thickness, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Fade", &component.Fade, 0.0001f, 0.0f, 1.0f);
+		});
+
+		DrawComponent<UIImageComponent>("UI Image", entity, [](auto& component)
+		{
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+
+			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			const ImVec2 buttonSize = { 0.0f, lineHeight };
+			ImGui::Text("Texture");
+			ImGui::SameLine();
+
+			std::string textureName = component.Path.empty() ? "None" : component.Path.string();
+			ImGui::Button(textureName.c_str(), buttonSize);
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					const wchar_t* fileExtension = std::wcsrchr(path, '.');
+
+					if (std::wcscmp(fileExtension, L".png") == 0)
+					{
+						component.LoadTexture(path);
+					}
+					else
+					{
+						std::wstring ws(fileExtension);
+						ENGINE_CORE_WARN("File type is not supported by drag and drop in the UI Image Texture Slot: " + std::string(ws.begin(), ws.end()));
+					}
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::DragFloat("Tiling", &component.Tiling, 0.1f);
+
+			ImGui::Separator();
+			bool subtextureInvalidated = false;
+			ImGui::Text("Sub-Texture Settings");
+
+			if (ImGui::Checkbox("Is Sub-Texture", &component.IsSubTexture))
+				subtextureInvalidated = true;
+			if (ImGui::DragFloat2("Sub-Coords", glm::value_ptr(component.SubCoords), 1.0f, 0.0f, std::numeric_limits<float>().max(), "%.0f"))
+				subtextureInvalidated = true;
+			if (ImGui::DragFloat2("Sub-CellSize", glm::value_ptr(component.SubCellSize), 1.0f, 0.0f, std::numeric_limits<float>().max(), "%.0f"))
+				subtextureInvalidated = true;
+			if (ImGui::DragFloat2("Sub-SpriteSize", glm::value_ptr(component.SubSpriteSize), 1.0f, 1.0f, std::numeric_limits<float>().max(), "%.0f"))
+				subtextureInvalidated = true;
+
+			if (subtextureInvalidated)
+			{
+				component.GenerateSubTexture();
+			}
 		});
 		
 		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [&](auto& component)

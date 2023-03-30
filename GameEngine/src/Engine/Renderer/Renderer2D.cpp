@@ -273,7 +273,6 @@ namespace Engine
 		s_Renderer2DData.TextureSlotIndex = 1;
 	}
 
-
 	void Renderer2D::Flush()
 	{
 		ENGINE_PROFILE_FUNCTION();
@@ -496,6 +495,27 @@ namespace Engine
 		}
 		
 		DrawQuad(transform, src.Color, entityID);
+	}
+
+	void Renderer2D::DrawUIImage(const glm::mat4& transform, UIImageComponent& uiImage, int entityID)
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		if (uiImage.Texture)
+		{
+			if (uiImage.IsSubTexture)
+			{
+				DrawQuad(transform, uiImage.SubTexture, uiImage.Tiling, uiImage.Color, entityID);
+			}
+			else
+			{
+				DrawQuad(transform, uiImage.Texture, uiImage.Tiling, uiImage.Color, entityID);
+			}
+
+			return;
+		}
+
+		DrawQuad(transform, uiImage.Color, entityID);
 	}
 
 	void Renderer2D::DrawString(const std::string& string, const glm::mat4& transform, const TextParams& textParams, int entityID)

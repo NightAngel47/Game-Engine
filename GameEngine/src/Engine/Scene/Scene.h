@@ -80,12 +80,12 @@ namespace Engine
 		void OnPhysics2DUpdate(Timestep ts);
 		void OnScriptsLateUpdate(Timestep ts);
 		void OnRender2DUpdate();
-
 	private:
 		entt::registry m_Registry;
 		std::unordered_map<UUID, entt::entity> m_EntityMap;
 
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+
 		std::string m_Name;
 		
 		bool m_IsRunning = false;
