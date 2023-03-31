@@ -55,6 +55,7 @@ namespace Engine
 		};
 		static void DrawString(const std::string& string, const glm::mat4& transform, const TextParams& textParams, int entityID = -1);
 		static void DrawString(const std::string& string, const glm::mat4& transform, TextRendererComponent& trc, int entityID = -1);
+		static void DrawString(const std::string& string, const glm::mat4& transform, UITextComponent& uiText, int entityID = -1);
 
 		static float GetLineWidth();
 		static void SetLineWidth(float width);

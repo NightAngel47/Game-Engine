@@ -129,6 +129,20 @@ namespace Engine
 			: Color(color) {}
 	};
 
+	struct TextRendererComponent
+	{
+		std::string TextString;
+		Ref<Font> FontAsset = Font::GetDefault();
+
+		glm::vec4 Color{ 1.0f };
+
+		float Kerning = 0.0f;
+		float LineSpacing = 0.0f;
+
+		TextRendererComponent() = default;
+		TextRendererComponent(const TextRendererComponent&) = default;
+	};
+
 	struct CameraComponent
 	{
 		SceneCamera Camera;
@@ -233,20 +247,6 @@ namespace Engine
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
 
-	struct TextRendererComponent
-	{
-		std::string TextString;
-		Ref<Font> FontAsset = Font::GetDefault();
-
-		glm::vec4 Color{ 1.0f };
-
-		float Kerning = 0.0f;
-		float LineSpacing = 0.0f;
-
-		TextRendererComponent() = default;
-		TextRendererComponent(const TextRendererComponent&) = default;
-	};
-
 #pragma endregion GameComponents
 
 #pragma region GameUIComponents
@@ -290,6 +290,33 @@ namespace Engine
 		}
 	};
 
+	struct UICircleComponent
+	{
+		glm::vec4 Color{ 1.0f };
+		float Radius = 0.5f;
+		float Thickness = 1.0f;
+		float Fade = 0.005f;
+
+		UICircleComponent() = default;
+		UICircleComponent(const UICircleComponent&) = default;
+		UICircleComponent(const glm::vec4& color)
+			: Color(color) {}
+	};
+
+	struct UITextComponent
+	{
+		std::string TextString;
+		Ref<Font> FontAsset = Font::GetDefault();
+
+		glm::vec4 Color{ 1.0f };
+
+		float Kerning = 0.0f;
+		float LineSpacing = 0.0f;
+
+		UITextComponent() = default;
+		UITextComponent(const UITextComponent&) = default;
+	};
+
 #pragma endregion GameUIComponents
 
 	template<typename... Component>
@@ -298,8 +325,10 @@ namespace Engine
 	};
 
 	using AllComponents = ComponentGroup<
-		TransformComponent, SpriteRendererComponent, CircleRendererComponent, 
-		CameraComponent, NativeScriptComponent, ScriptComponent, 
+		TransformComponent, 
+		SpriteRendererComponent, CircleRendererComponent, TextRendererComponent,
+		CameraComponent, 
+		NativeScriptComponent, ScriptComponent, 
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
-		TextRendererComponent, UIImageComponent>;
+		UIImageComponent, UICircleComponent, UITextComponent>;
 }

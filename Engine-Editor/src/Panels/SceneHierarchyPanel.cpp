@@ -327,6 +327,8 @@ namespace Engine
 			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
 			DisplayAddComponentEntry<TextRendererComponent>("Text Renderer");
 			DisplayAddComponentEntry<UIImageComponent>("UI Image Component");
+			DisplayAddComponentEntry<UICircleComponent>("UI Circle Component");
+			DisplayAddComponentEntry<UITextComponent>("UI Text Component");
 			DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody 2D");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
@@ -463,6 +465,16 @@ namespace Engine
 			ImGui::DragFloat("Fade", &component.Fade, 0.0001f, 0.0f, 1.0f);
 		});
 
+		DrawComponent<TextRendererComponent>("Text Renderer", entity, [](auto& component)
+		{
+			ImGui::InputTextMultiline("Text String", &component.TextString);
+
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+
+			ImGui::DragFloat("Kerning", &component.Kerning, 0.01f);
+			ImGui::DragFloat("Line Spacing", &component.LineSpacing, 0.01f);
+		});
+
 		DrawComponent<UIImageComponent>("UI Image", entity, [](auto& component)
 		{
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
@@ -515,6 +527,24 @@ namespace Engine
 			{
 				component.GenerateSubTexture();
 			}
+		});
+
+		DrawComponent<UICircleComponent>("UI Circle", entity, [](auto& component)
+		{
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+
+			ImGui::DragFloat("Thickness", &component.Thickness, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Fade", &component.Fade, 0.0001f, 0.0f, 1.0f);
+		});
+
+		DrawComponent<UITextComponent>("UI Text", entity, [](auto& component)
+		{
+			ImGui::InputTextMultiline("Text String", &component.TextString);
+
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+
+			ImGui::DragFloat("Kerning", &component.Kerning, 0.01f);
+			ImGui::DragFloat("Line Spacing", &component.LineSpacing, 0.01f);
 		});
 		
 		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [&](auto& component)
@@ -592,16 +622,6 @@ namespace Engine
 			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("RestitutionThreshold", &component.RestitutionThreshold, 0.01f, 0.0f, std::numeric_limits<float>::infinity());
-		});
-		
-		DrawComponent<TextRendererComponent>("Text Renderer", entity, [](auto& component)
-		{
-			ImGui::InputTextMultiline("Text String", &component.TextString);
-
-			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-
-			ImGui::DragFloat("Kerning", &component.Kerning, 0.01f);
-			ImGui::DragFloat("Line Spacing", &component.LineSpacing, 0.01f);
 		});
 
 		DrawComponent<ScriptComponent>("Script Component", entity, [&](auto& component)

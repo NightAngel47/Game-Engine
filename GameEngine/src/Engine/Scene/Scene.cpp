@@ -281,27 +281,7 @@ namespace Engine
 			Renderer2D::EndScene();
 		}
 
-		// screen space render
-		{
-			SceneCamera* screen = new SceneCamera();
-			screen->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-			screen->SetOrthographic(m_ViewportHeight, -1.0f, 1.0f);
-			Renderer2D::BeginScene(*screen, glm::mat4(1.0f));
-
-			{ // Draw Images
-				auto view = m_Registry.view<UIImageComponent>();
-				for (auto e : view)
-				{
-					Entity entity = { e, this };
-					TransformComponent transform = entity.GetComponent<TransformComponent>();
-					UIImageComponent image = entity.GetComponent<UIImageComponent>();
-					Renderer2D::DrawUIImage(transform.GetTransform(), image, (int)e);
-				}
-			}
-
-			Renderer2D::EndScene();
-			delete screen;
-		}
+		OnRenderUIUpdate();
 	}
 
 	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
@@ -314,6 +294,8 @@ namespace Engine
 		OnRender2DUpdate();
 
 		Renderer2D::EndScene();
+
+		OnRenderUIUpdate();
 	}
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
@@ -323,6 +305,8 @@ namespace Engine
 		OnRender2DUpdate();
 
 		Renderer2D::EndScene();
+
+		OnRenderUIUpdate();
 	}
 
 	void Scene::OnPhysics2DStart()
@@ -444,6 +428,50 @@ namespace Engine
 		}
 	}
 
+	void Scene::OnRenderUIUpdate()
+	{
+		SceneCamera screen = SceneCamera();
+		screen.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+		screen.SetOrthographic(m_ViewportHeight, -1.0f, 1.0f);
+
+		Renderer2D::BeginScene(screen, glm::mat4(1.0f));
+
+		{ // Draw Images
+			auto view = m_Registry.view<UIImageComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				TransformComponent transform = entity.GetComponent<TransformComponent>();
+				UIImageComponent uiImage = entity.GetComponent<UIImageComponent>();
+				Renderer2D::DrawUIImage(transform.GetTransform(), uiImage, (int)e);
+			}
+		}
+
+		{ // Draw Circles
+			auto view = m_Registry.view<UICircleComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				TransformComponent transform = entity.GetComponent<TransformComponent>();
+				UICircleComponent uiCircle = entity.GetComponent<UICircleComponent>();
+				Renderer2D::DrawCircle(transform.GetTransform(), uiCircle.Color, uiCircle.Thickness, uiCircle.Fade, (int)e);
+			}
+		}
+
+		{ // Draw Text
+			auto view = m_Registry.view<UITextComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				TransformComponent transform = entity.GetComponent<TransformComponent>();
+				UITextComponent uiText = entity.GetComponent<UITextComponent>();
+				Renderer2D::DrawString(uiText.TextString, transform.GetTransform(), uiText, (int)e);
+			}
+		}
+
+		Renderer2D::EndScene();
+	}
+
 #pragma region OnComponentAdded
 	template <typename T>
 	void Scene::OnComponentAdded(Entity entity, T& component)
@@ -536,6 +564,16 @@ namespace Engine
 
 	template<>
 	void Scene::OnComponentAdded<UIImageComponent>(Entity entity, UIImageComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<UICircleComponent>(Entity entity, UICircleComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<UITextComponent>(Entity entity, UITextComponent& component)
 	{
 	}
 #pragma endregion OnComponentAdded

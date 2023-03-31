@@ -634,6 +634,12 @@ namespace Engine
 		DrawString(string, transform, textParams, entityID);
 	}
 
+	void Renderer2D::DrawString(const std::string& string, const glm::mat4& transform, UITextComponent& uiText, int entityID)
+	{
+		TextParams textParams{ uiText.FontAsset, uiText.Color, uiText.Kerning, uiText.LineSpacing };
+		DrawString(string, transform, textParams, entityID);
+	}
+
 	float Renderer2D::GetLineWidth()
 	{
 		return s_Renderer2DData.LineWidth;
