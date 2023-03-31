@@ -441,9 +441,8 @@ namespace Engine
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
-				TransformComponent transform = entity.GetComponent<TransformComponent>();
 				UIImageComponent uiImage = entity.GetComponent<UIImageComponent>();
-				Renderer2D::DrawUIImage(transform.GetTransform(), uiImage, (int)e);
+				Renderer2D::DrawUIImage(entity.GetWorldTransform(), uiImage, (int)e);
 			}
 		}
 
@@ -452,9 +451,8 @@ namespace Engine
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
-				TransformComponent transform = entity.GetComponent<TransformComponent>();
 				UICircleComponent uiCircle = entity.GetComponent<UICircleComponent>();
-				Renderer2D::DrawCircle(transform.GetTransform(), uiCircle.Color, uiCircle.Thickness, uiCircle.Fade, (int)e);
+				Renderer2D::DrawCircle(entity.GetWorldTransform(), uiCircle.Color, uiCircle.Thickness, uiCircle.Fade, (int)e);
 			}
 		}
 
@@ -463,9 +461,8 @@ namespace Engine
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
-				TransformComponent transform = entity.GetComponent<TransformComponent>();
 				UITextComponent uiText = entity.GetComponent<UITextComponent>();
-				Renderer2D::DrawString(uiText.TextString, transform.GetTransform(), uiText, (int)e);
+				Renderer2D::DrawString(uiText.TextString, entity.GetWorldTransform(), uiText, (int)e);
 			}
 		}
 
