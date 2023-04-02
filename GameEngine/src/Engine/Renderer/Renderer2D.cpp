@@ -497,27 +497,6 @@ namespace Engine
 		DrawQuad(transform, src.Color, entityID);
 	}
 
-	void Renderer2D::DrawUIImage(const glm::mat4& transform, UIImageComponent& uiImage, int entityID)
-	{
-		ENGINE_PROFILE_FUNCTION();
-
-		if (uiImage.Texture)
-		{
-			if (uiImage.IsSubTexture)
-			{
-				DrawQuad(transform, uiImage.SubTexture, uiImage.Tiling, uiImage.Color, entityID);
-			}
-			else
-			{
-				DrawQuad(transform, uiImage.Texture, uiImage.Tiling, uiImage.Color, entityID);
-			}
-
-			return;
-		}
-
-		DrawQuad(transform, uiImage.Color, entityID);
-	}
-
 	void Renderer2D::DrawString(const std::string& string, const glm::mat4& transform, const TextParams& textParams, int entityID)
 	{
 		const auto& fontGeo = textParams.Font->GetMSDFData()->FontGeo;
@@ -631,12 +610,6 @@ namespace Engine
 	void Renderer2D::DrawString(const std::string& string, const glm::mat4& transform, TextRendererComponent& trc, int entityID)
 	{
 		TextParams textParams{ trc.FontAsset, trc.Color, trc.Kerning, trc.LineSpacing };
-		DrawString(string, transform, textParams, entityID);
-	}
-
-	void Renderer2D::DrawString(const std::string& string, const glm::mat4& transform, UITextComponent& uiText, int entityID)
-	{
-		TextParams textParams{ uiText.FontAsset, uiText.Color, uiText.Kerning, uiText.LineSpacing };
 		DrawString(string, transform, textParams, entityID);
 	}
 

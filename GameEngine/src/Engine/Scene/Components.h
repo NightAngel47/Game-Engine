@@ -251,70 +251,14 @@ namespace Engine
 
 #pragma region GameUIComponents
 
-	struct UIImageComponent
+	struct UILayoutComponent
 	{
-		glm::vec4 Color{ 1.0f };
-		Ref<Texture2D> Texture = nullptr;
-		float Tiling = 1.0f;
-		std::filesystem::path Path = "";
+		glm::vec2 Size{ 100.0f };
+		glm::vec2 AnchorMin{ 0.0f };
+		glm::vec2 AnchorMax{ 0.0f };
 
-		//Sub Texture
-		bool IsSubTexture = false;
-		Ref<SubTexture2D> SubTexture = nullptr;
-		glm::vec2 SubCoords{ 0.0f };
-		glm::vec2 SubCellSize{ 0.0f };
-		glm::vec2 SubSpriteSize{ 1.0f };
-
-		UIImageComponent() = default;
-		UIImageComponent(const UIImageComponent&) = default;
-		UIImageComponent(const glm::vec4& color)
-			: Color(color) {}
-
-		void LoadTexture(const std::filesystem::path& path)
-		{
-			if (!path.empty())
-			{
-				Path = path;
-				Texture = Texture2D::Create(Project::GetAssetFileSystemPath(path).string());
-
-				GenerateSubTexture();
-			}
-		}
-
-		void GenerateSubTexture()
-		{
-			if (IsSubTexture)
-			{
-				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
-			}
-		}
-	};
-
-	struct UICircleComponent
-	{
-		glm::vec4 Color{ 1.0f };
-		float Radius = 0.5f;
-		float Thickness = 1.0f;
-		float Fade = 0.005f;
-
-		UICircleComponent() = default;
-		UICircleComponent(const UICircleComponent&) = default;
-		UICircleComponent(const glm::vec4& color)
-			: Color(color) {}
-	};
-
-	struct UITextComponent
-	{
-		std::string TextString;
-		Ref<Font> FontAsset = Font::GetDefault();
-
-		glm::vec4 Color{ 1.0f };
-
-		float Kerning = 0.0f;
-		float LineSpacing = 0.0f;
-
-		UITextComponent() = default;
-		UITextComponent(const UITextComponent&) = default;
+		UILayoutComponent() = default;
+		UILayoutComponent(const UILayoutComponent&) = default;
 	};
 
 #pragma endregion GameUIComponents
@@ -330,5 +274,5 @@ namespace Engine
 		CameraComponent, 
 		NativeScriptComponent, ScriptComponent, 
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
-		UIImageComponent, UICircleComponent, UITextComponent>;
+		UILayoutComponent>;
 }

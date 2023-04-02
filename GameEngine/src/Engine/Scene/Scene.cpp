@@ -398,7 +398,7 @@ namespace Engine
 	void Scene::OnRender2DUpdate()
 	{
 		{ // Draw Sprites
-			auto view = m_Registry.view<SpriteRendererComponent>();
+			auto view = m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>);
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
@@ -408,7 +408,7 @@ namespace Engine
 		}
 
 		{ // Draw Circles
-			auto view = m_Registry.view<CircleRendererComponent>();
+			auto view = m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>);
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
@@ -418,7 +418,7 @@ namespace Engine
 		}
 
 		{ // Draw Text
-			auto view = m_Registry.view<TextRendererComponent>();
+			auto view = m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>);
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
@@ -437,32 +437,32 @@ namespace Engine
 		Renderer2D::BeginScene(screen, glm::mat4(1.0f));
 
 		{ // Draw Images
-			auto view = m_Registry.view<UIImageComponent>();
+			auto view = m_Registry.view<UILayoutComponent, SpriteRendererComponent>();
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
-				UIImageComponent uiImage = entity.GetComponent<UIImageComponent>();
-				Renderer2D::DrawUIImage(entity.GetWorldTransform(), uiImage, (int)e);
+				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
+				Renderer2D::DrawSprite(entity.GetWorldTransform(), sprite, (int)e);
 			}
 		}
 
 		{ // Draw Circles
-			auto view = m_Registry.view<UICircleComponent>();
+			auto view = m_Registry.view<UILayoutComponent, CircleRendererComponent>();
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
-				UICircleComponent uiCircle = entity.GetComponent<UICircleComponent>();
-				Renderer2D::DrawCircle(entity.GetWorldTransform(), uiCircle.Color, uiCircle.Thickness, uiCircle.Fade, (int)e);
+				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
+				Renderer2D::DrawCircle(entity.GetWorldTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
 			}
 		}
 
 		{ // Draw Text
-			auto view = m_Registry.view<UITextComponent>();
+			auto view = m_Registry.view<UILayoutComponent, TextRendererComponent>();
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
-				UITextComponent uiText = entity.GetComponent<UITextComponent>();
-				Renderer2D::DrawString(uiText.TextString, entity.GetWorldTransform(), uiText, (int)e);
+				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
+				Renderer2D::DrawString(trc.TextString, entity.GetWorldTransform(), trc, (int)e);
 			}
 		}
 
@@ -560,17 +560,7 @@ namespace Engine
 	}
 
 	template<>
-	void Scene::OnComponentAdded<UIImageComponent>(Entity entity, UIImageComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<UICircleComponent>(Entity entity, UICircleComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<UITextComponent>(Entity entity, UITextComponent& component)
+	void Scene::OnComponentAdded<UILayoutComponent>(Entity entity, UILayoutComponent& component)
 	{
 	}
 #pragma endregion OnComponentAdded

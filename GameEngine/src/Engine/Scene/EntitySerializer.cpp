@@ -184,6 +184,19 @@ namespace Engine
 			out << YAML::EndMap; // TransformComponent
 		}
 
+		if (m_Entity.HasComponent<UILayoutComponent>())
+		{
+			out << YAML::Key << "UILayoutComponent";
+			out << YAML::BeginMap; // UILayoutComponent
+
+			auto& uiLayoutComponent = m_Entity.GetComponent<UILayoutComponent>();
+			out << YAML::Key << "Size" << YAML::Value << uiLayoutComponent.Size;
+			out << YAML::Key << "AnchorMin" << YAML::Value << uiLayoutComponent.AnchorMin;
+			out << YAML::Key << "AnchorMax" << YAML::Value << uiLayoutComponent.AnchorMax;
+
+			out << YAML::EndMap; // UILayoutComponent
+		}
+
 		if (m_Entity.HasComponent<CameraComponent>())
 		{
 			out << YAML::Key << "CameraComponent";
@@ -258,53 +271,6 @@ namespace Engine
 			out << YAML::Key << "LineSpacing" << YAML::Value << textRendererComponent.LineSpacing;
 
 			out << YAML::EndMap; // TextRendererComponent
-		}
-
-		if (m_Entity.HasComponent<UIImageComponent>())
-		{
-			out << YAML::Key << "UIImageComponent";
-			out << YAML::BeginMap; // UIImageComponent
-
-			auto& uiImageComponent = m_Entity.GetComponent<UIImageComponent>();
-			out << YAML::Key << "Color" << YAML::Value << uiImageComponent.Color;
-			out << YAML::Key << "Path" << YAML::Value << uiImageComponent.Path.string();
-			out << YAML::Key << "Tiling" << YAML::Value << uiImageComponent.Tiling;
-
-			out << YAML::Key << "IsSubTexture" << YAML::Value << uiImageComponent.IsSubTexture;
-			out << YAML::Key << "SubCoords" << YAML::Value << uiImageComponent.SubCoords;
-			out << YAML::Key << "SubCellSize" << YAML::Value << uiImageComponent.SubCellSize;
-			out << YAML::Key << "SubSpriteSize" << YAML::Value << uiImageComponent.SubSpriteSize;
-
-			out << YAML::EndMap; // UIImageComponent
-		}
-
-		if (m_Entity.HasComponent<UICircleComponent>())
-		{
-			out << YAML::Key << "UICircleComponent";
-			out << YAML::BeginMap; // UICircleComponent
-
-			auto& uiCircleComponent = m_Entity.GetComponent<UICircleComponent>();
-			out << YAML::Key << "Color" << YAML::Value << uiCircleComponent.Color;
-			out << YAML::Key << "Radius" << YAML::Value << uiCircleComponent.Radius;
-			out << YAML::Key << "Thickness" << YAML::Value << uiCircleComponent.Thickness;
-			out << YAML::Key << "Fade" << YAML::Value << uiCircleComponent.Fade;
-
-			out << YAML::EndMap; // UICircleComponent
-		}
-
-		if (m_Entity.HasComponent<UITextComponent>())
-		{
-			out << YAML::Key << "UITextComponent";
-			out << YAML::BeginMap; // UITextComponent
-
-			auto& uiTextComponent = m_Entity.GetComponent<UITextComponent>();
-			out << YAML::Key << "TextString" << YAML::Value << uiTextComponent.TextString;
-			//out << YAML::Key << "FontAsset" << YAML::Value << uiTextComponent.FontAsset; // TODO
-			out << YAML::Key << "Color" << YAML::Value << uiTextComponent.Color;
-			out << YAML::Key << "Kerning" << YAML::Value << uiTextComponent.Kerning;
-			out << YAML::Key << "LineSpacing" << YAML::Value << uiTextComponent.LineSpacing;
-
-			out << YAML::EndMap; // UITextComponent
 		}
 
 		if (m_Entity.HasComponent<ScriptComponent>())
@@ -470,6 +436,15 @@ namespace Engine
 			relationship.Parent = relationshipComponent["Parent"].as<uint64_t>();
 		}
 
+		auto uiLayoutComponent = entity["UILayoutComponent"];
+		if (uiLayoutComponent)
+		{
+			auto& ui = m_Entity.AddComponent<UILayoutComponent>();
+			ui.Size = uiLayoutComponent["Size"].as<glm::vec2>();
+			ui.AnchorMin = uiLayoutComponent["AnchorMin"].as<glm::vec2>();
+			ui.AnchorMax = uiLayoutComponent["AnchorMax"].as<glm::vec2>();
+		}
+
 		auto cameraComponent = entity["CameraComponent"];
 		if (cameraComponent)
 		{
@@ -527,43 +502,6 @@ namespace Engine
 			textRenderer.Color = textRendererComponent["Color"].as<glm::vec4>();
 			textRenderer.Kerning = textRendererComponent["Kerning"].as<float>();
 			textRenderer.LineSpacing = textRendererComponent["LineSpacing"].as<float>();
-		}
-
-		auto uiImageComponent = entity["UIImageComponent"];
-		if (uiImageComponent)
-		{
-			auto& uiImage = m_Entity.AddComponent<UIImageComponent>();
-			uiImage.Color = uiImageComponent["Color"].as<glm::vec4>();
-			uiImage.Path = uiImageComponent["Path"].as<std::string>();
-			uiImage.Tiling = uiImageComponent["Tiling"].as<float>();
-
-			uiImage.IsSubTexture = uiImageComponent["IsSubTexture"].as<bool>();
-			uiImage.SubCoords = uiImageComponent["SubCoords"].as<glm::vec2>();
-			uiImage.SubCellSize = uiImageComponent["SubCellSize"].as<glm::vec2>();
-			uiImage.SubSpriteSize = uiImageComponent["SubSpriteSize"].as<glm::vec2>();
-
-			uiImage.LoadTexture(uiImage.Path);
-		}
-
-		auto uiCircleComponent = entity["UICircleComponent"];
-		if (uiCircleComponent)
-		{
-			auto& uiCircle = m_Entity.AddComponent<UICircleComponent>();
-			uiCircle.Color = uiCircleComponent["Color"].as<glm::vec4>();
-			uiCircle.Radius = uiCircleComponent["Radius"].as<float>();
-			uiCircle.Thickness = uiCircleComponent["Thickness"].as<float>();
-			uiCircle.Fade = uiCircleComponent["Fade"].as<float>();
-		}
-
-		auto uiTextComponent = entity["UITextComponent"];
-		if (uiTextComponent)
-		{
-			auto& uiText = m_Entity.AddComponent<UITextComponent>();
-			uiText.TextString = uiTextComponent["TextString"].as<std::string>();
-			// uiText.FontAsset = font; // TODO
-			uiText.Color = uiTextComponent["Color"].as<glm::vec4>();
-			uiText.Kerning = uiTextComponent["Kerning"].as<float>();
-			uiText.LineSpacing = uiTextComponent["LineSpacing"].as<float>();
 		}
 
 		auto scriptComponent = entity["ScriptComponent"];

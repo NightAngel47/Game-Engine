@@ -154,45 +154,6 @@ namespace InternalCalls
 
 #pragma endregion TextRendererComponent
 
-#pragma region UIImageComponent
-
-		static void UIImageComponent_GetColor(Engine::UUID entityID, glm::vec4* color);
-		static void UIImageComponent_SetColor(Engine::UUID entityID, glm::vec4& color);
-
-		static float UIImageComponent_GetTiling(Engine::UUID entityID);
-		static void UIImageComponent_SetTiling(Engine::UUID entityID, float tiling);
-
-#pragma endregion UIImageComponent
-
-#pragma region UICircleComponent
-
-		static void UICircleComponent_GetColor(Engine::UUID entityID, glm::vec4* color);
-		static void UICircleComponent_SetColor(Engine::UUID entityID, glm::vec4& color);
-
-		static float UICircleComponent_GetThickness(Engine::UUID entityID);
-		static void UICircleComponent_SetThickness(Engine::UUID entityID, float thickness);
-
-		static float UICircleComponent_GetFade(Engine::UUID entityID);
-		static void UICircleComponent_SetFade(Engine::UUID entityID, float fade);
-
-#pragma endregion UICircleComponent
-
-#pragma region UITextComponent
-
-		static void UITextComponent_GetColor(Engine::UUID entityID, glm::vec4* color);
-		static void UITextComponent_SetColor(Engine::UUID entityID, glm::vec4& color);
-
-		static MonoString* UITextComponent_GetText(Engine::UUID entityID);
-		static void UITextComponent_SetText(Engine::UUID entityID, MonoString* text);
-
-		static float UITextComponent_GetKerning(Engine::UUID entityID);
-		static void UITextComponent_SetKerning(Engine::UUID entityID, float kerning);
-
-		static float UITextComponent_GetLineSpacing(Engine::UUID entityID);
-		static void UITextComponent_SetLineSpacing(Engine::UUID entityID, float lineSpacing);
-
-#pragma endregion UITextComponent
-
 #pragma region Rigidbody2DComponent
 
 		static void Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType);

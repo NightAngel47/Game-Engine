@@ -229,73 +229,7 @@ namespace Engine.Core
 		internal static extern void TextRendererComponent_SetLineSpacing(ulong entityID, float lineSpacing);
 
 		#endregion TextRendererComponent
-
-		#region UIImageComponent
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UIImageComponent_GetColor(ulong entityID, out Vector4 color);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UIImageComponent_SetColor(ulong entityID, ref Vector4 color);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern float UIImageComponent_GetTiling(ulong entityID);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UIImageComponent_SetTiling(ulong entityID, float tiling);
-
-		#endregion UIImageComponent
-
-		#region UICircleComponent
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UICircleComponent_GetColor(ulong entityID, out Vector4 color);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UICircleComponent_SetColor(ulong entityID, ref Vector4 color);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern float UICircleComponent_GetThinkness(ulong entityID);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UICircleComponent_SetThinkness(ulong entityID, float thickness);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern float UICircleComponent_GetFade(ulong entityID);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UICircleComponent_SetFade(ulong entityID, float fade);
-
-		#endregion UICircleComponent
-
-		#region UITextComponent
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UITextComponent_GetColor(ulong entityID, out Vector4 color);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UITextComponent_SetColor(ulong entityID, ref Vector4 color);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern string UITextComponent_GetText(ulong entityID);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UITextComponent_SetText(ulong entityID, string thickness);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern float UITextComponent_GetKerning(ulong entityID);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UITextComponent_SetKerning(ulong entityID, float kerning);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern float UITextComponent_GetLineSpacing(ulong entityID);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal static extern void UITextComponent_SetLineSpacing(ulong entityID, float lineSpacing);
-
-		#endregion UITextComponent
-
+		
 		#region Rigidbody2DComponent
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
