@@ -336,20 +336,20 @@ namespace Engine
 		}
 		ImGui::PopItemWidth();
 
-		DrawComponent<TransformComponent>("Transform", entity, [&](auto& component)
+		DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
 		{
 			DrawVec3Control("Position", component.Position);
 			glm::vec3 rotation = glm::degrees(component.Rotation);
 			DrawVec3Control("Rotation", rotation);
 			component.Rotation = glm::radians(rotation);
 			DrawVec3Control("Scale", component.Scale, 1.0f);
+		});
 
-			DrawComponent<UILayoutComponent>("UI Layout", entity, [](auto& uiLayout)
-			{
-				ImGui::DragFloat2("Size", glm::value_ptr(uiLayout.Size), 1.0f);
-				ImGui::DragFloat2("Anchor Min", glm::value_ptr(uiLayout.AnchorMin), 0.1f, -1.0f, 1.0f);
-				ImGui::DragFloat2("Anchor Max", glm::value_ptr(uiLayout.AnchorMax), 0.1f, -1.0f, 1.0f);
-			});
+		DrawComponent<UILayoutComponent>("UI Layout", entity, [](auto& component)
+		{
+			ImGui::DragFloat2("Size", glm::value_ptr(component.Size), 1.0f);
+			ImGui::DragFloat2("Anchor Min", glm::value_ptr(component.AnchorMin), 0.1f, -1.0f, 1.0f);
+			ImGui::DragFloat2("Anchor Max", glm::value_ptr(component.AnchorMax), 0.1f, -1.0f, 1.0f);
 		});
 
 		DrawComponent<CameraComponent>("Camera", entity, [](auto& component)

@@ -81,7 +81,7 @@ namespace Engine::Math
 		return true;
 	}
 
-	glm::mat4 GenTransform(const glm::vec3& position, const float rotation, const glm::vec2& size)
+	glm::mat4 GenRectTransform(const glm::vec3& position, const float rotation, const glm::vec2& size)
 	{
 		ENGINE_PROFILE_FUNCTION();
 

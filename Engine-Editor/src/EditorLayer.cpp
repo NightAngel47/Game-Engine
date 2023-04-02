@@ -304,7 +304,7 @@ namespace Engine
 			float snapValues[3] {snapValue, snapValue, snapValue};
 
 			// Entity transform
-			glm::mat4 transformWorld = selectedEntity.GetWorldTransform();
+			glm::mat4 transformWorld = selectedEntity.GetWorldSpaceTransform();
 			glm::mat4 transformDelta{ 0.0f };
 
 			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), 
@@ -546,7 +546,7 @@ namespace Engine
 			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
 			if (!camera) return;
 
-			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetWorldTransform());
+			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetWorldSpaceTransform());
 		}
 		else
 		{
@@ -565,7 +565,7 @@ namespace Engine
 					glm::vec3 position = tc.Position + glm::vec3(glm::rotate(bc2d.Offset, tc.Rotation.z), 0.001f);
 					glm::vec3 scale = tc.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
 
-					glm::mat4 transform = Math::GenTransform(position, tc.Rotation.z, scale);
+					glm::mat4 transform = Math::GenRectTransform(position, tc.Rotation.z, scale);
 
 					Renderer2D::DrawRect(transform, glm::vec4(0, 1, 0, 1));
 				}
@@ -581,7 +581,7 @@ namespace Engine
 					glm::vec3 position = tc.Position + glm::vec3(glm::rotate(cc2d.Offset, tc.Rotation.z), 0.001f);
 					glm::vec3 scale = tc.Scale * glm::vec3(cc2d.Radius * 2.0f);
 
-					glm::mat4 transform = Math::GenTransform(position, 0, scale);
+					glm::mat4 transform = Math::GenRectTransform(position, 0, scale);
 
 					Renderer2D::DrawCircle(transform, glm::vec4(0, 1, 0, 1), 0.05f);
 				}
@@ -593,7 +593,7 @@ namespace Engine
 		{
 			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 			Renderer2D::SetLineWidth(4.0f);
-			Renderer2D::DrawRect(selectedEntity.GetWorldTransform(), glm::vec4(1, 0, 0.5f, 1));
+			Renderer2D::DrawRect(selectedEntity.GetWorldSpaceTransform(), glm::vec4(1, 0, 0.5f, 1));
 		}
 		else
 		{

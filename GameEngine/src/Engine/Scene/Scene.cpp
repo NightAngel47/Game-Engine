@@ -265,7 +265,7 @@ namespace Engine
 				if (camera.Primary)
 				{
 					mainCamera = &camera.Camera;
-					cameraTransform = entity.GetWorldTransform();
+					cameraTransform = entity.GetWorldSpaceTransform();
 					break;
 				}
 			}
@@ -403,7 +403,7 @@ namespace Engine
 			{
 				Entity entity = { e, this };
 				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
-				Renderer2D::DrawSprite(entity.GetWorldTransform(), sprite, (int)e);
+				Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
 			}
 		}
 
@@ -413,7 +413,7 @@ namespace Engine
 			{
 				Entity entity = { e, this };
 				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
-				Renderer2D::DrawCircle(entity.GetWorldTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
+				Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
 			}
 		}
 
@@ -423,7 +423,7 @@ namespace Engine
 			{
 				Entity entity = { e, this };
 				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
-				Renderer2D::DrawString(trc.TextString, entity.GetWorldTransform(), trc, (int)e);
+				Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
 			}
 		}
 	}
@@ -442,7 +442,7 @@ namespace Engine
 			{
 				Entity entity = { e, this };
 				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
-				Renderer2D::DrawSprite(entity.GetWorldTransform(), sprite, (int)e);
+				Renderer2D::DrawSprite(entity.GetUISpaceTransform(), sprite, (int)e);
 			}
 		}
 
@@ -452,7 +452,7 @@ namespace Engine
 			{
 				Entity entity = { e, this };
 				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
-				Renderer2D::DrawCircle(entity.GetWorldTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
+				Renderer2D::DrawCircle(entity.GetUISpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
 			}
 		}
 
@@ -462,7 +462,7 @@ namespace Engine
 			{
 				Entity entity = { e, this };
 				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
-				Renderer2D::DrawString(trc.TextString, entity.GetWorldTransform(), trc, (int)e);
+				Renderer2D::DrawString(trc.TextString, entity.GetUISpaceTransform(), trc, (int)e);
 			}
 		}
 

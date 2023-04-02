@@ -341,7 +341,7 @@ namespace Engine
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const glm::vec4& color)
 	{
-		DrawQuad(Math::GenTransform(position, rotation, size), color);
+		DrawQuad(Math::GenRectTransform(position, rotation, size), color);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float tiling, const glm::vec4& color)
@@ -351,7 +351,7 @@ namespace Engine
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float tiling, const glm::vec4& color)
 	{
-		DrawQuad(Math::GenTransform(position, rotation, size), texture, tiling, color);
+		DrawQuad(Math::GenRectTransform(position, rotation, size), texture, tiling, color);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float tiling, const glm::vec4& color)
@@ -362,7 +362,7 @@ namespace Engine
 	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float tiling, const glm::vec4& color)
 	{
 		
-		DrawQuad(Math::GenTransform(position, rotation, size), subtexture, tiling, color);
+		DrawQuad(Math::GenRectTransform(position, rotation, size), subtexture, tiling, color);
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
@@ -459,7 +459,7 @@ namespace Engine
 
 	void Renderer2D::DrawRect(const glm::vec3& position, const float rotation, const glm::vec2& size, const glm::vec4& color, int entityID)
 	{
-		DrawRect(Math::GenTransform(position, rotation, size), color, entityID);
+		DrawRect(Math::GenRectTransform(position, rotation, size), color, entityID);
 	}
 
 	void Renderer2D::DrawRect(const glm::mat4& transform, const glm::vec4& color, int entityID)
