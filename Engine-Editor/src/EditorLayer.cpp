@@ -284,15 +284,16 @@ namespace Engine
 		if(m_SceneHierarchyPanel.IsSelectedEntityValid() && m_GizmoType != -1)
 		{
 			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+			bool isEntityUI = selectedEntity.HasComponent<UILayoutComponent>();
+
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 			
 			ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
 
-			// Editor Camera
-			const glm::mat4& cameraProjection = m_EditorCamera.GetProjection();
+			// Editor Camera if world otherwise ScreenCamera
+			const glm::mat4& cameraProjection = isEntityUI ? m_ActiveScene->GetScreenCamera().GetProjection() : m_EditorCamera.GetProjection();
 			glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
-			
 
 			// Snapping
 			bool snap = Input::IsKeyPressed(Key::LeftControl);
@@ -304,11 +305,12 @@ namespace Engine
 			float snapValues[3] {snapValue, snapValue, snapValue};
 
 			// Entity transform
-			glm::mat4 transformWorld = selectedEntity.GetWorldSpaceTransform();
+
+			glm::mat4 transform = isEntityUI ? selectedEntity.GetUISpaceTransform() : selectedEntity.GetWorldSpaceTransform();
 			glm::mat4 transformDelta{ 0.0f };
 
 			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), 
-				(ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::WORLD, glm::value_ptr(transformWorld),
+				(ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::WORLD, glm::value_ptr(transform),
 				glm::value_ptr(transformDelta), snap ? snapValues : nullptr);
 
 			if(ImGuizmo::IsUsing())
@@ -553,6 +555,9 @@ namespace Engine
 			Renderer2D::BeginScene(m_EditorCamera);
 		}
 
+		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+		bool isEntityUI = m_SceneHierarchyPanel.IsSelectedEntityValid() && selectedEntity.HasComponent<UILayoutComponent>();
+
 		if (m_ShowPhysicsColliders)
 		{
 			{ // Visualize Box Collider 2D
@@ -589,11 +594,27 @@ namespace Engine
 		}
 
 		// Draw selected entity outline
-		if (m_SceneHierarchyPanel.IsSelectedEntityValid())
+		if (m_SceneHierarchyPanel.IsSelectedEntityValid() && !isEntityUI)
 		{
-			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 			Renderer2D::SetLineWidth(4.0f);
 			Renderer2D::DrawRect(selectedEntity.GetWorldSpaceTransform(), glm::vec4(1, 0, 0.5f, 1));
+		}
+		else
+		{
+			Renderer2D::SetLineWidth(2.0f);
+		}
+
+		Renderer2D::EndScene();
+
+		// UI Overlays
+
+		Renderer2D::BeginScene(m_ActiveScene->GetScreenCamera(), glm::mat4(1.0f));
+
+		// Draw selected entity outline
+		if (m_SceneHierarchyPanel.IsSelectedEntityValid() && isEntityUI)
+		{
+			Renderer2D::SetLineWidth(4.0f);
+			Renderer2D::DrawRect(selectedEntity.GetUISpaceTransform(), glm::vec4(1, 0, 0.5f, 1));
 		}
 		else
 		{

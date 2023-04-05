@@ -57,6 +57,8 @@ namespace Engine
 		newScene->m_ViewportWidth = other->m_ViewportWidth;
 		newScene->m_ViewportHeight = other->m_ViewportHeight;
 
+		newScene->m_ScreenCamera = other->m_ScreenCamera;
+
 		auto& srcSceneRegistry = other->m_Registry;
 		auto& dstceneRegistry = newScene->m_Registry;
 
@@ -122,6 +124,9 @@ namespace Engine
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
 	{
+		if (m_ViewportWidth == width && m_ViewportHeight == height)
+			return;
+
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
 
@@ -133,6 +138,9 @@ namespace Engine
 			if (!cameraComponent.FixedAspectRatio)
 				cameraComponent.Camera.SetViewportSize(width, height);
 		}
+
+		m_ScreenCamera.SetViewportSize(width, height);
+		m_ScreenCamera.SetOrthographic(height, -1.0f, 1.0f);
 	}
 
 	Entity Scene::GetPrimaryCameraEntity()
@@ -281,7 +289,11 @@ namespace Engine
 			Renderer2D::EndScene();
 		}
 
+		Renderer2D::BeginScene(m_ScreenCamera, glm::mat4(1.0f));
+
 		OnRenderUIUpdate();
+
+		Renderer2D::EndScene();
 	}
 
 	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
@@ -295,7 +307,11 @@ namespace Engine
 
 		Renderer2D::EndScene();
 
+		Renderer2D::BeginScene(m_ScreenCamera, glm::mat4(1.0f));
+
 		OnRenderUIUpdate();
+
+		Renderer2D::EndScene();
 	}
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
@@ -306,7 +322,11 @@ namespace Engine
 
 		Renderer2D::EndScene();
 
+		Renderer2D::BeginScene(m_ScreenCamera, glm::mat4(1.0f));
+
 		OnRenderUIUpdate();
+
+		Renderer2D::EndScene();
 	}
 
 	void Scene::OnPhysics2DStart()
@@ -430,12 +450,6 @@ namespace Engine
 
 	void Scene::OnRenderUIUpdate()
 	{
-		SceneCamera screen = SceneCamera();
-		screen.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
-		screen.SetOrthographic(m_ViewportHeight, -1.0f, 1.0f);
-
-		Renderer2D::BeginScene(screen, glm::mat4(1.0f));
-
 		{ // Draw Images
 			auto view = m_Registry.view<UILayoutComponent, SpriteRendererComponent>();
 			for (auto e : view)
@@ -465,8 +479,6 @@ namespace Engine
 				Renderer2D::DrawString(trc.TextString, entity.GetUISpaceTransform(), trc, (int)e);
 			}
 		}
-
-		Renderer2D::EndScene();
 	}
 
 #pragma region OnComponentAdded

@@ -3,6 +3,7 @@
 #include "Engine/Core/Timestep.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Renderer/EditorCamera.h"
+#include "Engine/Scene/SceneCamera.h"
 
 #include <entt.hpp>
 
@@ -17,7 +18,7 @@ namespace Engine
 	public:
 		Scene() = default;
 		Scene(std::string name)
-			:m_Name(name) {}
+			:m_Name(name) {};
 		~Scene() = default;
 		
 		static Ref<Scene> Copy(Ref<Scene> other);
@@ -29,12 +30,12 @@ namespace Engine
 
 		void OnViewportResize(uint32_t width, uint32_t height);
 		Entity GetPrimaryCameraEntity();
+		SceneCamera GetScreenCamera() const { return m_ScreenCamera; }
 
 		void Step(int frames = 1);
 
 		Entity DuplicateEntity(Entity entity);
 		bool DoesEntityExist(UUID uuid);
-		bool DoesEntityExist(Entity uuid);
 		Entity GetEntityWithUUID(UUID uuid);
 		Entity FindEntityByName(const std::string_view& entityName);
 		
@@ -86,6 +87,7 @@ namespace Engine
 		std::unordered_map<UUID, entt::entity> m_EntityMap;
 
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+		SceneCamera m_ScreenCamera;
 
 		std::string m_Name;
 		
