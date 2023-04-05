@@ -76,6 +76,7 @@ namespace Engine
 		// Gizmos
 		int m_GizmoType = -1;
 		bool m_IsGizmoInUse = false;
+		bool m_IsGizmoWorld = true;
 
 		bool m_ShowPhysicsColliders = true;
 

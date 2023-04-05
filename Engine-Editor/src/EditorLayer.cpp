@@ -226,6 +226,7 @@ namespace Engine
 		ImGui::Begin("Settings");
 
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
+		ImGui::Checkbox("Toggle Gizmo Mode (World/Local)", &m_IsGizmoWorld);
 
 		ImGui::Text("UI Settings");
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
@@ -310,7 +311,7 @@ namespace Engine
 			glm::mat4 transformDelta{ 0.0f };
 
 			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), 
-				(ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::WORLD, glm::value_ptr(transform),
+				(ImGuizmo::OPERATION)m_GizmoType, (ImGuizmo::MODE)m_IsGizmoWorld, glm::value_ptr(transform),
 				glm::value_ptr(transformDelta), snap ? snapValues : nullptr);
 
 			if(ImGuizmo::IsUsing())
@@ -499,6 +500,10 @@ namespace Engine
 						m_GizmoType = ImGuizmo::OPERATION::SCALE;
 				}
 				break;
+			}
+			case Key::T:
+			{
+				m_IsGizmoWorld = !m_IsGizmoWorld;
 			}
 
 			// Other
