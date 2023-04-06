@@ -712,7 +712,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnCreate()
 	{
-		if (!OnCreateThunk) return; // handle script without OnCreate
+		if (!OnCreateThunk || !m_Instance) return; // handle script without OnCreate
 
 		MonoObject* ptrExObject = nullptr;
 		OnCreateThunk(m_Instance, &ptrExObject);
@@ -721,7 +721,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnStart()
 	{
-		if (!OnStartThunk) return; // handle script without OnStart
+		if (!OnStartThunk || !m_Instance) return; // handle script without OnStart
 
 		MonoObject* ptrExObject = nullptr;
 		OnStartThunk(m_Instance, &ptrExObject);
@@ -730,7 +730,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnDestroy()
 	{
-		if (!OnDestroyThunk) return; // handle script without OnDestroy
+		if (!OnDestroyThunk || !m_Instance) return; // handle script without OnDestroy
 
 		MonoObject* ptrExObject = nullptr;
 		OnDestroyThunk(m_Instance, &ptrExObject);
@@ -739,7 +739,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnUpdate(float ts)
 	{
-		if (!OnUpdateThunk) return; // handle script without OnUpdate
+		if (!OnUpdateThunk || !m_Instance) return; // handle script without OnUpdate
 
 		MonoObject* ptrExObject = nullptr;
 		OnUpdateThunk(m_Instance, &ts, &ptrExObject);
@@ -748,7 +748,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnLateUpdate(float ts)
 	{
-		if (!OnLateUpdateThunk) return; // handle script without OnLateUpdate
+		if (!OnLateUpdateThunk || !m_Instance) return; // handle script without OnLateUpdate
 
 		MonoObject* ptrExObject = nullptr;
 		OnLateUpdateThunk(m_Instance, &ts, &ptrExObject);
@@ -757,7 +757,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnTriggerEnter2D(Physics2DContact contact2D)
 	{
-		if (!OnTriggerEnter2DThunk) return; // handle script without OnTriggerEnter2D
+		if (!OnTriggerEnter2DThunk || !m_Instance) return; // handle script without OnTriggerEnter2D
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
@@ -767,7 +767,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnTriggerExit2D(Physics2DContact contact2D)
 	{
-		if (!OnTriggerExit2DThunk) return; // handle script without OnTriggerExit2D
+		if (!OnTriggerExit2DThunk || !m_Instance) return; // handle script without OnTriggerExit2D
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
@@ -777,7 +777,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnCollisionEnter2D(Physics2DContact contact2D)
 	{
-		if (!OnCollisionEnter2DThunk) return; // handle script without OnCollisionEnter2D
+		if (!OnCollisionEnter2DThunk || !m_Instance) return; // handle script without OnCollisionEnter2D
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
@@ -787,7 +787,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnCollisionExit2D(Physics2DContact contact2D)
 	{
-		if (!OnCollisionExit2DThunk) return; // handle script without OnCollisionExit2D
+		if (!OnCollisionExit2DThunk || !m_Instance) return; // handle script without OnCollisionExit2D
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
@@ -797,6 +797,8 @@ namespace Engine
 
 	bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
 	{
+		if (!m_Instance) return;
+
 		const auto& fields = m_ScriptClass->GetScriptFields();
 		auto it = fields.find(name);
 		if (it == fields.end())
@@ -809,6 +811,8 @@ namespace Engine
 
 	bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value)
 	{
+		if (!m_Instance) return;
+
 		const auto& fields = m_ScriptClass->GetScriptFields();
 		auto it = fields.find(name);
 		if (it == fields.end())
