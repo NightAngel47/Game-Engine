@@ -83,17 +83,21 @@ namespace Engine
 
 		glm::mat4 GetUISpaceTransform()
 		{
-			glm::mat4 worldTransform = GetWorldSpaceTransform();
+			glm::mat4 transform = GetWorldSpaceTransform();
 			if (HasComponent<UILayoutComponent>())
 			{
 				glm::vec3 worldPosition{ 0.0f, 0.0f, 0.0f }, worldRotation{ 0.0f, 0.0f, 0.0f }, worldScale{ 0.0f, 0.0f, 0.0f };
-				Math::DecomposeTransform(worldTransform, worldPosition, worldRotation, worldScale);
+				Math::DecomposeTransform(transform, worldPosition, worldRotation, worldScale);
 
 				UILayoutComponent ui = GetComponent<UILayoutComponent>();
-				worldTransform = Math::GenRectTransform(worldPosition, worldRotation.z, glm::vec2(worldScale.x * ui.Size.x, worldScale.y * ui.Size.y));
+
+				glm::vec2 anchored = glm::clamp(ui.AnchorMax + ui.AnchorMin, -1.0f, 1.0f) / glm::vec2(2.0f);
+				anchored *= glm::vec2(m_Scene->m_ViewportWidth, m_Scene->m_ViewportHeight);
+				
+				transform = Math::GenRectTransform(glm::vec3(anchored, 0.0f) + worldPosition, worldRotation.z, glm::vec2(worldScale.x * ui.Size.x, worldScale.y * ui.Size.y));
 			}
 
-			return worldTransform;
+			return transform;
 		}
 
 		Entity GetParent() { return m_Scene->GetEntityWithUUID(GetComponent<RelationshipComponent>().Parent); }
