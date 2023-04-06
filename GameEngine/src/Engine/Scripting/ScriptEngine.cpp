@@ -797,7 +797,7 @@ namespace Engine
 
 	bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
 	{
-		if (!m_Instance) return;
+		if (!m_Instance) return false;
 
 		const auto& fields = m_ScriptClass->GetScriptFields();
 		auto it = fields.find(name);
@@ -811,7 +811,7 @@ namespace Engine
 
 	bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value)
 	{
-		if (!m_Instance) return;
+		if (!m_Instance) return false;
 
 		const auto& fields = m_ScriptClass->GetScriptFields();
 		auto it = fields.find(name);
