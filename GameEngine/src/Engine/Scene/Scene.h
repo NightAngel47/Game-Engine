@@ -29,6 +29,7 @@ namespace Engine
 		void DestroyEntity(Entity entity);
 
 		void OnViewportResize(uint32_t width, uint32_t height);
+		void SetViewportMousePos(int mouseX, int mouseY) { m_ViewportMousePos = { mouseX, mouseY }; }
 		Entity GetPrimaryCameraEntity();
 		SceneCamera GetScreenCamera() const { return m_ScreenCamera; }
 
@@ -87,6 +88,7 @@ namespace Engine
 		std::unordered_map<UUID, entt::entity> m_EntityMap;
 
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+		glm::vec2 m_ViewportMousePos{0.0f};
 		SceneCamera m_ScreenCamera;
 
 		std::string m_Name;

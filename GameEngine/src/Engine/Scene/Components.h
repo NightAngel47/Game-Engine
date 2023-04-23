@@ -261,6 +261,55 @@ namespace Engine
 		UILayoutComponent(const UILayoutComponent&) = default;
 	};
 
+	struct UIButtonComponent
+	{
+		bool Interactable = true;
+		bool Hovered = false;
+		bool Pressed = false;
+
+		glm::vec4 NormalColor{ 0.75f, 0.75f, 0.75f, 1.0f };
+		glm::vec4 HoverColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 PressedColor{ 0.55f, 0.55f, 0.55f, 1.0f };
+		glm::vec4 DisabledColor{ 0.15f, 0.15f, 0.15f, 1.0f };
+
+		glm::vec4 const GetButtonTint()
+		{
+			if (Interactable)
+			{
+				if (Pressed) return PressedColor;
+				if (Hovered) return HoverColor;
+
+				return NormalColor;
+			}
+
+			return DisabledColor;
+		}
+
+		std::string PressedEvent = "Pressed";
+		std::string ReleasedEvent = "Released";
+
+		UIButtonComponent() = default;
+		UIButtonComponent(const UIButtonComponent&) = default;
+
+		void OnPressed()
+		{
+			if (Interactable && !Pressed)
+			{
+				Pressed = true;
+				ENGINE_CORE_TRACE("UI Button Pressed: {0}", PressedEvent);
+			}
+		}
+
+		void OnReleased()
+		{
+			if (Interactable && Pressed)
+			{
+				Pressed = false;
+				ENGINE_CORE_TRACE("UI Button Released: {0}", ReleasedEvent);
+			}
+		}
+	};
+
 #pragma endregion GameUIComponents
 
 	template<typename... Component>
@@ -274,5 +323,5 @@ namespace Engine
 		CameraComponent, 
 		NativeScriptComponent, ScriptComponent, 
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
-		UILayoutComponent>;
+		UILayoutComponent, UIButtonComponent>;
 }

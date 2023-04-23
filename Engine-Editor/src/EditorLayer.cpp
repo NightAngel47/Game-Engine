@@ -100,10 +100,12 @@ namespace Engine
 				break;
 			}
 			case SceneState::Simulate:
+			{
 				m_EditorCamera.OnUpdate(ts);
 
 				m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
 				break;
+			}
 			default:
 				break;
 		}
@@ -231,6 +233,9 @@ namespace Engine
 		ImGui::Text("UI Settings");
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
 
+		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
+		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
+
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
@@ -347,7 +352,7 @@ namespace Engine
 
 		UI_Toolbar();
 		
-	    ImGui::End();
+		ImGui::End();
 	}
 
 	void EditorLayer::UI_Toolbar()
@@ -535,9 +540,9 @@ namespace Engine
 
 	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 	{
-		if(e.GetMouseButton() == Mouse::ButtonLeft)
+		if (e.GetMouseButton() == Mouse::ButtonLeft)
 		{
-			if(m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
+			if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
 			{
 				m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntityID);
 			}
@@ -757,6 +762,8 @@ namespace Engine
 		{
 			m_HoveredEntityID = UUID::INVALID();
 		}
+
+		m_ActiveScene->SetViewportMousePos(mouseX, mouseY);
 	}
 
 	void EditorLayer::OnScenePlay()

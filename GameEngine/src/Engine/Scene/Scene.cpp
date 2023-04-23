@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Scene/Scene.h"
 
+#include "Engine/Core/Application.h"
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/ScriptableEntity.h"
@@ -250,6 +251,47 @@ namespace Engine
 	{
 		if (!m_IsPaused || m_StepFrames-- > 0)
 		{
+			// Update UI
+			{
+				auto view = m_Registry.view<UILayoutComponent, UIButtonComponent>();
+				for (auto e : view)
+				{
+					Entity entity = { e, this };
+					auto& layout = entity.GetComponent<UILayoutComponent>();
+					auto& button = entity.GetComponent<UIButtonComponent>();
+
+					if (Input::IsMouseButtonPressed(Mouse::MouseCode::ButtonLeft))
+					{
+						glm::mat4 transform = entity.GetUISpaceTransform();
+						glm::vec3 uiPos = Math::PositionFromTransform(transform);
+
+						glm::vec2 halfViewportSize{ m_ViewportWidth / 2, m_ViewportHeight / 2 };
+
+						float xHalfSize = layout.Size.x / 2;
+						float yHalfSize = layout.Size.y / 2;
+
+						glm::vec2 xRange{ uiPos.x - xHalfSize, uiPos.x + xHalfSize };
+						xRange += halfViewportSize.x;
+						glm::vec2 yRange{ uiPos.y - yHalfSize, uiPos.y + yHalfSize };
+						yRange += halfViewportSize.y;
+
+						if (m_ViewportMousePos.x >= xRange.x && 
+							m_ViewportMousePos.x <= xRange.y &&
+							m_ViewportMousePos.y >= yRange.x &&
+							m_ViewportMousePos.y <= yRange.y)
+						{
+							button.OnPressed();
+						}
+					}
+
+					if (!Input::IsMouseButtonPressed(Mouse::MouseCode::ButtonLeft))
+					{
+						button.OnReleased();
+					}
+
+				}
+			}
+
 			// Update scripts
 			OnScriptsUpdate(ts);
 
@@ -456,6 +498,13 @@ namespace Engine
 			{
 				Entity entity = { e, this };
 				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
+
+				if (entity.HasComponent<UIButtonComponent>())
+				{
+					UIButtonComponent uiButton = entity.GetComponent<UIButtonComponent>();
+					sprite.Color *= uiButton.GetButtonTint();
+				}
+
 				Renderer2D::DrawSprite(entity.GetUISpaceTransform(), sprite, (int)e);
 			}
 		}
@@ -573,6 +622,11 @@ namespace Engine
 
 	template<>
 	void Scene::OnComponentAdded<UILayoutComponent>(Entity entity, UILayoutComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<UIButtonComponent>(Entity entity, UIButtonComponent& component)
 	{
 	}
 #pragma endregion OnComponentAdded

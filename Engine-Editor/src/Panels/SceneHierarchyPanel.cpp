@@ -327,6 +327,7 @@ namespace Engine
 			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
 			DisplayAddComponentEntry<TextRendererComponent>("Text Renderer");
 			DisplayAddComponentEntry<UILayoutComponent>("UI Layout Component");
+			DisplayAddComponentEntry<UIButtonComponent>("UI Button Component");
 			DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody 2D");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
@@ -479,7 +480,20 @@ namespace Engine
 			ImGui::DragFloat("Kerning", &component.Kerning, 0.01f);
 			ImGui::DragFloat("Line Spacing", &component.LineSpacing, 0.01f);
 		});
-		
+
+		DrawComponent<UIButtonComponent>("UI Button", entity, [](auto& component)
+		{
+			ImGui::Checkbox("Intractable", &component.Interactable);
+
+			ImGui::ColorEdit4("Normal Color", glm::value_ptr(component.NormalColor));
+			ImGui::ColorEdit4("Hover Color", glm::value_ptr(component.HoverColor));
+			ImGui::ColorEdit4("Pressed Color", glm::value_ptr(component.PressedColor));
+			ImGui::ColorEdit4("Disabled Color", glm::value_ptr(component.DisabledColor));
+
+			ImGui::InputText("Pressed Event", &component.PressedEvent);
+			ImGui::InputText("Released Event", &component.ReleasedEvent);
+		});
+
 		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [&](auto& component)
 		{
 			bool sceneRunning = m_Context->IsRunning();
