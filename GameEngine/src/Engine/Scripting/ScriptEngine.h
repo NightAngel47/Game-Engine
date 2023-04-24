@@ -28,7 +28,7 @@ typedef void(*OnTriggerExit2D) (MonoObject* obj, MonoObject* physics2DContact, M
 typedef void(*OnCollisionEnter2D) (MonoObject* obj, MonoObject* physics2DContact, MonoObject** exp);
 typedef void(*OnCollisionExit2D) (MonoObject* obj, MonoObject* physics2DContact, MonoObject** exp);
 
-// Created with help from this guide (Mono Embedding for Game Engines): https://peter1745.github.io/introduction.html
+// Created with help from this guide (Mono Embedding for Game Engines): https://nilssondev.com/mono-guide/book/
 
 namespace Engine
 {
