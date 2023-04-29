@@ -9,34 +9,36 @@ void Standalone::OnAttach()
 	
 	m_ActiveScene = Engine::CreateRef<Engine::Scene>();
 
-	bool projectLoaded = true;
+	std::filesystem::path projectFilePath;
+
+#if ENGINE_DIST
+	projectFilePath = "SpaceGame.gameproj";
+#else
 	auto commandLineArgs = Engine::Application::Get().GetSpecification().CommandLineArgs;
 	if (commandLineArgs.Count > 1)
 	{
-		auto projectFilePath = commandLineArgs[1];
-		if (Engine::Project::Load(projectFilePath))
-		{
-			Engine::ScriptEngine::Init(); 
-			std::filesystem::path startScenePath = Engine::Project::GetActive()->GetConfig().StartScene;
-
-			m_ActiveScene = Engine::CreateRef<Engine::Scene>(startScenePath.filename().string());
-			auto& window = Engine::Application::Get().GetWindow();
-			m_ActiveScene->OnViewportResize(window.GetWidth(), window.GetHeight());
-
-			Engine::SceneSerializer serializer(m_ActiveScene);
-			serializer.Deserialize(startScenePath);
-		}
-		else
-		{
-			projectLoaded = false;
-		}
+		projectFilePath = commandLineArgs[1];
 	}
 	else
 	{
-		projectLoaded = false;
+		ENGINE_CORE_ERROR("Didn't load valid project, closing.");
+		Engine::Application::Get().Close();
 	}
+#endif
 
-	if (!projectLoaded)
+	if (Engine::Project::Load(projectFilePath))
+	{
+		Engine::ScriptEngine::Init();
+		std::filesystem::path startScenePath = Engine::Project::GetActive()->GetConfig().StartScene;
+
+		m_ActiveScene = Engine::CreateRef<Engine::Scene>(startScenePath.filename().string());
+		auto& window = Engine::Application::Get().GetWindow();
+		m_ActiveScene->OnViewportResize(window.GetWidth(), window.GetHeight());
+
+		Engine::SceneSerializer serializer(m_ActiveScene);
+		serializer.Deserialize(startScenePath);
+	}
+	else
 	{
 		ENGINE_CORE_ERROR("Didn't load valid project, closing.");
 		Engine::Application::Get().Close();

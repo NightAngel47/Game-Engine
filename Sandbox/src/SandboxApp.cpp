@@ -28,7 +28,11 @@ Engine::Application* Engine::CreateApplication(Engine::ApplicationCommandLineArg
 {
 	ApplicationSpecification spec;
 	spec.Name = "Sandbox";
+#if ENGINE_DIST
+	spec.WorkingDirectory = "";
+#else
 	spec.WorkingDirectory = "../Engine-Editor";
+#endif
 	spec.CommandLineArgs = args;
 
 	return new Sandbox(spec);
