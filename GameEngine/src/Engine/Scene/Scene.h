@@ -29,7 +29,6 @@ namespace Engine
 		void DestroyEntity(Entity entity);
 
 		void OnViewportResize(uint32_t width, uint32_t height);
-		void SetViewportMousePos(int mouseX, int mouseY) { m_ViewportMousePos = { mouseX, mouseY }; }
 		Entity GetPrimaryCameraEntity();
 		SceneCamera GetScreenCamera() const { return m_ScreenCamera; }
 
@@ -69,15 +68,18 @@ namespace Engine
 		void OnComponentAdded(Entity entity, T& component);
 
 		// Start Play/Sim Section
+		void OnUIStart();
 		void OnPhysics2DStart();
 		void OnScriptsCreate();
 		void OnScriptsStart();
 
 		// Stop Play/Sim Section
+		void OnUIStop();
 		void OnPhysics2DStop();
 		void OnScriptsStop();
 
 		// Update Play/Sim Section
+		void OnUIUpdate(Timestep ts);
 		void OnScriptsUpdate(Timestep ts);
 		void OnPhysics2DUpdate(Timestep ts);
 		void OnScriptsLateUpdate(Timestep ts);
@@ -88,7 +90,6 @@ namespace Engine
 		std::unordered_map<UUID, entt::entity> m_EntityMap;
 
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
-		glm::vec2 m_ViewportMousePos{0.0f};
 		SceneCamera m_ScreenCamera;
 
 		std::string m_Name;

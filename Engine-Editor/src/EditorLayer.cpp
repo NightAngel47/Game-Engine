@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include "Engine/Renderer/Font.h"
+#include "Engine/UI/UIEngine.h"
 
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
@@ -763,7 +764,8 @@ namespace Engine
 			m_HoveredEntityID = UUID::INVALID();
 		}
 
-		m_ActiveScene->SetViewportMousePos(mouseX, mouseY);
+		if (m_ActiveScene->IsRunning())
+			UIEngine::SetViewportMousePos(mouseX, mouseY);
 	}
 
 	void EditorLayer::OnScenePlay()

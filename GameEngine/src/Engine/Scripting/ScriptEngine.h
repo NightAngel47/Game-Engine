@@ -34,7 +34,7 @@ namespace Engine
 {
 	enum class ScriptFieldType
 	{
-		None = -1,
+		None = 0, Void,
 		Float, Double,
 		Bool, Char, String,
 		SByte, Short, Int, Long,
@@ -51,6 +51,23 @@ namespace Engine
 		Protected = (1 << 2),
 		Public = (1 << 3)
 	};
+
+	struct ScriptMethod
+	{
+		ScriptFieldType ReturnType;
+		uint8_t Access;
+
+		MonoMethod* ClassMethod;
+
+		ScriptFieldType ParamTypes[8]{};
+
+		bool ScriptMethod::IsPublic()
+		{
+			return Access & (uint8_t)Accessibility::Public ? true : false;
+		}
+	};
+
+	using ScriptMethodMap = std::unordered_map<std::string, ScriptMethod>;
 
 	struct ScriptField
 	{
@@ -142,6 +159,7 @@ namespace Engine
 		static std::unordered_map<std::string, Ref<ScriptClass>> GetEntityClasses();
 		static ScriptFieldMap& GetScriptFieldMap(Entity entity);
 		static ScriptFieldMap GetDefaultScriptFieldMap(const std::string& scriptName);
+		static ScriptMethodMap GetScriptMethodMap(const std::string& scriptName);
 		static Scene* GetSceneContext();
 
 		static MonoAssembly* GetCoreAssembly();
@@ -166,8 +184,10 @@ namespace Engine
 		static Ref<ScriptInstance> GetEntityInstance(Entity entity);
 
 		static MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className);
+		
 		static uint8_t GetFieldAccessibility(MonoClassField* field);
 		static uint8_t GetPropertyAccessbility(MonoProperty* property);
+		static uint8_t GetMethodAccessbility(MonoMethod* method);
 
 		static void HandleMonoException(MonoObject* ptrExObject);
 		static MonoString* CharToMonoString(char* charString);
@@ -288,6 +308,7 @@ namespace Engine
 			switch (fieldType)
 			{
 			case ScriptFieldType::None:		return "None";
+			case ScriptFieldType::Void:		return "Void";
 			case ScriptFieldType::Float:	return "Float";
 			case ScriptFieldType::Double:	return "Double";
 			case ScriptFieldType::Bool:		return "Bool";
@@ -313,6 +334,7 @@ namespace Engine
 		inline ScriptFieldType ScriptFieldTypeFromString(std::string_view fieldType)
 		{
 			if (fieldType == "None")	return ScriptFieldType::None;
+			if (fieldType == "Void")	return ScriptFieldType::Void;
 			if (fieldType == "Float")	return ScriptFieldType::Float;
 			if (fieldType == "Double")	return ScriptFieldType::Double;
 			if (fieldType == "Bool")	return ScriptFieldType::Bool;

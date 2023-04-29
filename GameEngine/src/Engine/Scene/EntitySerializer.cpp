@@ -379,6 +379,70 @@ namespace Engine
 			out << YAML::EndMap; // CircleCollider2DComponent
 		}
 
+		if (m_Entity.HasComponent<UIButtonComponent>())
+		{
+			out << YAML::Key << "UIButtonComponent";
+			out << YAML::BeginMap; // UIButtonComponent
+
+			auto& uiButtonComponent = m_Entity.GetComponent<UIButtonComponent>();
+			out << YAML::Key << "NormalColor" << YAML::Value << uiButtonComponent.NormalColor;
+			out << YAML::Key << "HoverColor" << YAML::Value << uiButtonComponent.HoverColor;
+			out << YAML::Key << "PressedColor" << YAML::Value << uiButtonComponent.PressedColor;
+			out << YAML::Key << "DisabledColor" << YAML::Value << uiButtonComponent.DisabledColor;
+
+			out << YAML::Key << "PressedEvent.InteractedEntityID" << YAML::Value << uiButtonComponent.PressedEvent.InteractedEntityID;
+			out << YAML::Key << "PressedEvent.InteractedFunction" << YAML::Value << uiButtonComponent.PressedEvent.InteractedFunction;
+			out << YAML::Key << "PressedEvent.Params" << YAML::Value;
+			auto& entityFields = ScriptEngine::GetScriptFieldMap(m_Entity);
+			out << YAML::BeginSeq;
+			int i = 0;
+			for (auto& Param : uiButtonComponent.PressedEvent.Params)
+			{
+				if (Param == nullptr || Param->Field.Type == ScriptFieldType::None)
+					continue;
+
+				ScriptFieldInstance& scriptField = *Param;
+				out << YAML::BeginMap; // Param
+				//out << YAML::Key << "Name" << YAML::Value << "PressedEvent.Params[" + std::to_string(i) + "]";
+				out << YAML::Key << "Type" << YAML::Value << Utils::ScriptFieldTypeToString(scriptField.Field.Type);
+
+				out << YAML::Key << "Data" << YAML::Value;
+
+				switch (scriptField.Field.Type)
+				{
+					WRITE_SCRIPT_FIELD(Float, float);
+					WRITE_SCRIPT_FIELD(Double, double);
+					WRITE_SCRIPT_FIELD(Bool, bool);
+					WRITE_SCRIPT_FIELD(Char, char);
+					WRITE_SCRIPT_FIELD(String, std::string);
+					WRITE_SCRIPT_FIELD(SByte, int8_t);
+					WRITE_SCRIPT_FIELD(Short, int16_t);
+					WRITE_SCRIPT_FIELD(Int, int32_t);
+					WRITE_SCRIPT_FIELD(Long, int64_t);
+					WRITE_SCRIPT_FIELD(Byte, uint16_t); // upcasting uint8_t to unint16_t to fix yaml-cpp encode/decode
+					WRITE_SCRIPT_FIELD(UShort, uint16_t);
+					WRITE_SCRIPT_FIELD(UInt, uint32_t);
+					WRITE_SCRIPT_FIELD(ULong, uint64_t);
+					WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
+					WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
+					WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
+					WRITE_SCRIPT_FIELD(Entity, UUID);
+				default:
+					ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(scriptField.Field.Type));
+				}
+
+				out << YAML::EndMap; // ScriptFields
+
+				++i;
+			}
+			out << YAML::EndSeq;
+
+			out << YAML::Key << "ReleasedEvent.InteractedEntityID" << YAML::Value << uiButtonComponent.ReleasedEvent.InteractedEntityID;
+			out << YAML::Key << "ReleasedEvent.InteractedFunction" << YAML::Value << uiButtonComponent.ReleasedEvent.InteractedFunction;
+
+			out << YAML::EndMap; // UIButtonComponent
+		}
+
 		auto& relationship = m_Entity.GetComponent<RelationshipComponent>();
 		if (relationship.HasChildren())
 		{
@@ -602,6 +666,66 @@ namespace Engine
 			circleCollider2D.Friction = circleCollider2DComponent["Friction"].as<float>();
 			circleCollider2D.Restitution = circleCollider2DComponent["Restitution"].as<float>();
 			circleCollider2D.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
+		}
+
+		auto uiButtonComponent = entity["UIButtonComponent"];
+		if (uiButtonComponent)
+		{
+			auto& uiButton = m_Entity.AddComponent<UIButtonComponent>();
+			uiButton.NormalColor = uiButtonComponent["NormalColor"].as<glm::vec4>();
+			uiButton.HoverColor = uiButtonComponent["HoverColor"].as<glm::vec4>();
+			uiButton.PressedColor = uiButtonComponent["PressedColor"].as<glm::vec4>();
+			uiButton.DisabledColor = uiButtonComponent["DisabledColor"].as<glm::vec4>();
+
+			uiButton.PressedEvent.InteractedEntityID = uiButtonComponent["PressedEvent.InteractedEntityID"].as<uint64_t>();
+			uiButton.PressedEvent.InteractedFunction = uiButtonComponent["PressedEvent.InteractedFunction"].as<std::string>();
+
+			auto scriptFields = uiButtonComponent["PressedEvent.Params"];
+			if (scriptFields)
+			{
+				int i = 0;
+				for (auto scriptField : scriptFields)
+				{
+					//std::string name = scriptField["Name"].as<std::string>();
+					std::string typeString = scriptField["Type"].as<std::string>();
+					ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
+
+					if (type == ScriptFieldType::None)
+						continue;
+
+					uiButton.PressedEvent.Params[i] = new ScriptFieldInstance();
+					uiButton.PressedEvent.Params[i]->Field = { type };
+
+					ScriptFieldInstance& fieldInstance = *uiButton.PressedEvent.Params[i];
+					switch (type)
+					{
+						READ_SCRIPT_FIELD(Float, float);
+						READ_SCRIPT_FIELD(Double, double);
+						READ_SCRIPT_FIELD(Bool, bool);
+						READ_SCRIPT_FIELD(Char, char);
+						READ_SCRIPT_FIELD(String, std::string);
+						READ_SCRIPT_FIELD(SByte, int8_t);
+						READ_SCRIPT_FIELD(Short, int16_t);
+						READ_SCRIPT_FIELD(Int, int32_t);
+						READ_SCRIPT_FIELD(Long, int64_t);
+						READ_SCRIPT_FIELD(Byte, uint16_t); // upcasting uint8_t to unint16_t to fix yaml-cpp encode/decode
+						READ_SCRIPT_FIELD(UShort, uint16_t);
+						READ_SCRIPT_FIELD(UInt, uint32_t);
+						READ_SCRIPT_FIELD(ULong, uint64_t);
+						READ_SCRIPT_FIELD(Vector2, glm::vec2);
+						READ_SCRIPT_FIELD(Vector3, glm::vec3);
+						READ_SCRIPT_FIELD(Vector4, glm::vec4);
+						READ_SCRIPT_FIELD(Entity, UUID);
+					default:
+						ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", Utils::ScriptFieldTypeToString(type));
+					}
+
+					++i;
+				}
+			}
+
+			uiButton.ReleasedEvent.InteractedEntityID = uiButtonComponent["ReleasedEvent.InteractedEntityID"].as<uint64_t>();
+			uiButton.ReleasedEvent.InteractedFunction = uiButtonComponent["ReleasedEvent.InteractedFunction"].as<std::string>();
 		}
 
 		auto childEntities = entity["ChildEntities"];

@@ -6,6 +6,7 @@
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Project/Project.h"
 #include "Engine/Utils/PlatformUtils.h"
+#include "Engine/UI/UIEngine.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -263,9 +264,7 @@ namespace Engine
 
 	struct UIButtonComponent
 	{
-		bool Interactable = true;
-		bool Hovered = false;
-		bool Pressed = false;
+		ButtonStates ButtonState;
 
 		glm::vec4 NormalColor{ 0.75f, 0.75f, 0.75f, 1.0f };
 		glm::vec4 HoverColor{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -274,10 +273,10 @@ namespace Engine
 
 		glm::vec4 const GetButtonTint()
 		{
-			if (Interactable)
+			if (ButtonState.Interactable)
 			{
-				if (Pressed) return PressedColor;
-				if (Hovered) return HoverColor;
+				if (ButtonState.Pressed) return PressedColor;
+				if (ButtonState.Hovered) return HoverColor;
 
 				return NormalColor;
 			}
@@ -285,27 +284,27 @@ namespace Engine
 			return DisabledColor;
 		}
 
-		std::string PressedEvent = "Pressed";
-		std::string ReleasedEvent = "Released";
+		Interaction PressedEvent;
+		Interaction ReleasedEvent;
 
 		UIButtonComponent() = default;
 		UIButtonComponent(const UIButtonComponent&) = default;
 
 		void OnPressed()
 		{
-			if (Interactable && !Pressed)
+			if (ButtonState.Interactable && !ButtonState.Pressed)
 			{
-				Pressed = true;
-				ENGINE_CORE_TRACE("UI Button Pressed: {0}", PressedEvent);
+				ButtonState.Pressed = true;
+				PressedEvent.Interacted();
 			}
 		}
 
 		void OnReleased()
 		{
-			if (Interactable && Pressed)
+			if (ButtonState.Interactable && ButtonState.Pressed)
 			{
-				Pressed = false;
-				ENGINE_CORE_TRACE("UI Button Released: {0}", ReleasedEvent);
+				ButtonState.Pressed = false;
+				ReleasedEvent.Interacted();
 			}
 		}
 	};

@@ -8,6 +8,7 @@
 #include "Engine/Renderer/Renderer2D.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/UI/UIEngine.h"
 
 #include <glm/glm.hpp>
 
@@ -216,6 +217,9 @@ namespace Engine
 	{
 		m_IsRunning = true;
 
+		// Start UI
+		OnUIStart();
+
 		// Create Physics Objects
 		OnPhysics2DStart();
 
@@ -235,6 +239,9 @@ namespace Engine
 	{
 		m_IsRunning = false;
 
+		// UI Stop
+		OnUIStop();
+
 		// Scripts On Destroy
 		OnScriptsStop();
 
@@ -252,45 +259,7 @@ namespace Engine
 		if (!m_IsPaused || m_StepFrames-- > 0)
 		{
 			// Update UI
-			{
-				auto view = m_Registry.view<UILayoutComponent, UIButtonComponent>();
-				for (auto e : view)
-				{
-					Entity entity = { e, this };
-					auto& layout = entity.GetComponent<UILayoutComponent>();
-					auto& button = entity.GetComponent<UIButtonComponent>();
-
-					if (Input::IsMouseButtonPressed(Mouse::MouseCode::ButtonLeft))
-					{
-						glm::mat4 transform = entity.GetUISpaceTransform();
-						glm::vec3 uiPos = Math::PositionFromTransform(transform);
-
-						glm::vec2 halfViewportSize{ m_ViewportWidth / 2, m_ViewportHeight / 2 };
-
-						float xHalfSize = layout.Size.x / 2;
-						float yHalfSize = layout.Size.y / 2;
-
-						glm::vec2 xRange{ uiPos.x - xHalfSize, uiPos.x + xHalfSize };
-						xRange += halfViewportSize.x;
-						glm::vec2 yRange{ uiPos.y - yHalfSize, uiPos.y + yHalfSize };
-						yRange += halfViewportSize.y;
-
-						if (m_ViewportMousePos.x >= xRange.x && 
-							m_ViewportMousePos.x <= xRange.y &&
-							m_ViewportMousePos.y >= yRange.x &&
-							m_ViewportMousePos.y <= yRange.y)
-						{
-							button.OnPressed();
-						}
-					}
-
-					if (!Input::IsMouseButtonPressed(Mouse::MouseCode::ButtonLeft))
-					{
-						button.OnReleased();
-					}
-
-				}
-			}
+			OnUIUpdate(ts);
 
 			// Update scripts
 			OnScriptsUpdate(ts);
@@ -371,6 +340,11 @@ namespace Engine
 		Renderer2D::EndScene();
 	}
 
+	void Scene::OnUIStart()
+	{
+		UIEngine::OnUIStart(this);
+	}
+
 	void Scene::OnPhysics2DStart()
 	{
 		Physics2DEngine::OnPhysicsStart(this);
@@ -400,6 +374,11 @@ namespace Engine
 		}
 	}
 
+	void Scene::OnUIStop()
+	{
+		UIEngine::OnUIStop();
+	}
+
 	void Scene::OnPhysics2DStop()
 	{
 		Physics2DEngine::OnPhysicsStop();
@@ -415,6 +394,11 @@ namespace Engine
 		}
 
 		ScriptEngine::OnRuntimeStop();
+	}
+
+	void Scene::OnUIUpdate(Timestep ts)
+	{
+		UIEngine::OnUIUpdate(ts, m_ViewportWidth, m_ViewportHeight);
 	}
 
 	void Scene::OnScriptsUpdate(Timestep ts)
