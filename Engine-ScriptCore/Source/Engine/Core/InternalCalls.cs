@@ -180,6 +180,56 @@ namespace Engine.Core
 
 		#endregion SpriteRendererComponent
 
+		#region CircleRendererComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void CircleRendererComponent_GetColor(ulong entityID, out Vector4 color);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void CircleRendererComponent_SetColor(ulong entityID, ref Vector4 color);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float CircleRendererComponent_GetThinkness(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void CircleRendererComponent_SetThinkness(ulong entityID, float thickness);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float CircleRendererComponent_GetFade(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void CircleRendererComponent_SetFade(ulong entityID, float fade);
+
+		#endregion CircleRendererComponent
+
+		#region TextRendererComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TextRendererComponent_GetColor(ulong entityID, out Vector4 color);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TextRendererComponent_SetColor(ulong entityID, ref Vector4 color);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern string TextRendererComponent_GetText(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TextRendererComponent_SetText(ulong entityID, string thickness);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float TextRendererComponent_GetKerning(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TextRendererComponent_SetKerning(ulong entityID, float kerning);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float TextRendererComponent_GetLineSpacing(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TextRendererComponent_SetLineSpacing(ulong entityID, float lineSpacing);
+
+		#endregion TextRendererComponent
+		
 		#region Rigidbody2DComponent
 
 		[MethodImpl(MethodImplOptions.InternalCall)]

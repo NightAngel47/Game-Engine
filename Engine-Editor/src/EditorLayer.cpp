@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include "Engine/Renderer/Font.h"
+#include "Engine/UI/UIEngine.h"
 
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
@@ -100,10 +101,12 @@ namespace Engine
 				break;
 			}
 			case SceneState::Simulate:
+			{
 				m_EditorCamera.OnUpdate(ts);
 
 				m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
 				break;
+			}
 			default:
 				break;
 		}
@@ -226,10 +229,13 @@ namespace Engine
 		ImGui::Begin("Settings");
 
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
+		ImGui::Checkbox("Toggle Gizmo Mode (World/Local)", &m_IsGizmoWorld);
 
-		// testing font
-		Ref<Texture2D> fontTexture = s_Font->GetAtlasTexture();
-		ImGui::Image((ImTextureID)fontTexture->GetRendererID(), { (float)fontTexture->GetWidth(), (float)fontTexture->GetHeight() }, {0, 1}, {1, 0});
+		ImGui::Text("UI Settings");
+		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
+
+		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
+		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
 
 		ImGui::End();
 
@@ -285,15 +291,16 @@ namespace Engine
 		if(m_SceneHierarchyPanel.IsSelectedEntityValid() && m_GizmoType != -1)
 		{
 			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+			bool isEntityUI = selectedEntity.HasComponent<UILayoutComponent>();
+
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 			
 			ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
 
-			// Editor Camera
-			const glm::mat4& cameraProjection = m_EditorCamera.GetProjection();
+			// Editor Camera if world otherwise ScreenCamera
+			const glm::mat4& cameraProjection = isEntityUI ? m_ActiveScene->GetScreenCamera().GetProjection() : m_EditorCamera.GetProjection();
 			glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
-			
 
 			// Snapping
 			bool snap = Input::IsKeyPressed(Key::LeftControl);
@@ -305,11 +312,12 @@ namespace Engine
 			float snapValues[3] {snapValue, snapValue, snapValue};
 
 			// Entity transform
-			glm::mat4 transformWorld = selectedEntity.GetWorldTransform();
+
+			glm::mat4 transform = isEntityUI ? selectedEntity.GetUISpaceTransform() : selectedEntity.GetWorldSpaceTransform();
 			glm::mat4 transformDelta{ 0.0f };
 
 			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), 
-				(ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::WORLD, glm::value_ptr(transformWorld),
+				(ImGuizmo::OPERATION)m_GizmoType, (ImGuizmo::MODE)m_IsGizmoWorld, glm::value_ptr(transform),
 				glm::value_ptr(transformDelta), snap ? snapValues : nullptr);
 
 			if(ImGuizmo::IsUsing())
@@ -345,7 +353,7 @@ namespace Engine
 
 		UI_Toolbar();
 		
-	    ImGui::End();
+		ImGui::End();
 	}
 
 	void EditorLayer::UI_Toolbar()
@@ -499,6 +507,10 @@ namespace Engine
 				}
 				break;
 			}
+			case Key::T:
+			{
+				m_IsGizmoWorld = !m_IsGizmoWorld;
+			}
 
 			// Other
 			case Key::D:
@@ -529,9 +541,9 @@ namespace Engine
 
 	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 	{
-		if(e.GetMouseButton() == Mouse::ButtonLeft)
+		if (e.GetMouseButton() == Mouse::ButtonLeft)
 		{
-			if(m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
+			if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
 			{
 				m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntityID);
 			}
@@ -547,12 +559,15 @@ namespace Engine
 			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
 			if (!camera) return;
 
-			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetWorldTransform());
+			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetWorldSpaceTransform());
 		}
 		else
 		{
 			Renderer2D::BeginScene(m_EditorCamera);
 		}
+
+		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+		bool isEntityUI = m_SceneHierarchyPanel.IsSelectedEntityValid() && selectedEntity.HasComponent<UILayoutComponent>();
 
 		if (m_ShowPhysicsColliders)
 		{
@@ -566,7 +581,7 @@ namespace Engine
 					glm::vec3 position = tc.Position + glm::vec3(glm::rotate(bc2d.Offset, tc.Rotation.z), 0.001f);
 					glm::vec3 scale = tc.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
 
-					glm::mat4 transform = Math::GenTransform(position, tc.Rotation.z, scale);
+					glm::mat4 transform = Math::GenRectTransform(position, tc.Rotation.z, scale);
 
 					Renderer2D::DrawRect(transform, glm::vec4(0, 1, 0, 1));
 				}
@@ -582,7 +597,7 @@ namespace Engine
 					glm::vec3 position = tc.Position + glm::vec3(glm::rotate(cc2d.Offset, tc.Rotation.z), 0.001f);
 					glm::vec3 scale = tc.Scale * glm::vec3(cc2d.Radius * 2.0f);
 
-					glm::mat4 transform = Math::GenTransform(position, 0, scale);
+					glm::mat4 transform = Math::GenRectTransform(position, 0, scale);
 
 					Renderer2D::DrawCircle(transform, glm::vec4(0, 1, 0, 1), 0.05f);
 				}
@@ -590,11 +605,27 @@ namespace Engine
 		}
 
 		// Draw selected entity outline
-		if (m_SceneHierarchyPanel.IsSelectedEntityValid())
+		if (m_SceneHierarchyPanel.IsSelectedEntityValid() && !isEntityUI)
 		{
-			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 			Renderer2D::SetLineWidth(4.0f);
-			Renderer2D::DrawRect(selectedEntity.GetWorldTransform(), glm::vec4(1, 0, 0.5f, 1));
+			Renderer2D::DrawRect(selectedEntity.GetWorldSpaceTransform(), glm::vec4(1, 0, 0.5f, 1));
+		}
+		else
+		{
+			Renderer2D::SetLineWidth(2.0f);
+		}
+
+		Renderer2D::EndScene();
+
+		// UI Overlays
+
+		Renderer2D::BeginScene(m_ActiveScene->GetScreenCamera(), glm::mat4(1.0f));
+
+		// Draw selected entity outline
+		if (m_SceneHierarchyPanel.IsSelectedEntityValid() && isEntityUI)
+		{
+			Renderer2D::SetLineWidth(4.0f);
+			Renderer2D::DrawRect(selectedEntity.GetUISpaceTransform(), glm::vec4(1, 0, 0.5f, 1));
 		}
 		else
 		{
@@ -732,6 +763,9 @@ namespace Engine
 		{
 			m_HoveredEntityID = UUID::INVALID();
 		}
+
+		if (m_ActiveScene->IsRunning())
+			UIEngine::SetViewportMousePos(mouseX, mouseY);
 	}
 
 	void EditorLayer::OnScenePlay()

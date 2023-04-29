@@ -4,6 +4,7 @@
 #include "Engine/Core/Log.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Scene/Components.h"
+#include "Engine/Math/Math.h"
 
 #include <entt.hpp>
 #include <glm/glm.hpp>
@@ -64,7 +65,7 @@ namespace Engine
 		UUID GetUUID() { return GetComponent<IDComponent>().ID; }
 		const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
 
-		glm::mat4 GetWorldTransform()
+		glm::mat4 GetWorldSpaceTransform()
 		{
 			TransformComponent transform = GetComponent<TransformComponent>();
 			glm::mat4 localTransform = transform.GetTransform();
@@ -78,6 +79,25 @@ namespace Engine
 			}
 
 			return localTransform;
+		}
+
+		glm::mat4 GetUISpaceTransform()
+		{
+			glm::mat4 transform = GetWorldSpaceTransform();
+			if (HasComponent<UILayoutComponent>())
+			{
+				glm::vec3 worldPosition{ 0.0f, 0.0f, 0.0f }, worldRotation{ 0.0f, 0.0f, 0.0f }, worldScale{ 0.0f, 0.0f, 0.0f };
+				Math::DecomposeTransform(transform, worldPosition, worldRotation, worldScale);
+
+				UILayoutComponent ui = GetComponent<UILayoutComponent>();
+
+				glm::vec2 anchored = glm::clamp(ui.AnchorMax + ui.AnchorMin, -1.0f, 1.0f) / glm::vec2(2.0f);
+				anchored *= glm::vec2(m_Scene->m_ViewportWidth, m_Scene->m_ViewportHeight);
+				
+				transform = Math::GenRectTransform(glm::vec3(anchored, 0.0f) + worldPosition, worldRotation.z, glm::vec2(worldScale.x * ui.Size.x, worldScale.y * ui.Size.y));
+			}
+
+			return transform;
 		}
 
 		Entity GetParent() { return m_Scene->GetEntityWithUUID(GetComponent<RelationshipComponent>().Parent); }

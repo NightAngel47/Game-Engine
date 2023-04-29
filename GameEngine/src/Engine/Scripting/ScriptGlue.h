@@ -91,8 +91,10 @@ namespace InternalCalls
 #pragma region Entity
 
 		static MonoString* Entity_GetName(Engine::UUID entityID);
+
 		static bool Entity_HasComponent(Engine::UUID entityID, MonoReflectionType* componentType);
 		static void Entity_AddComponent(Engine::UUID entityID, MonoReflectionType* componentType);
+
 		static uint64_t Entity_FindEntityByName(MonoString* name);
 		static uint64_t Entity_CreateEntity(MonoString* name);
 		static MonoObject* Entity_GetScriptInstance(Engine::UUID entityID);
@@ -123,14 +125,46 @@ namespace InternalCalls
 
 #pragma endregion SpriteRendererComponent
 
+#pragma region CircleRendererComponent
+
+		static void CircleRendererComponent_GetColor(Engine::UUID entityID, glm::vec4* color);
+		static void CircleRendererComponent_SetColor(Engine::UUID entityID, glm::vec4& color);
+
+		static float CircleRendererComponent_GetThickness(Engine::UUID entityID);
+		static void CircleRendererComponent_SetThickness(Engine::UUID entityID, float thickness);
+
+		static float CircleRendererComponent_GetFade(Engine::UUID entityID);
+		static void CircleRendererComponent_SetFade(Engine::UUID entityID, float fade);
+
+#pragma endregion CircleRendererComponent
+
+#pragma region TextRendererComponent
+
+		static void TextRendererComponent_GetColor(Engine::UUID entityID, glm::vec4* color);
+		static void TextRendererComponent_SetColor(Engine::UUID entityID, glm::vec4& color);
+
+		static MonoString* TextRendererComponent_GetText(Engine::UUID entityID);
+		static void TextRendererComponent_SetText(Engine::UUID entityID, MonoString* text);
+
+		static float TextRendererComponent_GetKerning(Engine::UUID entityID);
+		static void TextRendererComponent_SetKerning(Engine::UUID entityID, float kerning);
+
+		static float TextRendererComponent_GetLineSpacing(Engine::UUID entityID);
+		static void TextRendererComponent_SetLineSpacing(Engine::UUID entityID, float lineSpacing);
+
+#pragma endregion TextRendererComponent
+
 #pragma region Rigidbody2DComponent
 
 		static void Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType);
 		static void Rigidbody2DComponent_SetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType bodyType);
+
 		static void Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity);
 		static void Rigidbody2DComponent_SetLinearVelocity(Engine::UUID entityID, glm::vec2& velocity);
+
 		static void Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake);
 		static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(Engine::UUID entityID, glm::vec2& impulse, bool wake);
+
 		static void Rigidbody2DComponent_ApplyForce(Engine::UUID entityID, glm::vec2& force, glm::vec2& worldPosition, bool wake);
 		static void Rigidbody2DComponent_ApplyForceToCenter(Engine::UUID entityID, glm::vec2& force, bool wake);
 

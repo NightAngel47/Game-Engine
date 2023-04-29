@@ -1,6 +1,6 @@
 #include "SceneHierarchyPanel.h"
 
-#include "Engine/UI/UI.h"
+#include "Engine/ImGui/ImGuiUI.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -160,7 +160,7 @@ namespace Engine
 			ImGui::EndDragDropTarget();
 		}
 
-		if(ImGui::IsItemClicked())
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ImGui::IsItemHovered() && !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 		{
 			m_SelectionContext = entity.GetUUID();
 		}
@@ -196,7 +196,7 @@ namespace Engine
 		}
 	}
 
-	static void DrawVec3Control(const:: std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
+	static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		const auto boldFont = io.Fonts->Fonts[0];
@@ -263,6 +263,229 @@ namespace Engine
 		ImGui::PopID();
 	}
 
+	static void DrawUIInteraction(const std::string& label, Interaction& interaction, Scene* context)
+	{
+		ImGui::Text(label.c_str());
+		{
+			bool isValid = interaction.InteractedEntityID.IsValid();
+			std::string entityName = "None";
+
+			Entity eventEntity;
+			if (isValid)
+			{
+				eventEntity = context->GetEntityWithUUID(interaction.InteractedEntityID);
+				entityName = eventEntity.GetName();
+			}
+
+			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			const ImVec2 buttonSize = { 0.0f, lineHeight };
+			ImGui::Text("Entity");
+			ImGui::SameLine();
+			ImGui::Button(entityName.c_str(), buttonSize);
+
+			// get entity target for interaction
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
+				{
+					const UUID* entityItemID = (const UUID*)payload->Data;
+					if (interaction.InteractedEntityID != *entityItemID)
+					{
+						interaction.InteractedEntityID = *entityItemID;
+						interaction.InteractedFunction.clear();
+						interaction.ClearParams();
+					}
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+
+			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+				interaction.ClearInteraction();
+
+			ImGui::Text("Function");
+			ImGui::SameLine();
+
+			if (isValid && eventEntity.HasComponent<ScriptComponent>())
+			{
+				// get script on entity target and select function
+				ScriptComponent sc = eventEntity.GetComponent<ScriptComponent>();
+				if (!ScriptEngine::EntityClassExists(sc.ClassName)) return;
+
+				if (ImGui::BeginCombo(("##" + label + "Method").c_str(), interaction.InteractedFunction.c_str()))
+				{
+					for (const auto& [name, scriptMethod] : ScriptEngine::GetScriptMethodMap(sc.ClassName))
+					{
+						bool isSelected = interaction.InteractedFunction == name;
+						if (ImGui::Selectable(name.c_str(), isSelected))
+						{
+							interaction.InteractedFunction = name;
+							interaction.SetupParams(scriptMethod);
+						}
+
+						if (isSelected)
+							ImGui::SetItemDefaultFocus();
+					}
+
+					ImGui::EndCombo();
+				}
+
+				// if function selected get/set params
+				if (!interaction.InteractedFunction.empty())
+				{
+					int i = 0;
+					auto paramType = interaction.Params[i]->Field.Type;
+					while (i < 8 && paramType != ScriptFieldType::None)
+					{
+						auto& param = interaction.Params[i];
+						switch (paramType)
+						{
+						case ScriptFieldType::Float:
+						{
+							float data = 0.0f;
+							data = param->GetValue<float>();
+							if (ImGui::DragFloat(("##" + label + "Param" + std::to_string(i)).c_str(), &data, 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Double:
+						{
+							double data = 0.0;
+							data = param->GetValue<double>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_Double, &data, 0.1))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Bool:
+						{
+							bool data = false;
+							data = param->GetValue<bool>();
+							if (ImGui::Checkbox(("##" + label + "Param" + std::to_string(i)).c_str(), &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Char:
+						{
+							char data[2];
+							memset(data, 0, sizeof(data));
+							data[0] = param->GetValue<char>();
+							if (ImGui::InputText(("##" + label + "Param" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+								param->SetValue(data[0]);
+							break;
+						}
+						case ScriptFieldType::String:
+						{
+							char data[64];
+							memset(data, 0, sizeof(data));
+							strcpy_s(data, sizeof(data), param->GetValue<std::string>().c_str());
+							if (ImGui::InputText(("##" + label + "Param" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+								param->SetValue(std::string(data));
+							break;
+						}
+						case ScriptFieldType::SByte:
+						{
+							int8_t data = 0;
+							data = param->GetValue<int8_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S8, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Short:
+						{
+							int16_t data = 0;
+							data = param->GetValue<int16_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S16, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Int:
+						{
+							int32_t data = 0;
+							data = param->GetValue<int32_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S32, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Long:
+						{
+							int64_t data = 0;
+							data = param->GetValue<int64_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S64, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Byte:
+						{
+							uint8_t data = 0;
+							data = param->GetValue<uint8_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U8, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::UShort:
+						{
+							uint16_t data = 0;
+							data = param->GetValue<uint16_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U16, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::UInt:
+						{
+							uint32_t data = 0;
+							data = param->GetValue<uint32_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U32, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::ULong:
+						{
+							uint64_t data = 0;
+							data = param->GetValue<uint64_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Vector2:
+						{
+							glm::vec2 data = {};
+							data = param->GetValue<glm::vec2>();
+							if (ImGui::DragFloat2(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Vector3:
+						{
+							glm::vec3 data = {};
+							data = param->GetValue<glm::vec3>();
+							if (ImGui::DragFloat3(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Vector4:
+						{
+							glm::vec4 data = {};
+							data = param->GetValue<glm::vec4>();
+							if (ImGui::DragFloat4(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Entity:
+						case ScriptFieldType::Void:
+						case ScriptFieldType::None:
+						default:
+							FieldTypeUnsupported(paramType);
+							break;
+						}
+
+						++i;
+						paramType = interaction.Params[i]->Field.Type;
+					}
+				}
+			}
+		}
+	}
+
 	template <typename T, typename UIFunction>
 	static void DrawComponent(const:: std::string& label, Entity entity, UIFunction uiFunction)
 	{
@@ -326,6 +549,8 @@ namespace Engine
 			DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
 			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
 			DisplayAddComponentEntry<TextRendererComponent>("Text Renderer");
+			DisplayAddComponentEntry<UILayoutComponent>("UI Layout Component");
+			DisplayAddComponentEntry<UIButtonComponent>("UI Button Component");
 			DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody 2D");
 			DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
@@ -342,6 +567,13 @@ namespace Engine
 			DrawVec3Control("Rotation", rotation);
 			component.Rotation = glm::radians(rotation);
 			DrawVec3Control("Scale", component.Scale, 1.0f);
+		});
+
+		DrawComponent<UILayoutComponent>("UI Layout", entity, [](auto& component)
+		{
+			ImGui::DragFloat2("Size", glm::value_ptr(component.Size), 1.0f);
+			ImGui::DragFloat2("Anchor Min", glm::value_ptr(component.AnchorMin), 0.1f, -1.0f, 1.0f);
+			ImGui::DragFloat2("Anchor Max", glm::value_ptr(component.AnchorMax), 0.1f, -1.0f, 1.0f);
 		});
 
 		DrawComponent<CameraComponent>("Camera", entity, [](auto& component)
@@ -432,6 +664,9 @@ namespace Engine
 			
 				ImGui::EndDragDropTarget();
 			}
+
+			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+				component.ClearTexture();
 			
 			ImGui::DragFloat("Tiling", &component.Tiling, 0.1f);
 
@@ -461,7 +696,30 @@ namespace Engine
 			ImGui::DragFloat("Thickness", &component.Thickness, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Fade", &component.Fade, 0.0001f, 0.0f, 1.0f);
 		});
-		
+
+		DrawComponent<TextRendererComponent>("Text Renderer", entity, [](auto& component)
+		{
+			ImGui::InputTextMultiline("Text String", &component.TextString);
+
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+
+			ImGui::DragFloat("Kerning", &component.Kerning, 0.01f);
+			ImGui::DragFloat("Line Spacing", &component.LineSpacing, 0.01f);
+		});
+
+		DrawComponent<UIButtonComponent>("UI Button", entity, [&](auto& component)
+		{
+			ImGui::Checkbox("Intractable", &component.ButtonState.Interactable);
+
+			ImGui::ColorEdit4("Normal Color", glm::value_ptr(component.NormalColor));
+			ImGui::ColorEdit4("Hover Color", glm::value_ptr(component.HoverColor));
+			ImGui::ColorEdit4("Pressed Color", glm::value_ptr(component.PressedColor));
+			ImGui::ColorEdit4("Disabled Color", glm::value_ptr(component.DisabledColor));
+
+			DrawUIInteraction("Pressed Event", component.PressedEvent, m_Context.get());
+			DrawUIInteraction("Released Event", component.ReleasedEvent, m_Context.get());
+		});
+
 		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [&](auto& component)
 		{
 			bool sceneRunning = m_Context->IsRunning();
@@ -538,16 +796,6 @@ namespace Engine
 			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("RestitutionThreshold", &component.RestitutionThreshold, 0.01f, 0.0f, std::numeric_limits<float>::infinity());
 		});
-		
-		DrawComponent<TextRendererComponent>("Text Renderer", entity, [](auto& component)
-		{
-			ImGui::InputTextMultiline("Text String", &component.TextString);
-
-			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-
-			ImGui::DragFloat("Kerning", &component.Kerning, 0.01f);
-			ImGui::DragFloat("Line Spacing", &component.LineSpacing, 0.01f);
-		});
 
 		DrawComponent<ScriptComponent>("Script Component", entity, [&](auto& component)
 		{
@@ -597,218 +845,173 @@ namespace Engine
 
 				bool fieldExists = entityFields.find(name) != entityFields.end(); // TODO make entity fields exists func
 
+				SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
+
 				switch (field.Type)
 				{
-				case ScriptFieldType::Float:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					float data = 0.0f;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, float);
-
-					if (ImGui::DragFloat(("##" + name).c_str(), &data, 0.1f))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Double:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					double data = 0.0;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, double);
-
-					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_Double, &data, 0.1))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Bool:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					bool data = false;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, bool);
-
-					if (ImGui::Checkbox(("##" + name).c_str(), &data))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Char:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-					
-					char data[2];
-					memset(data, 0, sizeof(data));
-					if (sceneRunning)
+					case ScriptFieldType::Float:
 					{
-						data[0] = scriptInstance->GetFieldValue<char>(name);
+						float data = 0.0f;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, float);
+						if (ImGui::DragFloat(("##" + name).c_str(), &data, 0.1f))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
 					}
-					else if (fieldExists)
+					case ScriptFieldType::Double:
 					{
-						data[0] = scriptField.GetValue<char>();
+						double data = 0.0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, double);
+						if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_Double, &data, 0.1))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
 					}
-					else
+					case ScriptFieldType::Bool:
 					{
-						data[0] = ScriptEngine::GetDefaultScriptFieldMap(component.ClassName).at(name).GetValue<char>();
-						scriptField.SetValue(data[0]);
+						bool data = false;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, bool);
+						if (ImGui::Checkbox(("##" + name).c_str(), &data))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
 					}
-
-					if (ImGui::InputText(("##" + name).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data[0]) : scriptField.SetValue(data[0]);
-					break;
-				}
-				case ScriptFieldType::String:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					char data[64];
-					memset(data, 0, sizeof(data));
-					if (sceneRunning)
+					case ScriptFieldType::Char:
 					{
-						strcpy_s(data, sizeof(data), scriptInstance->GetFieldValue<std::string>(name).c_str());
+						char data[2];
+						memset(data, 0, sizeof(data));
+						if (sceneRunning)
+						{
+							data[0] = scriptInstance->GetFieldValue<char>(name);
+						}
+						else if (fieldExists)
+						{
+							data[0] = scriptField.GetValue<char>();
+						}
+						else
+						{
+							data[0] = ScriptEngine::GetDefaultScriptFieldMap(component.ClassName).at(name).GetValue<char>();
+							scriptField.SetValue(data[0]);
+						}
+
+						if (ImGui::InputText(("##" + name).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data[0]) : scriptField.SetValue(data[0]);
+						break;
 					}
-					else if (fieldExists)
+					case ScriptFieldType::String:
 					{
-						strcpy_s(data, sizeof(data), scriptField.GetValue<std::string>().c_str());
+						char data[64];
+						memset(data, 0, sizeof(data));
+						if (sceneRunning)
+						{
+							strcpy_s(data, sizeof(data), scriptInstance->GetFieldValue<std::string>(name).c_str());
+						}
+						else if (fieldExists)
+						{
+							strcpy_s(data, sizeof(data), scriptField.GetValue<std::string>().c_str());
+						}
+						else
+						{
+							std::string strVal = ScriptEngine::GetDefaultScriptFieldMap(component.ClassName).at(name).GetValue<std::string>();
+							strcpy_s(data, sizeof(data), strVal.c_str());
+							scriptField.SetValue(strVal);
+						}
+
+						if (ImGui::InputText(("##" + name).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(data)) : scriptField.SetValue(std::string(data));
+						break;
 					}
-					else
+					case ScriptFieldType::SByte:
 					{
-						std::string strVal = ScriptEngine::GetDefaultScriptFieldMap(component.ClassName).at(name).GetValue<std::string>();
-						strcpy_s(data, sizeof(data), strVal.c_str());
-						scriptField.SetValue(strVal);
+						int8_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int8_t);
+						if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S8, &data))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
 					}
-
-					if (ImGui::InputText(("##" + name).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(data)) : scriptField.SetValue(std::string(data));
-					break;
-				}
-				case ScriptFieldType::SByte:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					int8_t data = 0;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int8_t);
-
-					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S8, &data))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Short:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					int16_t data = 0;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int16_t);
-
-					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S16, &data))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Int:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					int32_t data = 0;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int32_t);
-
-					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S32, &data))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Long:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					int64_t data = 0;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int64_t);
-
-					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S64, &data))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Byte:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					uint8_t data = 0;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint8_t);
-
-					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U8, &data))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &(uint8_t)data) : scriptField.SetValue((uint8_t)data);
-					break;
-				}
-				case ScriptFieldType::UShort:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					uint16_t data = 0;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint16_t);
-
-					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U16, &data))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::UInt:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					uint32_t data = 0;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint32_t);
-
-					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U32, &data))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::ULong:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					uint64_t data = 0;
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint64_t);
-
-					if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U64, &data))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Vector2:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					glm::vec2 data = {};
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, glm::vec2);
-
-					if (ImGui::DragFloat2(("##" + name).c_str(), glm::value_ptr(data), 0.1f))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Vector3:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					glm::vec3 data = {};
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, glm::vec3);
-
-					if (ImGui::DragFloat3(("##" + name).c_str(), glm::value_ptr(data), 0.1f))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Vector4:
-				{
-					SCRIPT_FIELD_INSTANCE(name, field, sceneRunning, fieldExists, entityFields);
-
-					glm::vec4 data = {};
-					GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, glm::vec4);
-
-					if (ImGui::DragFloat4(("##" + name).c_str(), glm::value_ptr(data), 0.1f))
-						sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
-					break;
-				}
-				case ScriptFieldType::Entity:
-					FieldTypeUnsupported(field.Type);
-					break;
-				case ScriptFieldType::None:
-				default:
-					FieldTypeUnsupported(field.Type);
-					break;
+					case ScriptFieldType::Short:
+					{
+						int16_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int16_t);
+						if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S16, &data))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
+					}
+					case ScriptFieldType::Int:
+					{
+						int32_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int32_t);
+						if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S32, &data))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
+					}
+					case ScriptFieldType::Long:
+					{
+						int64_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, int64_t);
+						if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_S64, &data))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
+					}
+					case ScriptFieldType::Byte:
+					{
+						uint8_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint8_t);
+						if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U8, &data))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &(uint8_t)data) : scriptField.SetValue((uint8_t)data);
+						break;
+					}
+					case ScriptFieldType::UShort:
+					{
+						uint16_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint16_t);
+						if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U16, &data))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
+					}
+					case ScriptFieldType::UInt:
+					{
+						uint32_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint32_t);
+						if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U32, &data))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
+					}
+					case ScriptFieldType::ULong:
+					{
+						uint64_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint64_t);
+						if (ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U64, &data))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
+					}
+					case ScriptFieldType::Vector2:
+					{
+						glm::vec2 data = {};
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, glm::vec2);
+						if (ImGui::DragFloat2(("##" + name).c_str(), glm::value_ptr(data), 0.1f))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
+					}
+					case ScriptFieldType::Vector3:
+					{
+						glm::vec3 data = {};
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, glm::vec3);
+						if (ImGui::DragFloat3(("##" + name).c_str(), glm::value_ptr(data), 0.1f))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
+					}
+					case ScriptFieldType::Vector4:
+					{
+						glm::vec4 data = {};
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, glm::vec4);
+						if (ImGui::DragFloat4(("##" + name).c_str(), glm::value_ptr(data), 0.1f))
+							sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+						break;
+					}
+					case ScriptFieldType::Entity:
+					case ScriptFieldType::Void:
+					case ScriptFieldType::None:
+					default:
+						FieldTypeUnsupported(field.Type);
+						break;
 				}
 			}
 		});

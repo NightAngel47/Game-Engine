@@ -50,7 +50,7 @@ namespace GameProject.Source
 				movement.Y += 1.0f;
 			}
 			
-			if (movement.sqrMagnitude > 0)
+			if (movement.SqrMagnitude > 0)
 			{
 				rb2d.ApplyLinearImpulse(movement * moveSpeed * ts, true);
 			}

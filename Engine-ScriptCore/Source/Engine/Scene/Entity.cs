@@ -17,10 +17,26 @@ namespace Engine.Scene
 			ID = id;
 		}
 
-		public override string ToString()
+		public override string ToString() => ($"({Name} : {ID})");
+
+		public override int GetHashCode() => base.GetHashCode();
+
+		public override bool Equals(object obj)
 		{
-			return $"({Name} : {ID})";
+			//Check for null and compare run-time types.
+			if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+			{
+				return false;
+			}
+			else
+			{
+				Entity otherEntity = (Entity)(obj);
+				return (ID == otherEntity.ID);
+			}
 		}
+
+		public static bool operator ==(Entity lhs, Entity rhs) => (lhs.Equals(rhs));
+		public static bool operator !=(Entity lhs, Entity rhs) => (!lhs.Equals(rhs));
 
 		protected virtual void OnCreate() { }
 		protected virtual void OnStart() { }

@@ -1,12 +1,14 @@
 #include "enginepch.h"
 #include "Engine/Scene/Scene.h"
 
+#include "Engine/Core/Application.h"
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Renderer/Renderer2D.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/UI/UIEngine.h"
 
 #include <glm/glm.hpp>
 
@@ -56,6 +58,8 @@ namespace Engine
 
 		newScene->m_ViewportWidth = other->m_ViewportWidth;
 		newScene->m_ViewportHeight = other->m_ViewportHeight;
+
+		newScene->m_ScreenCamera = other->m_ScreenCamera;
 
 		auto& srcSceneRegistry = other->m_Registry;
 		auto& dstceneRegistry = newScene->m_Registry;
@@ -122,6 +126,9 @@ namespace Engine
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
 	{
+		if (m_ViewportWidth == width && m_ViewportHeight == height)
+			return;
+
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
 
@@ -133,6 +140,9 @@ namespace Engine
 			if (!cameraComponent.FixedAspectRatio)
 				cameraComponent.Camera.SetViewportSize(width, height);
 		}
+
+		m_ScreenCamera.SetViewportSize(width, height);
+		m_ScreenCamera.SetOrthographic(height, -1.0f, 1.0f);
 	}
 
 	Entity Scene::GetPrimaryCameraEntity()
@@ -207,6 +217,9 @@ namespace Engine
 	{
 		m_IsRunning = true;
 
+		// Start UI
+		OnUIStart();
+
 		// Create Physics Objects
 		OnPhysics2DStart();
 
@@ -226,6 +239,9 @@ namespace Engine
 	{
 		m_IsRunning = false;
 
+		// UI Stop
+		OnUIStop();
+
 		// Scripts On Destroy
 		OnScriptsStop();
 
@@ -242,6 +258,9 @@ namespace Engine
 	{
 		if (!m_IsPaused || m_StepFrames-- > 0)
 		{
+			// Update UI
+			OnUIUpdate(ts);
+
 			// Update scripts
 			OnScriptsUpdate(ts);
 
@@ -265,12 +284,13 @@ namespace Engine
 				if (camera.Primary)
 				{
 					mainCamera = &camera.Camera;
-					cameraTransform = entity.GetWorldTransform();
+					cameraTransform = entity.GetWorldSpaceTransform();
 					break;
 				}
 			}
 		}
 
+		// world space render
 		if (mainCamera)
 		{
 			Renderer2D::BeginScene(*mainCamera, cameraTransform);
@@ -279,6 +299,12 @@ namespace Engine
 
 			Renderer2D::EndScene();
 		}
+
+		Renderer2D::BeginScene(m_ScreenCamera, glm::mat4(1.0f));
+
+		OnRenderUIUpdate();
+
+		Renderer2D::EndScene();
 	}
 
 	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
@@ -291,6 +317,12 @@ namespace Engine
 		OnRender2DUpdate();
 
 		Renderer2D::EndScene();
+
+		Renderer2D::BeginScene(m_ScreenCamera, glm::mat4(1.0f));
+
+		OnRenderUIUpdate();
+
+		Renderer2D::EndScene();
 	}
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
@@ -300,6 +332,17 @@ namespace Engine
 		OnRender2DUpdate();
 
 		Renderer2D::EndScene();
+
+		Renderer2D::BeginScene(m_ScreenCamera, glm::mat4(1.0f));
+
+		OnRenderUIUpdate();
+
+		Renderer2D::EndScene();
+	}
+
+	void Scene::OnUIStart()
+	{
+		UIEngine::OnUIStart(this);
 	}
 
 	void Scene::OnPhysics2DStart()
@@ -331,6 +374,11 @@ namespace Engine
 		}
 	}
 
+	void Scene::OnUIStop()
+	{
+		UIEngine::OnUIStop();
+	}
+
 	void Scene::OnPhysics2DStop()
 	{
 		Physics2DEngine::OnPhysicsStop();
@@ -346,6 +394,11 @@ namespace Engine
 		}
 
 		ScriptEngine::OnRuntimeStop();
+	}
+
+	void Scene::OnUIUpdate(Timestep ts)
+	{
+		UIEngine::OnUIUpdate(ts, m_ViewportWidth, m_ViewportHeight);
 	}
 
 	void Scene::OnScriptsUpdate(Timestep ts)
@@ -391,32 +444,72 @@ namespace Engine
 	void Scene::OnRender2DUpdate()
 	{
 		{ // Draw Sprites
-			auto view = m_Registry.view<SpriteRendererComponent>();
+			auto view = m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>);
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
 				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
-				Renderer2D::DrawSprite(entity.GetWorldTransform(), sprite, (int)e);
+				Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
 			}
 		}
 
 		{ // Draw Circles
-			auto view = m_Registry.view<CircleRendererComponent>();
+			auto view = m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>);
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
 				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
-				Renderer2D::DrawCircle(entity.GetWorldTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
+				Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
 			}
 		}
 
 		{ // Draw Text
-			auto view = m_Registry.view<TextRendererComponent>();
+			auto view = m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>);
 			for (auto e : view)
 			{
 				Entity entity = { e, this };
 				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
-				Renderer2D::DrawString(trc.TextString, entity.GetWorldTransform(), trc, (int)e);
+				Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
+			}
+		}
+	}
+
+	void Scene::OnRenderUIUpdate()
+	{
+		{ // Draw Images
+			auto view = m_Registry.view<UILayoutComponent, SpriteRendererComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
+
+				if (entity.HasComponent<UIButtonComponent>())
+				{
+					UIButtonComponent uiButton = entity.GetComponent<UIButtonComponent>();
+					sprite.Color *= uiButton.GetButtonTint();
+				}
+
+				Renderer2D::DrawSprite(entity.GetUISpaceTransform(), sprite, (int)e);
+			}
+		}
+
+		{ // Draw Circles
+			auto view = m_Registry.view<UILayoutComponent, CircleRendererComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
+				Renderer2D::DrawCircle(entity.GetUISpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
+			}
+		}
+
+		{ // Draw Text
+			auto view = m_Registry.view<UILayoutComponent, TextRendererComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
+				Renderer2D::DrawString(trc.TextString, entity.GetUISpaceTransform(), trc, (int)e);
 			}
 		}
 	}
@@ -508,6 +601,16 @@ namespace Engine
 
 	template<>
 	void Scene::OnComponentAdded<TextRendererComponent>(Entity entity, TextRendererComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<UILayoutComponent>(Entity entity, UILayoutComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<UIButtonComponent>(Entity entity, UIButtonComponent& component)
 	{
 	}
 #pragma endregion OnComponentAdded
