@@ -542,9 +542,7 @@ namespace Engine
 							}
 
 							if (isSelected)
-							{
 								ImGui::SetItemDefaultFocus();
-							}
 						}
 
 						ImGui::EndCombo();
@@ -747,13 +745,170 @@ namespace Engine
 						{
 							bool isSelected = component.ReleasedEvent.InteractedFunction == name;
 							if (ImGui::Selectable(name.c_str(), isSelected))
+							{
 								component.ReleasedEvent.InteractedFunction = name;
+								component.ReleasedEvent.SetupParams(scriptMethod);
+							}
 
 							if (isSelected)
 								ImGui::SetItemDefaultFocus();
 						}
 
 						ImGui::EndCombo();
+					}
+				}
+
+
+				// if function selected get/set params
+				if (!component.ReleasedEvent.InteractedFunction.empty())
+				{
+					int i = 0;
+					auto paramType = component.ReleasedEvent.Params[i]->Field.Type;
+					while (i < 8 && paramType != ScriptFieldType::None)
+					{
+						auto& param = component.ReleasedEvent.Params[i];
+						switch (paramType)
+						{
+						case ScriptFieldType::Float:
+						{
+							float data = 0.0f;
+							data = param->GetValue<float>();
+							if (ImGui::DragFloat(("##ReleasedEventParam" + std::to_string(i)).c_str(), &data, 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Double:
+						{
+							double data = 0.0;
+							data = param->GetValue<double>();
+							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_Double, &data, 0.1))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Bool:
+						{
+							bool data = false;
+							data = param->GetValue<bool>();
+							if (ImGui::Checkbox(("##ReleasedEventParam" + std::to_string(i)).c_str(), &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Char:
+						{
+							char data[2];
+							memset(data, 0, sizeof(data));
+							data[0] = param->GetValue<char>();
+							if (ImGui::InputText(("##ReleasedEventParam" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+								param->SetValue(data[0]);
+							break;
+						}
+						case ScriptFieldType::String:
+						{
+							char data[64];
+							memset(data, 0, sizeof(data));
+							strcpy_s(data, sizeof(data), param->GetValue<std::string>().c_str());
+							if (ImGui::InputText(("##ReleasedEventParam" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+								param->SetValue(std::string(data));
+							break;
+						}
+						case ScriptFieldType::SByte:
+						{
+							int8_t data = 0;
+							data = param->GetValue<int8_t>();
+							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S8, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Short:
+						{
+							int16_t data = 0;
+							data = param->GetValue<int16_t>();
+							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S16, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Int:
+						{
+							int32_t data = 0;
+							data = param->GetValue<int32_t>();
+							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S32, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Long:
+						{
+							int64_t data = 0;
+							data = param->GetValue<int64_t>();
+							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S64, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Byte:
+						{
+							uint8_t data = 0;
+							data = param->GetValue<uint8_t>();
+							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U8, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::UShort:
+						{
+							uint16_t data = 0;
+							data = param->GetValue<uint16_t>();
+							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U16, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::UInt:
+						{
+							uint32_t data = 0;
+							data = param->GetValue<uint32_t>();
+							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U32, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::ULong:
+						{
+							uint64_t data = 0;
+							data = param->GetValue<uint64_t>();
+							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Vector2:
+						{
+							glm::vec2 data = {};
+							data = param->GetValue<glm::vec2>();
+							if (ImGui::DragFloat2(("##ReleasedEventParam" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Vector3:
+						{
+							glm::vec3 data = {};
+							data = param->GetValue<glm::vec3>();
+							if (ImGui::DragFloat3(("##ReleasedEventParam" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Vector4:
+						{
+							glm::vec4 data = {};
+							data = param->GetValue<glm::vec4>();
+							if (ImGui::DragFloat4(("##ReleasedEventParam" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Entity:
+						case ScriptFieldType::Void:
+						case ScriptFieldType::None:
+						default:
+							FieldTypeUnsupported(paramType);
+							break;
+						}
+
+						++i;
+						paramType = component.ReleasedEvent.Params[i]->Field.Type;
 					}
 				}
 			}

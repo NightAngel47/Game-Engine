@@ -393,52 +393,100 @@ namespace Engine
 			out << YAML::Key << "PressedEvent.InteractedEntityID" << YAML::Value << uiButtonComponent.PressedEvent.InteractedEntityID;
 			out << YAML::Key << "PressedEvent.InteractedFunction" << YAML::Value << uiButtonComponent.PressedEvent.InteractedFunction;
 			out << YAML::Key << "PressedEvent.Params" << YAML::Value;
-			auto& entityFields = ScriptEngine::GetScriptFieldMap(m_Entity);
-			out << YAML::BeginSeq;
-			int i = 0;
-			for (auto& Param : uiButtonComponent.PressedEvent.Params)
 			{
-				if (Param == nullptr || Param->Field.Type == ScriptFieldType::None)
-					continue;
-
-				ScriptFieldInstance& scriptField = *Param;
-				out << YAML::BeginMap; // Param
-				//out << YAML::Key << "Name" << YAML::Value << "PressedEvent.Params[" + std::to_string(i) + "]";
-				out << YAML::Key << "Type" << YAML::Value << Utils::ScriptFieldTypeToString(scriptField.Field.Type);
-
-				out << YAML::Key << "Data" << YAML::Value;
-
-				switch (scriptField.Field.Type)
+				auto& entityFields = ScriptEngine::GetScriptFieldMap(m_Entity);
+				out << YAML::BeginSeq;
+				int i = 0;
+				for (auto& Param : uiButtonComponent.PressedEvent.Params)
 				{
-					WRITE_SCRIPT_FIELD(Float, float);
-					WRITE_SCRIPT_FIELD(Double, double);
-					WRITE_SCRIPT_FIELD(Bool, bool);
-					WRITE_SCRIPT_FIELD(Char, char);
-					WRITE_SCRIPT_FIELD(String, std::string);
-					WRITE_SCRIPT_FIELD(SByte, int8_t);
-					WRITE_SCRIPT_FIELD(Short, int16_t);
-					WRITE_SCRIPT_FIELD(Int, int32_t);
-					WRITE_SCRIPT_FIELD(Long, int64_t);
-					WRITE_SCRIPT_FIELD(Byte, uint16_t); // upcasting uint8_t to unint16_t to fix yaml-cpp encode/decode
-					WRITE_SCRIPT_FIELD(UShort, uint16_t);
-					WRITE_SCRIPT_FIELD(UInt, uint32_t);
-					WRITE_SCRIPT_FIELD(ULong, uint64_t);
-					WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
-					WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
-					WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
-					WRITE_SCRIPT_FIELD(Entity, UUID);
-				default:
-					ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(scriptField.Field.Type));
+					if (Param == nullptr || Param->Field.Type == ScriptFieldType::None)
+						continue;
+
+					ScriptFieldInstance& scriptField = *Param;
+					out << YAML::BeginMap; // Param
+					//out << YAML::Key << "Name" << YAML::Value << "PressedEvent.Params[" + std::to_string(i) + "]";
+					out << YAML::Key << "Type" << YAML::Value << Utils::ScriptFieldTypeToString(scriptField.Field.Type);
+
+					out << YAML::Key << "Data" << YAML::Value;
+
+					switch (scriptField.Field.Type)
+					{
+						WRITE_SCRIPT_FIELD(Float, float);
+						WRITE_SCRIPT_FIELD(Double, double);
+						WRITE_SCRIPT_FIELD(Bool, bool);
+						WRITE_SCRIPT_FIELD(Char, char);
+						WRITE_SCRIPT_FIELD(String, std::string);
+						WRITE_SCRIPT_FIELD(SByte, int8_t);
+						WRITE_SCRIPT_FIELD(Short, int16_t);
+						WRITE_SCRIPT_FIELD(Int, int32_t);
+						WRITE_SCRIPT_FIELD(Long, int64_t);
+						WRITE_SCRIPT_FIELD(Byte, uint16_t); // upcasting uint8_t to unint16_t to fix yaml-cpp encode/decode
+						WRITE_SCRIPT_FIELD(UShort, uint16_t);
+						WRITE_SCRIPT_FIELD(UInt, uint32_t);
+						WRITE_SCRIPT_FIELD(ULong, uint64_t);
+						WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
+						WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
+						WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
+						WRITE_SCRIPT_FIELD(Entity, UUID);
+					default:
+						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(scriptField.Field.Type));
+					}
+
+					out << YAML::EndMap; // ScriptFields
+
+					++i;
 				}
-
-				out << YAML::EndMap; // ScriptFields
-
-				++i;
+				out << YAML::EndSeq;
 			}
-			out << YAML::EndSeq;
 
 			out << YAML::Key << "ReleasedEvent.InteractedEntityID" << YAML::Value << uiButtonComponent.ReleasedEvent.InteractedEntityID;
 			out << YAML::Key << "ReleasedEvent.InteractedFunction" << YAML::Value << uiButtonComponent.ReleasedEvent.InteractedFunction;
+			out << YAML::Key << "ReleasedEvent.Params" << YAML::Value;
+			{
+				auto& entityFields = ScriptEngine::GetScriptFieldMap(m_Entity);
+				out << YAML::BeginSeq;
+				int i = 0;
+				for (auto& Param : uiButtonComponent.ReleasedEvent.Params)
+				{
+					if (Param == nullptr || Param->Field.Type == ScriptFieldType::None)
+						continue;
+
+					ScriptFieldInstance& scriptField = *Param;
+					out << YAML::BeginMap; // Param
+					//out << YAML::Key << "Name" << YAML::Value << "ReleasedEvent.Params[" + std::to_string(i) + "]";
+					out << YAML::Key << "Type" << YAML::Value << Utils::ScriptFieldTypeToString(scriptField.Field.Type);
+
+					out << YAML::Key << "Data" << YAML::Value;
+
+					switch (scriptField.Field.Type)
+					{
+						WRITE_SCRIPT_FIELD(Float, float);
+						WRITE_SCRIPT_FIELD(Double, double);
+						WRITE_SCRIPT_FIELD(Bool, bool);
+						WRITE_SCRIPT_FIELD(Char, char);
+						WRITE_SCRIPT_FIELD(String, std::string);
+						WRITE_SCRIPT_FIELD(SByte, int8_t);
+						WRITE_SCRIPT_FIELD(Short, int16_t);
+						WRITE_SCRIPT_FIELD(Int, int32_t);
+						WRITE_SCRIPT_FIELD(Long, int64_t);
+						WRITE_SCRIPT_FIELD(Byte, uint16_t); // upcasting uint8_t to unint16_t to fix yaml-cpp encode/decode
+						WRITE_SCRIPT_FIELD(UShort, uint16_t);
+						WRITE_SCRIPT_FIELD(UInt, uint32_t);
+						WRITE_SCRIPT_FIELD(ULong, uint64_t);
+						WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
+						WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
+						WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
+						WRITE_SCRIPT_FIELD(Entity, UUID);
+					default:
+						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(scriptField.Field.Type));
+					}
+
+					out << YAML::EndMap; // ScriptFields
+
+					++i;
+				}
+				out << YAML::EndSeq;
+			}
 
 			out << YAML::EndMap; // UIButtonComponent
 		}
