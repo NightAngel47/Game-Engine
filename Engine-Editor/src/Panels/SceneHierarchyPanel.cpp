@@ -300,6 +300,9 @@ namespace Engine
 				ImGui::EndDragDropTarget();
 			}
 
+			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+				interaction.ClearInteraction();
+
 			ImGui::Text("Function");
 			ImGui::SameLine();
 

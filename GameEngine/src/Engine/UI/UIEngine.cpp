@@ -92,7 +92,6 @@ namespace Engine
 		return isOver;
 	}
 
-
 	Interaction::Interaction()
 	{
 		for (auto & Param : Params)
@@ -102,6 +101,13 @@ namespace Engine
 		}
 	}
 
+
+	void Interaction::ClearInteraction()
+	{
+		InteractedEntityID = UUID::INVALID();
+		InteractedFunction.clear();
+		ClearParams();
+	}
 
 	void Interaction::ClearParams()
 	{
