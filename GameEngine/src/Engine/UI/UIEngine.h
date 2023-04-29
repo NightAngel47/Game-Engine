@@ -17,6 +17,7 @@ namespace Engine
 		std::string InteractedFunction;
 		ScriptFieldInstance* Params[8]{};
 
+		void ClearParams();
 		void SetupParams(ScriptMethod scriptMethod);
 
 		void Interacted();

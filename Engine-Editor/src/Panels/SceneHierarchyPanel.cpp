@@ -289,7 +289,12 @@ namespace Engine
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
 				{
 					const UUID* entityItemID = (const UUID*)payload->Data;
-					interaction.InteractedEntityID = *entityItemID;
+					if (interaction.InteractedEntityID != *entityItemID)
+					{
+						interaction.InteractedEntityID = *entityItemID;
+						interaction.InteractedFunction.clear();
+						interaction.ClearParams();
+					}
 				}
 
 				ImGui::EndDragDropTarget();

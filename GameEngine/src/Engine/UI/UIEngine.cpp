@@ -102,15 +102,27 @@ namespace Engine
 		}
 	}
 
+
+	void Interaction::ClearParams()
+	{
+		for (int i = 0; i < 8; ++i)
+		{
+			Params[i] = nullptr;
+			m_FunctionParams[i] = nullptr;
+		}
+	}
+
 	void Interaction::SetupParams(ScriptMethod scriptMethod)
 	{
+		ClearParams();
+
 		for (int i = 0; i < 8; ++i)
 		{
 			auto paramType = scriptMethod.ParamTypes[i];
 
-			delete Params[i];
 			Params[i] = new ScriptFieldInstance();
 			Params[i]->Field = { paramType };
+			m_FunctionParams[i] = nullptr;
 		}
 	}
 
