@@ -35,7 +35,7 @@ namespace Engine
 		{
 			return ofn.lpstrFile;
 		}
-		return std::string();	
+		return {};	
 	}
 	
 	std::string FileDialogs::SaveFile(const char* filter)
@@ -58,6 +58,6 @@ namespace Engine
 		{
 			return ofn.lpstrFile;
 		}
-		return std::string();	
+		return {};
 	}
 }

@@ -95,6 +95,22 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_GetTiling);
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_SetTiling);
 
+		ENGINE_ADD_INTERNAL_CALL(CircleRendererComponent_GetColor);
+		ENGINE_ADD_INTERNAL_CALL(CircleRendererComponent_SetColor);	   
+		ENGINE_ADD_INTERNAL_CALL(CircleRendererComponent_GetThickness);
+		ENGINE_ADD_INTERNAL_CALL(CircleRendererComponent_SetThickness);
+		ENGINE_ADD_INTERNAL_CALL(CircleRendererComponent_GetFade);
+		ENGINE_ADD_INTERNAL_CALL(CircleRendererComponent_SetFade);
+
+		ENGINE_ADD_INTERNAL_CALL(TextRendererComponent_GetColor);
+		ENGINE_ADD_INTERNAL_CALL(TextRendererComponent_SetColor);
+		ENGINE_ADD_INTERNAL_CALL(TextRendererComponent_GetText);
+		ENGINE_ADD_INTERNAL_CALL(TextRendererComponent_SetText);
+		ENGINE_ADD_INTERNAL_CALL(TextRendererComponent_GetKerning);
+		ENGINE_ADD_INTERNAL_CALL(TextRendererComponent_SetKerning);
+		ENGINE_ADD_INTERNAL_CALL(TextRendererComponent_GetLineSpacing);
+		ENGINE_ADD_INTERNAL_CALL(TextRendererComponent_SetLineSpacing);
+
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
@@ -462,6 +478,100 @@ namespace InternalCalls
 	}
 
 #pragma endregion SpriteRendererComponent
+
+#pragma region CircleRendererComponent
+
+	void ScriptGlue::CircleRendererComponent_GetColor(Engine::UUID entityID, glm::vec4* color)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*color = entity.GetComponent<Engine::CircleRendererComponent>().Color;
+	}
+
+	void ScriptGlue::CircleRendererComponent_SetColor(Engine::UUID entityID, glm::vec4& color)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::CircleRendererComponent>().Color = color;
+	}
+
+	float ScriptGlue::CircleRendererComponent_GetThickness(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		return entity.GetComponent<Engine::CircleRendererComponent>().Thickness;
+	}
+
+	void ScriptGlue::CircleRendererComponent_SetThickness(Engine::UUID entityID, float thickness)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::CircleRendererComponent>().Thickness = thickness;
+	}
+
+	float ScriptGlue::CircleRendererComponent_GetFade(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		return entity.GetComponent<Engine::CircleRendererComponent>().Fade;
+	}
+
+	void ScriptGlue::CircleRendererComponent_SetFade(Engine::UUID entityID, float fade)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::CircleRendererComponent>().Fade = fade;
+	}
+
+#pragma endregion CircleRendererComponent
+
+#pragma region TextRendererComponent
+
+	void ScriptGlue::TextRendererComponent_GetColor(Engine::UUID entityID, glm::vec4* color)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*color = entity.GetComponent<Engine::TextRendererComponent>().Color;
+	}
+
+	void ScriptGlue::TextRendererComponent_SetColor(Engine::UUID entityID, glm::vec4& color)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::TextRendererComponent>().Color = color;
+	}
+
+	MonoString* ScriptGlue::TextRendererComponent_GetText(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		auto& text = entity.GetComponent<Engine::TextRendererComponent>().TextString;
+		return Engine::ScriptEngine::StringToMonoString(text);
+	}
+
+	void ScriptGlue::TextRendererComponent_SetText(Engine::UUID entityID, MonoString* text)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		std::string textString = Engine::ScriptEngine::MonoStringToUTF8(text);
+		entity.GetComponent<Engine::TextRendererComponent>().TextString = textString;
+	}
+
+	float ScriptGlue::TextRendererComponent_GetKerning(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		return entity.GetComponent<Engine::TextRendererComponent>().Kerning;
+	}
+
+	void ScriptGlue::TextRendererComponent_SetKerning(Engine::UUID entityID, float kerning)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::TextRendererComponent>().Kerning = kerning;
+	}
+
+	float ScriptGlue::TextRendererComponent_GetLineSpacing(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		return entity.GetComponent<Engine::TextRendererComponent>().LineSpacing;
+	}
+
+	void ScriptGlue::TextRendererComponent_SetLineSpacing(Engine::UUID entityID, float lineSpacing)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::TextRendererComponent>().LineSpacing = lineSpacing;
+	}
+
+#pragma endregion TextRendererComponent
 
 #pragma region Rigidbody2DComponent
 

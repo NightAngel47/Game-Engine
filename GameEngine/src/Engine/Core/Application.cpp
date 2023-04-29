@@ -3,6 +3,7 @@
 
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/UI/UIEngine.h"
 
 #include "Engine/Utils/PlatformUtils.h"
 

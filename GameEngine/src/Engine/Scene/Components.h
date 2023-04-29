@@ -6,6 +6,7 @@
 #include "Engine/Scene/SceneCamera.h"
 #include "Engine/Project/Project.h"
 #include "Engine/Utils/PlatformUtils.h"
+#include "Engine/UI/UIEngine.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -114,6 +115,12 @@ namespace Engine
 				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
 			}
 		}
+
+		void ClearTexture()
+		{
+			Path.clear();
+			Texture = nullptr;
+		}
 	};
 
 	struct CircleRendererComponent
@@ -127,6 +134,20 @@ namespace Engine
 		CircleRendererComponent(const CircleRendererComponent&) = default;
 		CircleRendererComponent(const glm::vec4& color)
 			: Color(color) {}
+	};
+
+	struct TextRendererComponent
+	{
+		std::string TextString;
+		Ref<Font> FontAsset = Font::GetDefault();
+
+		glm::vec4 Color{ 1.0f };
+
+		float Kerning = 0.0f;
+		float LineSpacing = 0.0f;
+
+		TextRendererComponent() = default;
+		TextRendererComponent(const TextRendererComponent&) = default;
 	};
 
 	struct CameraComponent
@@ -233,21 +254,68 @@ namespace Engine
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
 
-	struct TextRendererComponent
+#pragma endregion GameComponents
+
+#pragma region GameUIComponents
+
+	struct UILayoutComponent
 	{
-		std::string TextString;
-		Ref<Font> FontAsset = Font::GetDefault();
+		glm::vec2 Size{ 100.0f };
+		glm::vec2 AnchorMin{ 0.0f };
+		glm::vec2 AnchorMax{ 0.0f };
 
-		glm::vec4 Color{ 1.0f };
-
-		float Kerning = 0.0f;
-		float LineSpacing = 0.0f;
-
-		TextRendererComponent() = default;
-		TextRendererComponent(const TextRendererComponent&) = default;
+		UILayoutComponent() = default;
+		UILayoutComponent(const UILayoutComponent&) = default;
 	};
 
-#pragma endregion GameComponents
+	struct UIButtonComponent
+	{
+		ButtonStates ButtonState;
+
+		glm::vec4 NormalColor{ 0.75f, 0.75f, 0.75f, 1.0f };
+		glm::vec4 HoverColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 PressedColor{ 0.55f, 0.55f, 0.55f, 1.0f };
+		glm::vec4 DisabledColor{ 0.15f, 0.15f, 0.15f, 1.0f };
+
+		glm::vec4 const GetButtonTint()
+		{
+			if (ButtonState.Interactable)
+			{
+				if (ButtonState.Pressed) return PressedColor;
+				if (ButtonState.Hovered) return HoverColor;
+
+				return NormalColor;
+			}
+
+			return DisabledColor;
+		}
+
+		Interaction PressedEvent;
+		Interaction ReleasedEvent;
+
+		UIButtonComponent() = default;
+		UIButtonComponent(const UIButtonComponent&) = default;
+
+		void OnPressed()
+		{
+			if (ButtonState.Interactable && !ButtonState.Pressed)
+			{
+				ButtonState.Pressed = true;
+				PressedEvent.Interacted();
+			}
+		}
+
+		void OnReleased()
+		{
+			if (ButtonState.Interactable && ButtonState.Pressed)
+			{
+				ButtonState.Pressed = false;
+				ReleasedEvent.Interacted();
+			}
+		}
+	};
+
+#pragma endregion GameUIComponents
 
 	template<typename... Component>
 	struct ComponentGroup
@@ -255,8 +323,10 @@ namespace Engine
 	};
 
 	using AllComponents = ComponentGroup<
-		TransformComponent, SpriteRendererComponent, CircleRendererComponent, 
-		CameraComponent, NativeScriptComponent, ScriptComponent, 
+		TransformComponent, 
+		SpriteRendererComponent, CircleRendererComponent, TextRendererComponent,
+		CameraComponent, 
+		NativeScriptComponent, ScriptComponent, 
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
-		TextRendererComponent>;
+		UILayoutComponent, UIButtonComponent>;
 }

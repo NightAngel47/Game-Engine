@@ -21,6 +21,8 @@ namespace Engine
 {				
 	static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
 	{
+		{ "System.Void",			ScriptFieldType::Void },
+
 		{ "System.Single",			ScriptFieldType::Float },
 		{ "System.Double",			ScriptFieldType::Double },
 		{ "System.Boolean",			ScriptFieldType::Bool },
@@ -77,6 +79,7 @@ namespace Engine
 		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
 		std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
 		std::unordered_map<std::string, ScriptFieldMap> ScriptFieldsDefaults;
+		std::unordered_map<std::string, ScriptMethodMap> ScriptMethodMap;
 
 		Scene* SceneContext;
 
@@ -193,6 +196,7 @@ namespace Engine
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->EntityScriptFields.clear();
 		s_ScriptEngineData->ScriptFieldsDefaults.clear();
+		s_ScriptEngineData->ScriptMethodMap.clear();
 		delete s_ScriptEngineData;
 	}
 
@@ -285,6 +289,7 @@ namespace Engine
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->EntityScriptFields.clear();
 		s_ScriptEngineData->ScriptFieldsDefaults.clear();
+		s_ScriptEngineData->ScriptMethodMap.clear();
 
 		// reload assemblies
 		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
@@ -298,6 +303,7 @@ namespace Engine
 	{
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->ScriptFieldsDefaults.clear();
+		s_ScriptEngineData->ScriptMethodMap.clear();
 
 		MonoImage* image = mono_assembly_get_image(assembly);
 		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
@@ -367,6 +373,35 @@ namespace Engine
 			}
 			
 			s_ScriptEngineData->ScriptFieldsDefaults[fullName] = scriptDefaultMap;
+
+			// get class methods
+			ScriptMethodMap scriptMethods;
+
+			void* methodIter = nullptr;
+			while (MonoMethod* method = mono_class_get_methods(monoClass, &methodIter))
+			{
+				const char* methodName = mono_method_full_name(method, 1);
+				uint8_t methodAccess = GetMethodAccessbility(method);
+
+				MonoMethodSignature* methodSignature = mono_method_signature(method);
+				ScriptFieldType returnType = Utils::MonoTypeToScriptFieldType(mono_signature_get_return_type(methodSignature));
+
+				ScriptMethod scriptMethod = { returnType, methodAccess, method };
+
+				void* paramIter = nullptr;
+				size_t i = 0;
+				while (MonoType* monoType = mono_signature_get_params(methodSignature, &paramIter))
+				{
+					scriptMethod.ParamTypes[i] = Utils::MonoTypeToScriptFieldType(monoType);
+				}
+
+				ENGINE_CORE_TRACE("Method: {} ScriptFieldType: {} MonoType: {} Param count: {}", methodName, Utils::ScriptFieldTypeToString(returnType), mono_type_get_name(mono_signature_get_return_type(methodSignature)), i);
+
+				if (scriptMethod.IsPublic()) // TODO don't add constructor
+					scriptMethods[methodName] = scriptMethod;
+			}
+
+			s_ScriptEngineData->ScriptMethodMap[fullName] = scriptMethods;
 		}
 	}
 
@@ -406,6 +441,14 @@ namespace Engine
 			return {};
 
 		return s_ScriptEngineData->ScriptFieldsDefaults.at(scriptName);
+	}
+
+	ScriptMethodMap ScriptEngine::GetScriptMethodMap(const std::string& scriptName)
+	{
+		if (!EntityClassExists(scriptName))
+			return {};
+
+		return s_ScriptEngineData->ScriptMethodMap.at(scriptName);
 	}
 
 	Scene* ScriptEngine::GetSceneContext()
@@ -712,7 +755,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnCreate()
 	{
-		if (!OnCreateThunk) return; // handle script without OnCreate
+		if (!OnCreateThunk || !m_Instance) return; // handle script without OnCreate
 
 		MonoObject* ptrExObject = nullptr;
 		OnCreateThunk(m_Instance, &ptrExObject);
@@ -721,7 +764,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnStart()
 	{
-		if (!OnStartThunk) return; // handle script without OnStart
+		if (!OnStartThunk || !m_Instance) return; // handle script without OnStart
 
 		MonoObject* ptrExObject = nullptr;
 		OnStartThunk(m_Instance, &ptrExObject);
@@ -730,7 +773,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnDestroy()
 	{
-		if (!OnDestroyThunk) return; // handle script without OnDestroy
+		if (!OnDestroyThunk || !m_Instance) return; // handle script without OnDestroy
 
 		MonoObject* ptrExObject = nullptr;
 		OnDestroyThunk(m_Instance, &ptrExObject);
@@ -739,7 +782,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnUpdate(float ts)
 	{
-		if (!OnUpdateThunk) return; // handle script without OnUpdate
+		if (!OnUpdateThunk || !m_Instance) return; // handle script without OnUpdate
 
 		MonoObject* ptrExObject = nullptr;
 		OnUpdateThunk(m_Instance, &ts, &ptrExObject);
@@ -748,7 +791,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnLateUpdate(float ts)
 	{
-		if (!OnLateUpdateThunk) return; // handle script without OnLateUpdate
+		if (!OnLateUpdateThunk || !m_Instance) return; // handle script without OnLateUpdate
 
 		MonoObject* ptrExObject = nullptr;
 		OnLateUpdateThunk(m_Instance, &ts, &ptrExObject);
@@ -757,7 +800,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnTriggerEnter2D(Physics2DContact contact2D)
 	{
-		if (!OnTriggerEnter2DThunk) return; // handle script without OnTriggerEnter2D
+		if (!OnTriggerEnter2DThunk || !m_Instance) return; // handle script without OnTriggerEnter2D
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
@@ -767,7 +810,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnTriggerExit2D(Physics2DContact contact2D)
 	{
-		if (!OnTriggerExit2DThunk) return; // handle script without OnTriggerExit2D
+		if (!OnTriggerExit2DThunk || !m_Instance) return; // handle script without OnTriggerExit2D
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
@@ -777,7 +820,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnCollisionEnter2D(Physics2DContact contact2D)
 	{
-		if (!OnCollisionEnter2DThunk) return; // handle script without OnCollisionEnter2D
+		if (!OnCollisionEnter2DThunk || !m_Instance) return; // handle script without OnCollisionEnter2D
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
@@ -787,7 +830,7 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnCollisionExit2D(Physics2DContact contact2D)
 	{
-		if (!OnCollisionExit2DThunk) return; // handle script without OnCollisionExit2D
+		if (!OnCollisionExit2DThunk || !m_Instance) return; // handle script without OnCollisionExit2D
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
@@ -797,6 +840,8 @@ namespace Engine
 
 	bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
 	{
+		if (!m_Instance) return false;
+
 		const auto& fields = m_ScriptClass->GetScriptFields();
 		auto it = fields.find(name);
 		if (it == fields.end())
@@ -809,6 +854,8 @@ namespace Engine
 
 	bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value)
 	{
+		if (!m_Instance) return false;
+
 		const auto& fields = m_ScriptClass->GetScriptFields();
 		auto it = fields.find(name);
 		if (it == fields.end())
@@ -852,56 +899,6 @@ namespace Engine
 
 		switch (accessFlag)
 		{
-		case MONO_FIELD_ATTR_PRIVATE:
-		{
-			accessibility = (uint8_t)Accessibility::Private;
-			break;
-		}
-		case MONO_FIELD_ATTR_FAM_AND_ASSEM:
-		{
-			accessibility |= (uint8_t)Accessibility::Protected;
-			accessibility |= (uint8_t)Accessibility::Internal;
-			break;
-		}
-		case MONO_FIELD_ATTR_ASSEMBLY:
-		{
-			accessibility = (uint8_t)Accessibility::Internal;
-			break;
-		}
-		case MONO_FIELD_ATTR_FAMILY:
-		{
-			accessibility = (uint8_t)Accessibility::Protected;
-			break;
-		}
-		case MONO_FIELD_ATTR_FAM_OR_ASSEM:
-		{
-			accessibility |= (uint8_t)Accessibility::Private;
-			accessibility |= (uint8_t)Accessibility::Protected;
-			break;
-		}
-		case MONO_FIELD_ATTR_PUBLIC:
-		{
-			accessibility = (uint8_t)Accessibility::Public;
-			break;
-		}
-		}
-
-		return accessibility;
-	}
-
-	uint8_t ScriptEngine::GetPropertyAccessbility(MonoProperty* property)
-	{
-		uint8_t accessibility = (uint8_t)Accessibility::None;
-
-		// Get a reference to the property's getter method
-		MonoMethod* propertyGetter = mono_property_get_get_method(property);
-		if (propertyGetter != nullptr)
-		{
-			// Extract the access flags from the getters flags
-			uint32_t accessFlag = mono_method_get_flags(propertyGetter, nullptr) & MONO_METHOD_ATTR_ACCESS_MASK;
-
-			switch (accessFlag)
-			{
 			case MONO_FIELD_ATTR_PRIVATE:
 			{
 				accessibility = (uint8_t)Accessibility::Private;
@@ -934,8 +931,18 @@ namespace Engine
 				accessibility = (uint8_t)Accessibility::Public;
 				break;
 			}
-			}
 		}
+
+		return accessibility;
+	}
+
+	uint8_t ScriptEngine::GetPropertyAccessbility(MonoProperty* property)
+	{
+		uint8_t accessibility = (uint8_t)Accessibility::None;
+
+		// Get a reference to the property's getter method
+		MonoMethod* propertyGetter = mono_property_get_get_method(property);
+		accessibility = GetMethodAccessbility(propertyGetter);
 
 		// Get a reference to the property's setter method
 		MonoMethod* propertySetter = mono_property_get_set_method(property);
@@ -949,6 +956,55 @@ namespace Engine
 		else
 		{
 			accessibility = (uint8_t)Accessibility::Private;
+		}
+
+		return accessibility;
+	}
+
+	uint8_t ScriptEngine::GetMethodAccessbility(MonoMethod* method)
+	{
+		uint8_t accessibility = (uint8_t)Accessibility::None;
+
+		if (method != nullptr)
+		{
+			// Extract the access flags from the getters flags
+			uint32_t accessFlag = mono_method_get_flags(method, nullptr) & MONO_METHOD_ATTR_ACCESS_MASK;
+
+			switch (accessFlag)
+			{
+				case MONO_FIELD_ATTR_PRIVATE:
+				{
+					accessibility = (uint8_t)Accessibility::Private;
+					break;
+				}
+				case MONO_FIELD_ATTR_FAM_AND_ASSEM:
+				{
+					accessibility |= (uint8_t)Accessibility::Protected;
+					accessibility |= (uint8_t)Accessibility::Internal;
+					break;
+				}
+				case MONO_FIELD_ATTR_ASSEMBLY:
+				{
+					accessibility = (uint8_t)Accessibility::Internal;
+					break;
+				}
+				case MONO_FIELD_ATTR_FAMILY:
+				{
+					accessibility = (uint8_t)Accessibility::Protected;
+					break;
+				}
+				case MONO_FIELD_ATTR_FAM_OR_ASSEM:
+				{
+					accessibility |= (uint8_t)Accessibility::Private;
+					accessibility |= (uint8_t)Accessibility::Protected;
+					break;
+				}
+				case MONO_FIELD_ATTR_PUBLIC:
+				{
+					accessibility = (uint8_t)Accessibility::Public;
+					break;
+				}
+			}
 		}
 
 		return accessibility;
