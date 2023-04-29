@@ -115,6 +115,12 @@ namespace Engine
 				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
 			}
 		}
+
+		void ClearTexture()
+		{
+			Path.clear();
+			Texture = nullptr;
+		}
 	};
 
 	struct CircleRendererComponent

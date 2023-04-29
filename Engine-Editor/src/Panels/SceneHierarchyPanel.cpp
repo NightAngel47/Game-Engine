@@ -661,6 +661,9 @@ namespace Engine
 			
 				ImGui::EndDragDropTarget();
 			}
+
+			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+				component.ClearTexture();
 			
 			ImGui::DragFloat("Tiling", &component.Tiling, 0.1f);
 
