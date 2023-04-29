@@ -196,7 +196,7 @@ namespace Engine
 		}
 	}
 
-	static void DrawVec3Control(const:: std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
+	static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		const auto boldFont = io.Fonts->Fonts[0];
@@ -261,6 +261,221 @@ namespace Engine
 		ImGui::Columns(1);
 		
 		ImGui::PopID();
+	}
+
+	static void DrawUIInteraction(const std::string& label, Interaction& interaction, Scene* context)
+	{
+		ImGui::Text(label.c_str());
+		{
+			bool isValid = interaction.InteractedEntityID.IsValid();
+			std::string entityName = "None";
+
+			Entity eventEntity;
+			if (isValid)
+			{
+				eventEntity = context->GetEntityWithUUID(interaction.InteractedEntityID);
+				entityName = eventEntity.GetName();
+			}
+
+			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			const ImVec2 buttonSize = { 0.0f, lineHeight };
+			ImGui::Text("Entity");
+			ImGui::SameLine();
+			ImGui::Button(entityName.c_str(), buttonSize);
+
+			// get entity target for interaction
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
+				{
+					const UUID* entityItemID = (const UUID*)payload->Data;
+					interaction.InteractedEntityID = *entityItemID;
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::Text("Function");
+			ImGui::SameLine();
+
+			if (isValid && eventEntity.HasComponent<ScriptComponent>())
+			{
+				// get script on entity target and select function
+				ScriptComponent sc = eventEntity.GetComponent<ScriptComponent>();
+				if (!ScriptEngine::EntityClassExists(sc.ClassName)) return;
+
+				if (ImGui::BeginCombo(("##" + label + "Method").c_str(), interaction.InteractedFunction.c_str()))
+				{
+					for (const auto& [name, scriptMethod] : ScriptEngine::GetScriptMethodMap(sc.ClassName))
+					{
+						bool isSelected = interaction.InteractedFunction == name;
+						if (ImGui::Selectable(name.c_str(), isSelected))
+						{
+							interaction.InteractedFunction = name;
+							interaction.SetupParams(scriptMethod);
+						}
+
+						if (isSelected)
+							ImGui::SetItemDefaultFocus();
+					}
+
+					ImGui::EndCombo();
+				}
+
+				// if function selected get/set params
+				if (!interaction.InteractedFunction.empty())
+				{
+					int i = 0;
+					auto paramType = interaction.Params[i]->Field.Type;
+					while (i < 8 && paramType != ScriptFieldType::None)
+					{
+						auto& param = interaction.Params[i];
+						switch (paramType)
+						{
+						case ScriptFieldType::Float:
+						{
+							float data = 0.0f;
+							data = param->GetValue<float>();
+							if (ImGui::DragFloat(("##" + label + "Param" + std::to_string(i)).c_str(), &data, 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Double:
+						{
+							double data = 0.0;
+							data = param->GetValue<double>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_Double, &data, 0.1))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Bool:
+						{
+							bool data = false;
+							data = param->GetValue<bool>();
+							if (ImGui::Checkbox(("##" + label + "Param" + std::to_string(i)).c_str(), &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Char:
+						{
+							char data[2];
+							memset(data, 0, sizeof(data));
+							data[0] = param->GetValue<char>();
+							if (ImGui::InputText(("##" + label + "Param" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+								param->SetValue(data[0]);
+							break;
+						}
+						case ScriptFieldType::String:
+						{
+							char data[64];
+							memset(data, 0, sizeof(data));
+							strcpy_s(data, sizeof(data), param->GetValue<std::string>().c_str());
+							if (ImGui::InputText(("##" + label + "Param" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+								param->SetValue(std::string(data));
+							break;
+						}
+						case ScriptFieldType::SByte:
+						{
+							int8_t data = 0;
+							data = param->GetValue<int8_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S8, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Short:
+						{
+							int16_t data = 0;
+							data = param->GetValue<int16_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S16, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Int:
+						{
+							int32_t data = 0;
+							data = param->GetValue<int32_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S32, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Long:
+						{
+							int64_t data = 0;
+							data = param->GetValue<int64_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S64, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Byte:
+						{
+							uint8_t data = 0;
+							data = param->GetValue<uint8_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U8, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::UShort:
+						{
+							uint16_t data = 0;
+							data = param->GetValue<uint16_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U16, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::UInt:
+						{
+							uint32_t data = 0;
+							data = param->GetValue<uint32_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U32, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::ULong:
+						{
+							uint64_t data = 0;
+							data = param->GetValue<uint64_t>();
+							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Vector2:
+						{
+							glm::vec2 data = {};
+							data = param->GetValue<glm::vec2>();
+							if (ImGui::DragFloat2(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Vector3:
+						{
+							glm::vec3 data = {};
+							data = param->GetValue<glm::vec3>();
+							if (ImGui::DragFloat3(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Vector4:
+						{
+							glm::vec4 data = {};
+							data = param->GetValue<glm::vec4>();
+							if (ImGui::DragFloat4(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
+								param->SetValue(data);
+							break;
+						}
+						case ScriptFieldType::Entity:
+						case ScriptFieldType::Void:
+						case ScriptFieldType::None:
+						default:
+							FieldTypeUnsupported(paramType);
+							break;
+						}
+
+						++i;
+						paramType = interaction.Params[i]->Field.Type;
+					}
+				}
+			}
+		}
 	}
 
 	template <typename T, typename UIFunction>
@@ -490,428 +705,8 @@ namespace Engine
 			ImGui::ColorEdit4("Pressed Color", glm::value_ptr(component.PressedColor));
 			ImGui::ColorEdit4("Disabled Color", glm::value_ptr(component.DisabledColor));
 
-			ImGui::Text("Pressed Event");
-			{
-				bool isValid = component.PressedEvent.InteractedEntityID.IsValid();
-				std::string entityName = "None";
-
-				Entity eventEntity;
-				if (isValid)
-				{
-					eventEntity = m_Context->GetEntityWithUUID(component.PressedEvent.InteractedEntityID);
-					entityName = eventEntity.GetName();
-				}
-
-				const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-				const ImVec2 buttonSize = { 0.0f, lineHeight };
-				ImGui::Text("Entity");
-				ImGui::SameLine();
-				ImGui::Button(entityName.c_str(), buttonSize);
-
-				// get entity target for interaction
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
-					{
-						const UUID* entityItemID = (const UUID*)payload->Data;
-						component.PressedEvent.InteractedEntityID = *entityItemID;
-					}
-
-					ImGui::EndDragDropTarget();
-				}
-
-				ImGui::Text("Function");
-				ImGui::SameLine();
-
-				if (isValid && eventEntity.HasComponent<ScriptComponent>())
-				{
-					// get script on entity target and select function
-					ScriptComponent sc = eventEntity.GetComponent<ScriptComponent>();
-					if (!ScriptEngine::EntityClassExists(sc.ClassName)) return;
-					bool sceneRunning = m_Context->IsRunning();
-
-					if (ImGui::BeginCombo("##PressedMethod", component.PressedEvent.InteractedFunction.c_str()))
-					{
-						for (const auto& [name, scriptMethod] : ScriptEngine::GetScriptMethodMap(sc.ClassName))
-						{
-							bool isSelected = component.PressedEvent.InteractedFunction == name;
-							if (ImGui::Selectable(name.c_str(), isSelected))
-							{
-								component.PressedEvent.InteractedFunction = name;
-								component.PressedEvent.SetupParams(scriptMethod);
-							}
-
-							if (isSelected)
-								ImGui::SetItemDefaultFocus();
-						}
-
-						ImGui::EndCombo();
-					}
-
-					// if function selected get/set params
-					if (!component.PressedEvent.InteractedFunction.empty())
-					{
-						int i = 0;
-						auto paramType = component.PressedEvent.Params[i]->Field.Type;
-						while (i < 8 && paramType != ScriptFieldType::None)
-						{
-							auto& param = component.PressedEvent.Params[i];
-							switch (paramType)
-							{
-								case ScriptFieldType::Float:
-								{
-									float data = 0.0f;
-									data = param->GetValue<float>();
-									if (ImGui::DragFloat(("##PressedEventParam" + std::to_string(i)).c_str(), &data, 0.1f))
-										param->SetValue(data); 
-									break;
-								}
-								case ScriptFieldType::Double:
-								{
-									double data = 0.0;
-									data = param->GetValue<double>();
-									if (ImGui::DragScalar(("##PressedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_Double, &data, 0.1))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Bool:
-								{
-									bool data = false;
-									data = param->GetValue<bool>();
-									if (ImGui::Checkbox(("##PressedEventParam" + std::to_string(i)).c_str(), &data))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Char:
-								{
-									char data[2];
-									memset(data, 0, sizeof(data));
-									data[0] = param->GetValue<char>();
-									if (ImGui::InputText(("##PressedEventParam" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
-										param->SetValue(data[0]);
-									break;
-								}
-								case ScriptFieldType::String:
-								{
-									char data[64];
-									memset(data, 0, sizeof(data));
-									strcpy_s(data, sizeof(data), param->GetValue<std::string>().c_str());
-									if (ImGui::InputText(("##PressedEventParam" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
-										param->SetValue(std::string(data));
-									break;
-								}
-								case ScriptFieldType::SByte:
-								{
-									int8_t data = 0;
-									data = param->GetValue<int8_t>();
-									if (ImGui::DragScalar(("##PressedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S8, &data))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Short:
-								{
-									int16_t data = 0;
-									data = param->GetValue<int16_t>();
-									if (ImGui::DragScalar(("##PressedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S16, &data))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Int:
-								{
-									int32_t data = 0;
-									data = param->GetValue<int32_t>();
-									if (ImGui::DragScalar(("##PressedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S32, &data))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Long:
-								{
-									int64_t data = 0;
-									data = param->GetValue<int64_t>();
-									if (ImGui::DragScalar(("##PressedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S64, &data))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Byte:
-								{
-									uint8_t data = 0;
-									data = param->GetValue<uint8_t>();
-									if (ImGui::DragScalar(("##PressedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U8, &data))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::UShort:
-								{
-									uint16_t data = 0;
-									data = param->GetValue<uint16_t>();
-									if (ImGui::DragScalar(("##PressedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U16, &data))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::UInt:
-								{
-									uint32_t data = 0;
-									data = param->GetValue<uint32_t>();
-									if (ImGui::DragScalar(("##PressedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U32, &data))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::ULong:
-								{
-									uint64_t data = 0;
-									data = param->GetValue<uint64_t>();
-									if (ImGui::DragScalar(("##PressedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Vector2:
-								{
-									glm::vec2 data = {};
-									data = param->GetValue<glm::vec2>();
-									if (ImGui::DragFloat2(("##PressedEventParam" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Vector3:
-								{
-									glm::vec3 data = {};
-									data = param->GetValue<glm::vec3>();
-									if (ImGui::DragFloat3(("##PressedEventParam" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Vector4:
-								{
-									glm::vec4 data = {};
-									data = param->GetValue<glm::vec4>();
-									if (ImGui::DragFloat4(("##PressedEventParam" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
-										param->SetValue(data);
-									break;
-								}
-								case ScriptFieldType::Entity:
-								case ScriptFieldType::Void:
-								case ScriptFieldType::None:
-								default:
-									FieldTypeUnsupported(paramType);
-									break;
-							}
-
-							++i;
-							paramType = component.PressedEvent.Params[i]->Field.Type;
-						}
-					}
-				}
-			}
-
-			ImGui::Text("Released Event");
-			{
-				bool isValid = component.ReleasedEvent.InteractedEntityID.IsValid();
-				std::string entityName = "None";
-
-				Entity eventEntity;
-				if (isValid)
-				{
-					eventEntity = m_Context->GetEntityWithUUID(component.ReleasedEvent.InteractedEntityID);
-					entityName = eventEntity.GetName();
-				}
-
-				const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-				const ImVec2 buttonSize = { 0.0f, lineHeight };
-				ImGui::Text("Entity");
-				ImGui::SameLine();
-				ImGui::Button(entityName.c_str(), buttonSize);
-
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
-					{
-						const UUID* entityItemID = (const UUID*)payload->Data;
-						component.ReleasedEvent.InteractedEntityID = *entityItemID;
-					}
-
-					ImGui::EndDragDropTarget();
-				}
-
-				ImGui::Text("Function");
-				ImGui::SameLine();
-
-				if (isValid && eventEntity.HasComponent<ScriptComponent>())
-				{
-					ScriptComponent sc = eventEntity.GetComponent<ScriptComponent>();
-
-					if (ImGui::BeginCombo("##ReleasedMethod", component.ReleasedEvent.InteractedFunction.c_str()))
-					{
-						for (const auto& [name, scriptMethod] : ScriptEngine::GetScriptMethodMap(sc.ClassName))
-						{
-							bool isSelected = component.ReleasedEvent.InteractedFunction == name;
-							if (ImGui::Selectable(name.c_str(), isSelected))
-							{
-								component.ReleasedEvent.InteractedFunction = name;
-								component.ReleasedEvent.SetupParams(scriptMethod);
-							}
-
-							if (isSelected)
-								ImGui::SetItemDefaultFocus();
-						}
-
-						ImGui::EndCombo();
-					}
-				}
-
-
-				// if function selected get/set params
-				if (!component.ReleasedEvent.InteractedFunction.empty())
-				{
-					int i = 0;
-					auto paramType = component.ReleasedEvent.Params[i]->Field.Type;
-					while (i < 8 && paramType != ScriptFieldType::None)
-					{
-						auto& param = component.ReleasedEvent.Params[i];
-						switch (paramType)
-						{
-						case ScriptFieldType::Float:
-						{
-							float data = 0.0f;
-							data = param->GetValue<float>();
-							if (ImGui::DragFloat(("##ReleasedEventParam" + std::to_string(i)).c_str(), &data, 0.1f))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Double:
-						{
-							double data = 0.0;
-							data = param->GetValue<double>();
-							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_Double, &data, 0.1))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Bool:
-						{
-							bool data = false;
-							data = param->GetValue<bool>();
-							if (ImGui::Checkbox(("##ReleasedEventParam" + std::to_string(i)).c_str(), &data))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Char:
-						{
-							char data[2];
-							memset(data, 0, sizeof(data));
-							data[0] = param->GetValue<char>();
-							if (ImGui::InputText(("##ReleasedEventParam" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
-								param->SetValue(data[0]);
-							break;
-						}
-						case ScriptFieldType::String:
-						{
-							char data[64];
-							memset(data, 0, sizeof(data));
-							strcpy_s(data, sizeof(data), param->GetValue<std::string>().c_str());
-							if (ImGui::InputText(("##ReleasedEventParam" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
-								param->SetValue(std::string(data));
-							break;
-						}
-						case ScriptFieldType::SByte:
-						{
-							int8_t data = 0;
-							data = param->GetValue<int8_t>();
-							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S8, &data))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Short:
-						{
-							int16_t data = 0;
-							data = param->GetValue<int16_t>();
-							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S16, &data))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Int:
-						{
-							int32_t data = 0;
-							data = param->GetValue<int32_t>();
-							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S32, &data))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Long:
-						{
-							int64_t data = 0;
-							data = param->GetValue<int64_t>();
-							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_S64, &data))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Byte:
-						{
-							uint8_t data = 0;
-							data = param->GetValue<uint8_t>();
-							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U8, &data))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::UShort:
-						{
-							uint16_t data = 0;
-							data = param->GetValue<uint16_t>();
-							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U16, &data))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::UInt:
-						{
-							uint32_t data = 0;
-							data = param->GetValue<uint32_t>();
-							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U32, &data))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::ULong:
-						{
-							uint64_t data = 0;
-							data = param->GetValue<uint64_t>();
-							if (ImGui::DragScalar(("##ReleasedEventParam" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Vector2:
-						{
-							glm::vec2 data = {};
-							data = param->GetValue<glm::vec2>();
-							if (ImGui::DragFloat2(("##ReleasedEventParam" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Vector3:
-						{
-							glm::vec3 data = {};
-							data = param->GetValue<glm::vec3>();
-							if (ImGui::DragFloat3(("##ReleasedEventParam" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Vector4:
-						{
-							glm::vec4 data = {};
-							data = param->GetValue<glm::vec4>();
-							if (ImGui::DragFloat4(("##ReleasedEventParam" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
-								param->SetValue(data);
-							break;
-						}
-						case ScriptFieldType::Entity:
-						case ScriptFieldType::Void:
-						case ScriptFieldType::None:
-						default:
-							FieldTypeUnsupported(paramType);
-							break;
-						}
-
-						++i;
-						paramType = component.ReleasedEvent.Params[i]->Field.Type;
-					}
-				}
-			}
+			DrawUIInteraction("Pressed Event", component.PressedEvent, m_Context.get());
+			DrawUIInteraction("Released Event", component.ReleasedEvent, m_Context.get());
 		});
 
 		DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [&](auto& component)
