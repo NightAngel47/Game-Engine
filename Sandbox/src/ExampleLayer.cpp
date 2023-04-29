@@ -92,7 +92,7 @@ void ExampleLayer::OnAttach()
 	
 	m_FlatColorShader = Engine::Shader::Create("assets/shaders/FlatColor.glsl");
 
-	auto textureShader = m_ShaderLibrary.Load("assets/shaders/Texture.glsl");
+	auto textureShader = m_ShaderLibrary.Load("assets/shaders/Renderer2D_Quad.glsl");
 
 	m_Texture = Engine::Texture2D::Create("assets/textures/shipGreen_manned.png");
 	
@@ -123,7 +123,7 @@ void ExampleLayer::OnUpdate(Engine::Timestep ts)
 	Engine::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1.0f});
 	Engine::RenderCommand::Clear();
 	
-	Engine::Renderer::BeginScene(m_CameraController.GetCamera());
+	Engine::Renderer2D::BeginScene(m_CameraController.GetCamera(), glm::mat4(1.0f));
 
 	const glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
@@ -150,7 +150,7 @@ void ExampleLayer::OnUpdate(Engine::Timestep ts)
 	// Triangle
 	// Engine::Renderer::Submit(m_Shader, m_VertexArray);
 	
-	Engine::Renderer::EndScene();
+	Engine::Renderer2D::EndScene();
 }
 
 void ExampleLayer::OnImGuiRender()

@@ -106,7 +106,7 @@ project "GameEngine"
 	filter "configurations:Dist"
 		defines "ENGINE_DIST"
 		runtime "Release"
-		optimize "on"
+		optimize "off" -- HACK: Bug with Optimization On and Mono
 
 		links
 		{
