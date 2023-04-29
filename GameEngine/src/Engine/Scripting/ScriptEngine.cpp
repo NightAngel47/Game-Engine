@@ -177,7 +177,11 @@ namespace Engine
 
 		InitMono();
 
+#if ENGINE_DIST
+		if (!LoadCoreAssembly(Project::GetAssetFileSystemPath("Scripts/Binaries/Engine-ScriptCore.dll"))) return;
+#else
 		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
+#endif
 		if (!LoadAppAssembly(Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().ScriptModulePath))) return;
 		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 		
@@ -203,7 +207,11 @@ namespace Engine
 	void ScriptEngine::InitMono()
 	{
 		// Mono
+#if ENGINE_DIST
+		mono_set_assemblies_path("mono/lib");
+#else
 		mono_set_assemblies_path("../GameEngine/vendor/Mono/lib");
+#endif
 
 		s_ScriptEngineData->RootDomain = mono_jit_init("Engine-ScriptCore");
 		ENGINE_CORE_ASSERT(s_ScriptEngineData->RootDomain, "Root Domain could not be initialized!");

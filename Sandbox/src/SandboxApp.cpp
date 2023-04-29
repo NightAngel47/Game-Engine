@@ -1,8 +1,9 @@
 #include <Engine.h>
 #include <Engine/Core/EntryPoint.h>
 
-#include "ExampleLayer.h"
-#include "Sandbox2D.h"
+//#include "ExampleLayer.h"
+//#include "Sandbox2D.h"
+#include "StandaloneLayer.h"
 
 class Sandbox : public Engine::Application
 {
@@ -13,7 +14,8 @@ public:
 		ENGINE_PROFILE_FUNCTION();
 		
 		//PushLayer(new ExampleLayer());
-		PushLayer(new Sandbox2D());
+		//PushLayer(new Sandbox2D());
+		PushLayer(new Standalone());
 	}
 
 	~Sandbox()
@@ -26,7 +28,11 @@ Engine::Application* Engine::CreateApplication(Engine::ApplicationCommandLineArg
 {
 	ApplicationSpecification spec;
 	spec.Name = "Sandbox";
+#if ENGINE_DIST
+	spec.WorkingDirectory = "";
+#else
 	spec.WorkingDirectory = "../Engine-Editor";
+#endif
 	spec.CommandLineArgs = args;
 
 	return new Sandbox(spec);
