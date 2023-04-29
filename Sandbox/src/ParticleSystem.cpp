@@ -33,7 +33,7 @@ void ParticleSystem::OnUpdate(Engine::Timestep ts)
 
 void ParticleSystem::OnRender(Engine::OrthographicCamera& camera)
 {
-	Engine::Renderer2D::BeginScene(camera);
+	Engine::Renderer2D::BeginScene(camera, glm::mat4(1.0f));
 
 	for (auto& particle : m_ParticlePool)
 	{

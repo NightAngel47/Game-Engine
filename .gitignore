@@ -25,4 +25,5 @@ Intermediates/
 # Directories
 GameEngine/vendor/VulkanSDK
 Engine-Editor/assets/cache
+Sandbox/assets/cache
 scripts/__pycache__
