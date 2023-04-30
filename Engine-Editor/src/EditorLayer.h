@@ -80,12 +80,14 @@ namespace Engine
 
 		bool m_ShowPhysicsColliders = true;
 
+		bool m_ShowSpriteWindow = true;
+
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		Scope<ContentBrowserPanel> m_ContentBrowserPanel;
 
 		// Editor Resources
-		Ref<Texture2D> m_IconPlay, m_IconPause, m_IconStep, m_IconSimulate, m_IconStop;
+		Ref<Texture2D> m_IconPlay, m_IconPause, m_IconStep, m_IconSimulate, m_IconStop, m_Outline;
 	};
 
 }

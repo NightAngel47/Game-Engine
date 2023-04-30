@@ -22,6 +22,7 @@ namespace Engine
 		m_IconStep = Texture2D::Create("Resources/Icons/StepButton.png");
 		m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
 		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
+		m_Outline = Texture2D::Create("Resources/Icons/Outline.png");
 
 		FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
@@ -198,6 +199,17 @@ namespace Engine
 
 	            ImGui::EndMenu();
 	        }
+			
+			if (ImGui::BeginMenu("Window"))
+	        {
+
+				if (ImGui::MenuItem("Open Sprite View"))
+				{
+					m_ShowSpriteWindow = true;
+				}
+
+	            ImGui::EndMenu();
+	        }
 
 	        ImGui::EndMenuBar();
 	    }
@@ -354,6 +366,52 @@ namespace Engine
 		UI_Toolbar();
 		
 		ImGui::End();
+
+		if (m_ShowSpriteWindow)
+		{
+			ImGui::Begin("Sprite View", &m_ShowSpriteWindow);
+
+			if (m_SceneHierarchyPanel.IsSelectedEntityValid())
+			{
+				Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+				if (selectedEntity.HasComponent<SpriteRendererComponent>())
+				{
+					SpriteRendererComponent sprite = selectedEntity.GetComponent<SpriteRendererComponent>();
+					Ref<Texture2D> spriteTexture = sprite.Texture;
+
+					if (spriteTexture)
+					{
+						float spriteWidth = spriteTexture->GetWidth();
+						float spriteHeight = spriteTexture->GetHeight();
+						glm::vec2 imageRegion = { spriteWidth, spriteHeight};
+
+						ImVec2 regionAvailable = ImGui::GetContentRegionAvail();
+						float regionSmallest = glm::min(regionAvailable.x, regionAvailable.y);
+						float scale = (spriteWidth / regionSmallest);
+						imageRegion /= scale;
+
+						ImVec2 screenPos = ImGui::GetCursorScreenPos();
+
+						ImGui::Image((ImTextureID)spriteTexture->GetRendererID(), { imageRegion.x, imageRegion.y }, { 0, 1 }, { 1, 0 });
+						
+						if (sprite.IsSubTexture && sprite.SubTexture)
+						{
+							glm::vec2 subTextMin{ (sprite.SubCoords.x * sprite.SubCellSize.x), (sprite.SubCoords.y * sprite.SubCellSize.y) };
+							glm::vec2 subTextMax{ ((sprite.SubCoords.x + sprite.SubSpriteSize.x) * sprite.SubCellSize.x), ((sprite.SubCoords.y + sprite.SubSpriteSize.y) * sprite.SubCellSize.y) };
+							subTextMin /= scale;
+							subTextMax /= scale;
+
+							glm::vec2 min{ screenPos.x + subTextMin.x, (screenPos.y + imageRegion.y) - subTextMin.y };
+							glm::vec2 max{ screenPos.x + subTextMax.x, (screenPos.y + imageRegion.y) - subTextMax.y };
+
+							ImGui::GetWindowDrawList()->AddImage((ImTextureID)m_Outline->GetRendererID(), { min.x, min.y }, { max.x, max.y }, { 0, 1 }, { 1, 0 });
+						}
+					}
+				}
+			}
+
+			ImGui::End();
+		}
 	}
 
 	void EditorLayer::UI_Toolbar()
