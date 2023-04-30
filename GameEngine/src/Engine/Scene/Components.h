@@ -110,7 +110,7 @@ namespace Engine
 
 		void GenerateSubTexture()
 		{
-			if (IsSubTexture)
+			if (IsSubTexture && Texture)
 			{
 				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
 			}
