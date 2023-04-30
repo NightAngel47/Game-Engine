@@ -132,8 +132,8 @@ namespace Engine
 			{ ShaderDataType::Float3,	"a_Position"		},
 			{ ShaderDataType::Float4,	"a_Color"			},
 			{ ShaderDataType::Float2,	"a_TexCoord"		},
-			{ ShaderDataType::Float,	"a_TexIndex"		},
 			{ ShaderDataType::Float,	"a_TilingFactor"	},
+			{ ShaderDataType::Float,	"a_TexIndex"		},
 			{ ShaderDataType::Int,		"a_EntityID"		}
 		});
 		s_Renderer2DData.QuadVertexArray->AddVertexBuffer(s_Renderer2DData.QuadVertexBuffer);
@@ -480,25 +480,24 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		if(src.Texture)
+		if(src.Texture && src.IsSubTexture)
 		{
-			if (src.IsSubTexture)
-			{
-				DrawQuad(transform, src.SubTexture, src.Tiling, src.Color, entityID);
-			}
-			else
-			{
-				DrawQuad(transform, src.Texture, src.Tiling, src.Color, entityID);
-			}
-
-			return;
+			DrawQuad(transform, src.SubTexture, src.Tiling, src.Color, entityID);
 		}
-		
-		DrawQuad(transform, src.Color, entityID);
+		else if (src.Texture)
+		{
+			DrawQuad(transform, src.Texture, src.Tiling, src.Color, entityID);
+		}
+		else
+		{
+			DrawQuad(transform, src.Color, entityID);
+		}
 	}
 
 	void Renderer2D::DrawString(const std::string& string, const glm::mat4& transform, const TextParams& textParams, int entityID)
 	{
+		ENGINE_PROFILE_FUNCTION();
+
 		const auto& fontGeo = textParams.Font->GetMSDFData()->FontGeo;
 		const auto& metrics = fontGeo.getMetrics();
 		s_Renderer2DData.FontAtlasTexture = textParams.Font->GetAtlasTexture();

@@ -88,7 +88,7 @@ namespace Engine
 	}
 
 	OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification& specification)
-		: m_Specification(specification), m_Width(specification.Width), m_Height(specification.Height)
+		: m_Width(specification.Width), m_Height(specification.Height)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
@@ -152,7 +152,6 @@ namespace Engine
 
 		stbi_image_free(data);
 	}
-
 
 	OpenGLTexture2D::~OpenGLTexture2D()
 	{
