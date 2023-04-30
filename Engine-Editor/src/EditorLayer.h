@@ -80,6 +80,8 @@ namespace Engine
 
 		bool m_ShowPhysicsColliders = true;
 
+		bool m_ShowSpriteWindow = true;
+
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		Scope<ContentBrowserPanel> m_ContentBrowserPanel;

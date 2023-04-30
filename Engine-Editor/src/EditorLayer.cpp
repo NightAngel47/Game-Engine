@@ -198,6 +198,17 @@ namespace Engine
 
 	            ImGui::EndMenu();
 	        }
+			
+			if (ImGui::BeginMenu("Window"))
+	        {
+
+				if (ImGui::MenuItem("Open Sprite View"))
+				{
+					m_ShowSpriteWindow = true;
+				}
+
+	            ImGui::EndMenu();
+	        }
 
 	        ImGui::EndMenuBar();
 	    }
@@ -354,6 +365,37 @@ namespace Engine
 		UI_Toolbar();
 		
 		ImGui::End();
+
+		if (m_ShowSpriteWindow)
+		{
+			ImGui::Begin("Sprite View", &m_ShowSpriteWindow);
+
+			if (m_SceneHierarchyPanel.IsSelectedEntityValid())
+			{
+				Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+				if (selectedEntity.HasComponent<SpriteRendererComponent>())
+				{
+					SpriteRendererComponent sprite = selectedEntity.GetComponent<SpriteRendererComponent>();
+					Ref<Texture2D> spriteTexture = sprite.Texture;
+
+					if (spriteTexture)
+					{
+						float spriteWidth = spriteTexture->GetWidth();
+						float spriteHeight = spriteTexture->GetHeight();
+						glm::vec2 imageRegion = { spriteWidth, spriteHeight};
+
+						ImVec2 regionAvailable = ImGui::GetContentRegionAvail();
+						float regionSmallest = glm::min(regionAvailable.x, regionAvailable.y);
+
+						imageRegion /= (spriteWidth / regionSmallest);
+
+						ImGui::Image((ImTextureID)spriteTexture->GetRendererID(), { imageRegion.x, imageRegion.y }, { 0, 1 }, { 1, 0 });
+					}
+				}
+			}
+
+			ImGui::End();
+		}
 	}
 
 	void EditorLayer::UI_Toolbar()
