@@ -68,7 +68,7 @@ namespace Engine
 				m_SelectionContext = UUID::INVALID();
 
 			// Right-click on blank space
-			if (ImGui::BeginPopupContextWindow(0, 1, false))
+			if (!IsSelectedEntityValid() && ImGui::BeginPopupContextWindow("RightClickHierarchy", ImGuiPopupFlags_MouseButtonRight))
 			{
 				if (ImGui::MenuItem("Create Entity"))
 					m_Context->CreateEntity();
@@ -80,11 +80,11 @@ namespace Engine
 					m_Context->CreateEntity("Camera").AddComponent<CameraComponent>();
 				else if (ImGui::MenuItem("Create from Prefab"))
 					CreateFromPrefab();
-
+				
 				ImGui::EndPopup();
 			}
 
-			glm::vec2 DDTASize = glm::vec2( 1.0f, 1.0f );
+			glm::vec2 DDTASize{ 64.0f };
 			ImVec2 ContentRegionAvailable = ImGui::GetContentRegionAvail();
 			DDTASize += glm::vec2(ContentRegionAvailable.x, ContentRegionAvailable.y);
 			ImGui::InvisibleButton("##DragDropTargetArea", ImVec2(DDTASize.x, DDTASize.y));
@@ -111,6 +111,7 @@ namespace Engine
 		}
 		
 		ImGui::End();
+
 
 		ImGui::Begin("Properties");
 		if(IsSelectedEntityValid())
@@ -166,7 +167,7 @@ namespace Engine
 		}
 
 		bool entityDeleted = false;
-		if (ImGui::BeginPopupContextItem())
+		if (IsSelectedEntityValid() && GetSelectedEntity() == entity && ImGui::BeginPopupContextItem("EntityMenuItem", ImGuiPopupFlags_MouseButtonRight))
 		{
 			if (ImGui::MenuItem("Delete Entity"))
 				entityDeleted = true;
