@@ -333,25 +333,25 @@ namespace Engine
 
 		inline ScriptFieldType ScriptFieldTypeFromString(std::string_view fieldType)
 		{
-			if (fieldType == "None")	return ScriptFieldType::None;
-			if (fieldType == "Void")	return ScriptFieldType::Void;
-			if (fieldType == "Float")	return ScriptFieldType::Float;
-			if (fieldType == "Double")	return ScriptFieldType::Double;
-			if (fieldType == "Bool")	return ScriptFieldType::Bool;
-			if (fieldType == "Char")	return ScriptFieldType::Char;
-			if (fieldType == "String")	return ScriptFieldType::String;
-			if (fieldType == "SByte")	return ScriptFieldType::SByte;
-			if (fieldType == "Short")	return ScriptFieldType::Short;
-			if (fieldType == "Int")		return ScriptFieldType::Int;
-			if (fieldType == "Long")	return ScriptFieldType::Long;
-			if (fieldType == "Byte")	return ScriptFieldType::Byte;
-			if (fieldType == "UShort")	return ScriptFieldType::UShort;
-			if (fieldType == "UInt")	return ScriptFieldType::UInt;
-			if (fieldType == "ULong")	return ScriptFieldType::ULong;
-			if (fieldType == "Vector2")	return ScriptFieldType::Vector2;
-			if (fieldType == "Vector3")	return ScriptFieldType::Vector3;
-			if (fieldType == "Vector4")	return ScriptFieldType::Vector4;
-			if (fieldType == "Entity")	return ScriptFieldType::Entity;
+			if (fieldType == "None")		return ScriptFieldType::None;
+			if (fieldType == "Void")		return ScriptFieldType::Void;
+			if (fieldType == "Float")		return ScriptFieldType::Float;
+			if (fieldType == "Double")		return ScriptFieldType::Double;
+			if (fieldType == "Bool")		return ScriptFieldType::Bool;
+			if (fieldType == "Char")		return ScriptFieldType::Char;
+			if (fieldType == "String")		return ScriptFieldType::String;
+			if (fieldType == "SByte")		return ScriptFieldType::SByte;
+			if (fieldType == "Short")		return ScriptFieldType::Short;
+			if (fieldType == "Int")			return ScriptFieldType::Int;
+			if (fieldType == "Long")		return ScriptFieldType::Long;
+			if (fieldType == "Byte")		return ScriptFieldType::Byte;
+			if (fieldType == "UShort")		return ScriptFieldType::UShort;
+			if (fieldType == "UInt")		return ScriptFieldType::UInt;
+			if (fieldType == "ULong")		return ScriptFieldType::ULong;
+			if (fieldType == "Vector2")		return ScriptFieldType::Vector2;
+			if (fieldType == "Vector3")		return ScriptFieldType::Vector3;
+			if (fieldType == "Vector4")		return ScriptFieldType::Vector4;
+			if (fieldType == "Entity")		return ScriptFieldType::Entity;
 
 			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
 			return ScriptFieldType::None;
