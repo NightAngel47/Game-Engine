@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Core/Application.h"
 
+#include "Engine/Asset/AssetManager.h"
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Scripting/ScriptEngine.h"
 #include "Engine/UI/UIEngine.h"
@@ -37,7 +38,8 @@ namespace Engine
 	Application::~Application()
 	{
 		ENGINE_PROFILE_FUNCTION();
-		
+
+		AssetManager::Shutdown();
 		ScriptEngine::Shutdown();
 		Renderer::Shutdown();
 	}

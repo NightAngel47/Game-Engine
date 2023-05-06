@@ -6,14 +6,10 @@ namespace Engine
 	class PrefabSerializer
 	{
 	public:
-		PrefabSerializer(Entity entity, const Ref<Scene>& scene)
-			:m_Entity(entity), m_Scene(scene) {}
+		PrefabSerializer() = default;
 
-		void Serialize(const std::filesystem::path& filepath);
+		void Serialize(const std::filesystem::path& filepath, Entity entity, const Ref<Scene>& scene);
 
-		Entity Deserialize(const std::filesystem::path& filepath);
-	private:
-		Entity m_Entity;
-		Ref<Scene> m_Scene;
+		Entity Deserialize(const std::filesystem::path& filepath, Entity entity, Ref<Scene>& scene);
 	};
 }

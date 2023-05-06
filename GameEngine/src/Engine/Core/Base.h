@@ -42,7 +42,12 @@ namespace Engine
 	{
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
-	
+
+	template<typename T, typename U>
+	constexpr Ref<T> As(Ref<U> other)
+	{
+		return std::dynamic_pointer_cast<T>(other);
+	}
 }
 
 #include "Engine/Core/Log.h"

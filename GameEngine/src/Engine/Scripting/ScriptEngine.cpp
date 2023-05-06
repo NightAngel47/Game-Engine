@@ -481,9 +481,7 @@ namespace Engine
 	{
 		const auto& entityClasses = s_ScriptEngineData->EntityClasses;
 		if (entityClasses.find(className) != entityClasses.end())
-		{
 			return true;
-		}
 
 		ENGINE_CORE_ERROR("Entity Class of " + className + " could not be found!");
 		return false;

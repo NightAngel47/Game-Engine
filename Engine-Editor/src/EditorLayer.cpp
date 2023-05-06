@@ -1,7 +1,6 @@
 #include "EditorLayer.h"
 
 #include "Engine/Renderer/Font.h"
-#include "Engine/UI/UIEngine.h"
 
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
@@ -714,6 +713,7 @@ namespace Engine
 		{
 			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
 			ScriptEngine::Init();
+			AssetManager::Init();
 			OpenScene(Project::GetActive()->GetConfig().StartScene);
 		}
 		else
@@ -730,8 +730,10 @@ namespace Engine
 	void EditorLayer::NewScene(const std::filesystem::path& path)
 	{
 		std::string filenameString = path.empty() ? "Untitled" : path.filename().string();
-
+		
 		m_EditorScene = CreateRef<Scene>(filenameString);
+		//m_EditorScene = AssetManager::GetAsset<Scene>(path);
+
         m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
 		m_EditorScenePath = path;
 		m_ActiveScene = m_EditorScene;
@@ -760,8 +762,11 @@ namespace Engine
 
 		NewScene(path);
 
-		SceneSerializer serializer(m_ActiveScene);
-		serializer.Deserialize(path);
+		// SceneSerializer serializer(m_ActiveScene);
+		// serializer.Deserialize(path);
+
+		m_EditorScene = AssetManager::GetAsset<Scene>(path);
+		m_ActiveScene = m_EditorScene;
 	}
 
 	void EditorLayer::SaveSceneAs()
@@ -771,8 +776,15 @@ namespace Engine
 		m_EditorScenePath = filepath;
 		m_ActiveScene->SetSceneName(filepath.filename().string());
 
-		SceneSerializer serializer(m_ActiveScene);
-		serializer.Serialize(m_EditorScenePath.string());
+		// SceneSerializer serializer(m_ActiveScene);
+		// serializer.Serialize(m_EditorScenePath.string());
+
+
+		AssetMetadata metadata = AssetMetadata();
+		metadata.Path = m_EditorScenePath;
+		metadata.Handle = AssetManager::GetAssetHandleFromFilePath(m_EditorScenePath);
+
+		AssetManager::SaveAsset<Scene>(metadata, m_ActiveScene);
 	}
 
 	void EditorLayer::SaveScene()
@@ -783,8 +795,14 @@ namespace Engine
 		}
 		else
 		{
-			SceneSerializer serializer(m_ActiveScene);
-			serializer.Serialize(m_EditorScenePath.string());
+			// SceneSerializer serializer(m_ActiveScene);
+			// serializer.Serialize(m_EditorScenePath.string());
+
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = m_EditorScenePath;
+			metadata.Handle = AssetManager::GetAssetHandleFromFilePath(m_EditorScenePath);
+
+			AssetManager::SaveAsset<Scene>(metadata, m_ActiveScene);
 		}
 	}
 

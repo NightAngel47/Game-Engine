@@ -1036,8 +1036,8 @@ namespace Engine
 	{
 		std::filesystem::path filepath = FileDialogs::SaveFile("Prefab (*.prefab)\0*.prefab\0");
 
-		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
-		serializer.Serialize(filepath);
+		PrefabSerializer serializer = PrefabSerializer();
+		serializer.Serialize(filepath, GetSelectedEntity(), m_Context);
 	}
 
 	void SceneHierarchyPanel::CreateFromPrefab()
@@ -1058,8 +1058,8 @@ namespace Engine
 			return;
 		}
 
-		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
-		serializer.Deserialize(filepath);
+		PrefabSerializer serializer = PrefabSerializer();
+		serializer.Deserialize(filepath, GetSelectedEntity(), m_Context);
 	}
 
 	void SceneHierarchyPanel::CreateChildEntity()

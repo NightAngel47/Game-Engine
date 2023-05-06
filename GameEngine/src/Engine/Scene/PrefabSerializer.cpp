@@ -10,16 +10,16 @@ namespace Engine
 		UUID Parent = UUID::INVALID();
 	};
 
-	void PrefabSerializer::Serialize(const std::filesystem::path& filepath)
+	void PrefabSerializer::Serialize(const std::filesystem::path& filepath, Entity entity, const Ref<Scene>& scene)
 	{
 
 		YAML::Emitter out;
 		out << YAML::BeginMap; // Prefab
-		out << YAML::Key << "Prefab" << YAML::Value << m_Entity.GetName();
-		ENGINE_CORE_TRACE("Serializing prefab '{0}'", m_Entity.GetName());
+		out << YAML::Key << "Prefab" << YAML::Value << entity.GetName();
+		ENGINE_CORE_TRACE("Serializing prefab '{0}'", entity.GetName());
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-		EntitySerializer entitySerializer(m_Entity, m_Scene);
-		entitySerializer.Serialize(out);
+		EntitySerializer entitySerializer = EntitySerializer();
+		entitySerializer.Serialize(out, entity, scene);
 		out << YAML::EndSeq;
 		out << YAML::EndMap; // Prefab
 
@@ -27,7 +27,7 @@ namespace Engine
 		fout << out.c_str();
 	}
 
-	Entity PrefabSerializer::Deserialize(const std::filesystem::path& filepath)
+	Entity PrefabSerializer::Deserialize(const std::filesystem::path& filepath, Entity entity, Ref<Scene>& scene)
 	{
 		YAML::Node data;
 		try
@@ -49,10 +49,10 @@ namespace Engine
 		auto entities = data["Entities"];
 		if (entities)
 		{
-			for (auto entity : entities)
+			for (auto entityOut : entities)
 			{
-				EntitySerializer entitySerializer({}, m_Scene);
-				entitySerializer.Deserialize(entity, true);
+				EntitySerializer entitySerializer = EntitySerializer();
+				entitySerializer.Deserialize(entityOut, entity, scene, true);
 			}
 		}
 	}

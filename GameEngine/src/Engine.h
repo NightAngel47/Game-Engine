@@ -36,7 +36,13 @@
 
 #include "Engine/Scripting/ScriptEngine.h"
 
+#include "Engine/Asset/Assets.h"
+#include "Engine/Asset/AssetManager.h"
+#include "Engine/Asset/AssetImporter.h"
+
 #include "Engine/Project/Project.h"
+
+#include "Engine/UI/UIEngine.h"
 
 // ---Renderer------------------------------
 #include "Engine/Renderer/Renderer.h"
