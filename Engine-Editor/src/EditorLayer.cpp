@@ -251,7 +251,7 @@ namespace Engine
 		ImGui::BeginTable("Asset Paths", 3);
 
 		int row = 0;
-		for (const auto& [path, handle] : AssetManager::GetAssetPaths())
+		for (const auto& [path, handle] : AssetManager::GetAssetPathsMap())
 		{
 			ImGui::TableNextRow();
 
