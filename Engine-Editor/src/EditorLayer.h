@@ -30,7 +30,7 @@ namespace Engine
 		void OpenProject(const std::filesystem::path& path);
 		void SaveProject();
 
-		void NewScene(const std::filesystem::path& path = std::string());
+		void NewScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
 		void SaveSceneAs();
@@ -80,7 +80,7 @@ namespace Engine
 
 		bool m_ShowPhysicsColliders = true;
 
-		bool m_ShowSpriteWindow = true;
+		bool m_ShowSpriteWindow = false;
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;

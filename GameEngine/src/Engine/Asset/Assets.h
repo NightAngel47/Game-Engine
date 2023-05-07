@@ -12,8 +12,7 @@ namespace Engine
 
 	struct AssetHandle
 	{
-		AssetHandle()
-			:AssetID(UUID()) {}
+		AssetHandle() = default;
 		AssetHandle(UUID assetID)
 			:AssetID(assetID) {}
 		AssetHandle(const AssetHandle& other) = default;
@@ -23,7 +22,7 @@ namespace Engine
 		bool operator==(const AssetHandle other) const { return AssetID == other.AssetID; }
 
 
-		UUID AssetID;
+		UUID AssetID{};
 	};
 
 	struct Asset

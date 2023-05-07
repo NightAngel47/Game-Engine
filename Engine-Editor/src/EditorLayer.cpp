@@ -248,6 +248,28 @@ namespace Engine
 		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
 
+		ImGui::BeginTable("Asset Paths", 3);
+
+		int row = 0;
+		for (const auto& [path, handle] : AssetManager::GetAssetPaths())
+		{
+			ImGui::TableNextRow();
+
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text((std::to_string(row)).c_str());
+
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text(path.string().c_str());
+
+			ImGui::TableSetColumnIndex(2);
+			ImGui::Text(std::to_string((uint64_t)handle.AssetID).c_str());
+
+			++row;
+		}
+
+
+		ImGui::EndTable();
+
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
@@ -727,15 +749,11 @@ namespace Engine
 		//Project::Save();
 	}
 
-	void EditorLayer::NewScene(const std::filesystem::path& path)
+	void EditorLayer::NewScene()
 	{
-		std::string filenameString = path.empty() ? "Untitled" : path.filename().string();
-		
-		m_EditorScene = CreateRef<Scene>(filenameString);
-		//m_EditorScene = AssetManager::GetAsset<Scene>(path);
-
+		m_EditorScene = CreateRef<Scene>("Untitled");
         m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
-		m_EditorScenePath = path;
+		m_EditorScenePath.clear();
 		m_ActiveScene = m_EditorScene;
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
@@ -760,31 +778,26 @@ namespace Engine
 
 		if (m_SceneState != SceneState::Edit) OnSceneStop();
 
-		NewScene(path);
-
-		// SceneSerializer serializer(m_ActiveScene);
-		// serializer.Deserialize(path);
+		NewScene();
 
 		m_EditorScene = AssetManager::GetAsset<Scene>(path);
 		m_ActiveScene = m_EditorScene;
+		m_EditorScenePath = path;
+		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 
 	void EditorLayer::SaveSceneAs()
 	{
 		std::filesystem::path filepath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
 		
-		m_EditorScenePath = filepath;
-		m_ActiveScene->SetSceneName(filepath.filename().string());
-
-		// SceneSerializer serializer(m_ActiveScene);
-		// serializer.Serialize(m_EditorScenePath.string());
-
+		m_EditorScenePath = filepath.filename();
+		m_ActiveScene->SetSceneName(m_EditorScenePath.string());
 
 		AssetMetadata metadata = AssetMetadata();
 		metadata.Path = m_EditorScenePath;
-		metadata.Handle = AssetManager::GetAssetHandleFromFilePath(m_EditorScenePath);
+		metadata.Handle = m_EditorScene->Handle;
 
-		AssetManager::SaveAsset<Scene>(metadata, m_ActiveScene);
+		AssetManager::SaveAsset<Scene>(metadata, m_EditorScene);
 	}
 
 	void EditorLayer::SaveScene()
@@ -795,14 +808,11 @@ namespace Engine
 		}
 		else
 		{
-			// SceneSerializer serializer(m_ActiveScene);
-			// serializer.Serialize(m_EditorScenePath.string());
-
 			AssetMetadata metadata = AssetMetadata();
 			metadata.Path = m_EditorScenePath;
-			metadata.Handle = AssetManager::GetAssetHandleFromFilePath(m_EditorScenePath);
+			metadata.Handle = m_EditorScene->Handle;
 
-			AssetManager::SaveAsset<Scene>(metadata, m_ActiveScene);
+			AssetManager::SaveAsset<Scene>(metadata, m_EditorScene);
 		}
 	}
 

@@ -53,7 +53,9 @@ namespace Engine
 
 	bool SceneSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset> asset) const
 	{
-		std::cout << "Asset Use Count " << asset.use_count() << std::endl;
+		if (metadata.Path.empty())
+			return false;
+
 		YAML::Node data;
 		try
 		{
@@ -72,28 +74,19 @@ namespace Engine
 		ENGINE_CORE_TRACE("Deserializing scene '{0}'", sceneName);
 
 		asset->Handle = metadata.Handle;
-		std::cout << "Asset Use Count " << asset.use_count() << std::endl;
-
+		Ref<Scene> scene = As<Scene>(asset);
+		scene->SetSceneName(sceneName);
+		
 		auto entities = data["Entities"];
 		if(entities)
 		{
-			Ref<Scene> scene = As<Scene>(asset);
-			
 			for (auto entity : entities)
 			{
-				std::cout << "Asset Use Count " << asset.use_count() << std::endl;
-				std::cout << "Scene Use Count " << scene.use_count() << std::endl;
 				Entity thisEntity{ {}, scene.get() };
 				EntitySerializer entitySerializer = EntitySerializer();
 				entitySerializer.Deserialize(entity, thisEntity, scene);
-				std::cout << "Asset Use Count " << asset.use_count() << std::endl;
-				std::cout << "Scene Use Count " << scene.use_count() << std::endl;
 			}
-			std::cout << "Asset Use Count " << asset.use_count() << std::endl;
-			std::cout << "Scene Use Count " << scene.use_count() << std::endl;
 		}
-
-		std::cout << "Asset Use Count " << asset.use_count() << std::endl;
 		
 		return true;
 	}

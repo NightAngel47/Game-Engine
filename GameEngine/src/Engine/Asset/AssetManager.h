@@ -3,6 +3,8 @@
 
 namespace Engine
 {
+	using AssetPathsMap = std::unordered_map<std::filesystem::path, AssetHandle>;
+
 	class AssetManager
 	{
 	public:
@@ -13,11 +15,13 @@ namespace Engine
 		static Ref<T> GetAsset(AssetHandle assetID);
 		template <typename T>
 		static Ref<T> GetAsset(const std::filesystem::path& path);
+		
+		template<typename T>
+		static void SaveAsset(const AssetMetadata& metadata, const Ref<T>& asset);
 
 		static AssetHandle GetAssetHandleFromFilePath(const std::filesystem::path& path);
 
-		template<typename T>
-		static void SaveAsset(const AssetMetadata& metadata, const Ref<T>& asset);
+		static const AssetPathsMap GetAssetPaths();
 	};
 
 	namespace Utils
