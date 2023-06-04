@@ -8,12 +8,6 @@ namespace Engine
 	public:
 		virtual void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const = 0;
 		virtual bool TryLoadData(const AssetMetadata& metadata, Ref<Asset> asset) const = 0;
-
-		//template<typename T>
-		//constexpr Ref<T> As()
-		//{
-		//	return std::static_pointer_cast<T>(Ref<AssetSerializer>(this));
-		//}
 	};
 
 	using AssetSerializerMap = std::unordered_map<AssetType, Ref<AssetSerializer>>;
@@ -21,10 +15,12 @@ namespace Engine
 	class AssetImporter
 	{
 	public:
-		void Init();
-		void Shutdown();
+		static void Init();
+		static void Shutdown();
 
-		AssetSerializerMap& GetAssetSerializerMap();
+		static Ref<Asset> ImportAsset(AssetHandle handle, const AssetMetadata& metadata);
+
+		static void SerializeAsset(const AssetMetadata& metadata, const Ref<Asset>& asset);
 	};
 
 }

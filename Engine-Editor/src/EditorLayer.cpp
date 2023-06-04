@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include "Engine/Renderer/Font.h"
+#include "Engine/Asset/TextureImporter.h"
 
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
@@ -16,12 +17,49 @@ namespace Engine
 	{
 		s_Font = Font::GetDefault();
 
-		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
-		m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");
-		m_IconStep = Texture2D::Create("Resources/Icons/StepButton.png");
-		m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
-		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
-		m_Outline = Texture2D::Create("Resources/Icons/Outline.png");
+		//m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
+		//m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");
+		//m_IconStep = Texture2D::Create("Resources/Icons/StepButton.png");
+		//m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
+		//m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
+		//m_Outline = Texture2D::Create("Resources/Icons/Outline.png");
+
+		{
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = "Resources/Icons/PlayButton.png";
+			metadata.Type = AssetType::Texture2D;
+			m_IconPlay = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
+		}
+		{
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = "Resources/Icons/PauseButton.png";
+			metadata.Type = AssetType::Texture2D;
+			m_IconPause = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
+		}
+		{
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = "Resources/Icons/StepButton.png";
+			metadata.Type = AssetType::Texture2D;
+			m_IconStep = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
+		}
+		{
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = "Resources/Icons/SimulateButton.png";
+			metadata.Type = AssetType::Texture2D;
+			m_IconSimulate = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
+		}
+		{
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = "Resources/Icons/StopButton.png";
+			metadata.Type = AssetType::Texture2D;
+			m_IconStop = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
+		}
+		{
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = "Resources/Icons/Outline.png";
+			metadata.Type = AssetType::Texture2D;
+			m_Outline = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
+		}
 
 		FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
@@ -29,8 +67,9 @@ namespace Engine
 		fbSpec.Height = 720;
 		m_Framebuffer = Framebuffer::Create(fbSpec);
 
-		m_EditorScene = CreateRef<Scene>();
-		m_ActiveScene = m_EditorScene;
+		//m_EditorScene = CreateRef<Scene>();
+		//m_ActiveScene = m_EditorScene;
+		NewScene();
 
 		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
@@ -248,27 +287,27 @@ namespace Engine
 		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
 
-		ImGui::BeginTable("Asset Paths", 3);
-
-		int row = 0;
-		for (const auto& [path, handle] : AssetManager::GetAssetPathsMap())
-		{
-			ImGui::TableNextRow();
-
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text((std::to_string(row)).c_str());
-
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text(path.string().c_str());
-
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text(std::to_string((uint64_t)handle.AssetID).c_str());
-
-			++row;
-		}
-
-
-		ImGui::EndTable();
+		//ImGui::BeginTable("Asset Paths", 3, ImGuiTableFlags_Resizable);
+		//
+		//int row = 0;
+		//for (const auto& [path, handle] : AssetManager::GetAssetPathsMap())
+		//{
+		//	ImGui::TableNextRow();
+		//
+		//	ImGui::TableSetColumnIndex(0);
+		//	ImGui::Text((std::to_string(row)).c_str());
+		//
+		//	ImGui::TableSetColumnIndex(1);
+		//	ImGui::Text(path.string().c_str());
+		//
+		//	ImGui::TableSetColumnIndex(2);
+		//	ImGui::Text(std::to_string((uint64_t)handle.AssetID).c_str());
+		//
+		//	++row;
+		//}
+		//
+		//
+		//ImGui::EndTable();
 
 		ImGui::End();
 
@@ -398,10 +437,11 @@ namespace Engine
 				if (selectedEntity.HasComponent<SpriteRendererComponent>())
 				{
 					SpriteRendererComponent sprite = selectedEntity.GetComponent<SpriteRendererComponent>();
-					Ref<Texture2D> spriteTexture = sprite.Texture;
 
-					if (spriteTexture)
+					if (sprite.Texture.IsValid())
 					{
+						Ref<Texture2D> spriteTexture = AssetManager::GetAsset<Texture2D>(sprite.Texture);
+
 						float spriteWidth = spriteTexture->GetWidth();
 						float spriteHeight = spriteTexture->GetHeight();
 						glm::vec2 imageRegion = { spriteWidth, spriteHeight};
@@ -734,8 +774,6 @@ namespace Engine
 		if (Project::Load(path))
 		{
 			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
-			ScriptEngine::Init();
-			AssetManager::Init();
 			OpenScene(Project::GetActive()->GetConfig().StartScene);
 		}
 		else
@@ -780,7 +818,8 @@ namespace Engine
 
 		NewScene();
 
-		m_EditorScene = AssetManager::GetAsset<Scene>(path);
+		AssetHandle sceneHandle = Project::GetActive()->GetEditorAssetManager()->GetAssetHandleFromFilePath(path);
+		m_EditorScene = AssetManager::GetAsset<Scene>(sceneHandle);
 		m_ActiveScene = m_EditorScene;
 		m_EditorScenePath = path;
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
@@ -788,16 +827,18 @@ namespace Engine
 
 	void EditorLayer::SaveSceneAs()
 	{
-		std::filesystem::path filepath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
-		
-		m_EditorScenePath = filepath.filename();
-		m_ActiveScene->SetSceneName(m_EditorScenePath.string());
+		std::filesystem::path fullPath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
+		std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetAssetDirectory());
+
+		m_EditorScenePath = relativePath;
+		m_ActiveScene->SetSceneName(relativePath.filename().string());
 
 		AssetMetadata metadata = AssetMetadata();
-		metadata.Path = m_EditorScenePath;
-		metadata.Handle = m_EditorScene->Handle;
+		metadata.Path = fullPath;
+		metadata.Type = AssetType::Scene;
 
-		AssetManager::SaveAsset<Scene>(metadata, m_EditorScene);
+		//AssetManager::SaveAsset<Scene>(metadata, m_EditorScene);
+		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, m_EditorScenePath);
 	}
 
 	void EditorLayer::SaveScene()
@@ -810,9 +851,10 @@ namespace Engine
 		{
 			AssetMetadata metadata = AssetMetadata();
 			metadata.Path = m_EditorScenePath;
-			metadata.Handle = m_EditorScene->Handle;
+			metadata.Type = AssetType::Scene;
 
-			AssetManager::SaveAsset<Scene>(metadata, m_EditorScene);
+			//AssetManager::SaveAsset<Scene>(metadata, m_EditorScene);
+			Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, m_EditorScenePath);
 		}
 	}
 

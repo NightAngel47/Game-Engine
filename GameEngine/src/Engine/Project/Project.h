@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Engine/Core/Base.h"
+#include "Engine/Asset/AssetManager.h"
+#include "Engine/Asset/EditorAssetManager.h"
+#include "Engine/Asset/RuntimeAssetManager.h"
 
 #include <string>
 #include <filesystem>
@@ -28,7 +31,7 @@ namespace Engine
 			return s_ActiveProject;
 		}
 
-		static const std::filesystem::path& GetProjectDirectory()
+		static const std::filesystem::path GetProjectDirectory()
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
 			return s_ActiveProject->m_ProjectDirectory;
@@ -46,6 +49,10 @@ namespace Engine
 			return GetAssetDirectory() / path;
 		}
 
+		Ref<AssetManagerBase> GetAssetManager() { return m_AssetManager; }
+		Ref<EditorAssetManager> GetEditorAssetManager() { return As<EditorAssetManager>(m_AssetManager); }
+		Ref<RuntimeAssetManager> GetRuntimeAssetManager() { return As<RuntimeAssetManager>(m_AssetManager); }
+
 		static Ref<Project> New();
 		static Ref<Project> Load(const std::filesystem::path& path);
 		static void Save(const std::filesystem::path& path);
@@ -53,7 +60,8 @@ namespace Engine
 	private:
 		ProjectConfig m_Config;
 		std::filesystem::path m_ProjectDirectory;
-
+		Ref<AssetManagerBase> m_AssetManager;
+			
 		inline static Ref<Project> s_ActiveProject;
 	};
 }

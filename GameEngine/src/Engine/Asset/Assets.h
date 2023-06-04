@@ -6,53 +6,54 @@ namespace Engine
 	enum class AssetType : uint16_t
 	{
 		None = 0,
-		Scene = 1,
-		Texture = 2,
+		Scene,
+		Texture2D,
+		Prefab,
+		ScriptFile
 	};
 
-	struct AssetHandle
-	{
-		AssetHandle() = default;
-		AssetHandle(UUID assetID)
-			:AssetID(assetID) {}
-		AssetHandle(const AssetHandle& other) = default;
-
-		operator bool() const { return AssetID != UUID::INVALID(); }
-
-		bool operator==(const AssetHandle other) const { return AssetID == other.AssetID; }
-
-
-		UUID AssetID{};
-	};
+	using AssetHandle = UUID;
 
 	struct Asset
 	{
-		Asset() = default;
-
-		AssetHandle Handle;
+		AssetHandle Handle = AssetHandle::INVALID();
 
 		// To be provide per type
-		static AssetType GetStaticType() { return AssetType::None; }
+		// static AssetType GetStaticType() { return AssetType::None; }
 		virtual AssetType GetAssetType() const = 0;
 	};
 
 	struct AssetMetadata
 	{
-		AssetHandle Handle;
+		AssetType Type = AssetType::None;
 		std::filesystem::path Path;
-	};
-}
 
-namespace std
-{
-	template <typename T> struct hash;
-	
-	template<>
-	struct hash<Engine::AssetHandle>
-	{
-		std::size_t operator()(const Engine::AssetHandle& handle) const
-		{
-			return (uint64_t)handle.AssetID;
-		}
+		operator bool() const { return Type != AssetType::None; }
 	};
+
+	namespace Utils
+	{
+		inline AssetType AssetTypeFromString(const std::string& assetType)
+		{
+			if (assetType == "None")			return AssetType::None;
+			if (assetType == "Scene")			return AssetType::Scene;
+			if (assetType == "Texture2D")			return AssetType::Texture2D;
+
+			ENGINE_CORE_ASSERT(false, "Unknown Asset Type");
+			return AssetType::None;
+		}
+
+		inline const char* AssetTypeToString(AssetType assetType)
+		{
+			switch (assetType)
+			{
+			case Engine::AssetType::None:		return "None";
+			case Engine::AssetType::Scene:		return "Scene";
+			case Engine::AssetType::Texture2D:	return "Texture2D";
+			}
+
+			ENGINE_CORE_ASSERT(false, "Unknown Asset Type");
+			return "None";
+		}
+	}
 }

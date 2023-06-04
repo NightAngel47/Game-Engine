@@ -1,4 +1,5 @@
 ﻿#include "ContentBrowserPanel.h"
+#include "Engine/Asset/TextureImporter.h"
 
 #include <imgui/imgui.h>
 
@@ -7,8 +8,21 @@ namespace Engine
 	ContentBrowserPanel::ContentBrowserPanel()
 		:m_BaseDirectory(Project::GetAssetDirectory()), m_CurrentDirectory(m_BaseDirectory)
 	{
-		m_DirectoryIcon = Texture2D::Create("Resources/Icons/ContentBrowser/DirectoryIcon.png");
-		m_FileIcon = Texture2D::Create("Resources/Icons/ContentBrowser/FileIcon.png");
+		//m_DirectoryIcon = Texture2D::Create("Resources/Icons/ContentBrowser/DirectoryIcon.png");
+		//m_FileIcon = Texture2D::Create("Resources/Icons/ContentBrowser/FileIcon.png");
+
+		{
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = "Resources/Icons/ContentBrowser/DirectoryIcon.png";
+			metadata.Type = AssetType::Texture2D;
+			m_DirectoryIcon = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
+		}
+		{
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = "Resources/Icons/ContentBrowser/FileIcon.png";
+			metadata.Type = AssetType::Texture2D;
+			m_FileIcon = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
+		}
 	}
 
 	void ContentBrowserPanel::OnImGuiRender()

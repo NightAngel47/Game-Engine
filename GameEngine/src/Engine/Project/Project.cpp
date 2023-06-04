@@ -1,7 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Project/Project.h"
-
 #include "Engine/Project/ProjectSerializer.h"
+#include "Engine/Scripting/ScriptEngine.h"
 
 namespace Engine
 {
@@ -19,6 +19,13 @@ namespace Engine
 		{
 			project->m_ProjectDirectory = path.parent_path();
 			s_ActiveProject = project;
+
+			project->m_AssetManager = CreateRef<EditorAssetManager>();
+			
+			AssetImporter::Init();
+
+			ScriptEngine::Init();
+
 			return s_ActiveProject;
 		}
 

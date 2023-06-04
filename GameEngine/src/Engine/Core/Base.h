@@ -46,7 +46,7 @@ namespace Engine
 	template<typename T, typename U>
 	constexpr Ref<T> As(Ref<U> other)
 	{
-		return std::dynamic_pointer_cast<T>(other);
+		return std::static_pointer_cast<T>(other);
 	}
 }
 

@@ -3,7 +3,7 @@
 
 namespace Engine
 {
-	class SceneSerializer : public AssetSerializer
+	class TextureSerializer : public AssetSerializer
 	{
 	public:
 		virtual void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;

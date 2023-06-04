@@ -87,6 +87,7 @@ namespace Engine
 		Scope<ContentBrowserPanel> m_ContentBrowserPanel;
 
 		// Editor Resources
+		
 		Ref<Texture2D> m_IconPlay, m_IconPause, m_IconStep, m_IconSimulate, m_IconStop, m_Outline;
 	};
 

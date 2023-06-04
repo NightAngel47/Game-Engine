@@ -39,7 +39,6 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		AssetManager::Shutdown();
 		ScriptEngine::Shutdown();
 		Renderer::Shutdown();
 	}

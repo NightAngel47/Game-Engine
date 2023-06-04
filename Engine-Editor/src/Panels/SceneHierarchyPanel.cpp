@@ -642,7 +642,8 @@ namespace Engine
 			ImGui::Text("Texture");
 			ImGui::SameLine();
 
-			std::string textureName = component.Path.empty() ? "None" : component.Path.string();
+			//std::string textureName = component.Path.empty() ? "None" : component.Path.string();
+			std::string textureName = component.Texture.IsValid() ? std::to_string(component.Texture) : "None";
 			ImGui::Button(textureName.c_str(), buttonSize);
 
 			if (ImGui::BeginDragDropTarget())
@@ -654,7 +655,19 @@ namespace Engine
 				
 					if (std::wcscmp(fileExtension, L".png") == 0)
 					{
-						component.LoadTexture(path);
+						auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+						AssetHandle handle = editorAssetManager->GetAssetHandleFromFilePath(path);
+						if (!handle.IsValid())
+						{
+							AssetMetadata metadata = AssetMetadata();
+							metadata.Path = path;
+							metadata.Type = AssetType::Texture2D;
+
+							handle = AssetHandle();
+							editorAssetManager->SaveAssetToRegistry(handle, metadata);
+						}
+
+						component.LoadTexture(handle);
 					}
 					else
 					{

@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Asset/AssetManager.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Renderer/Texture.h"
 #include "Engine/Renderer/SubTexture2D.h"
@@ -80,10 +81,9 @@ namespace Engine
 
 	struct SpriteRendererComponent
 	{
+		AssetHandle Texture = AssetHandle::INVALID();
 		glm::vec4 Color{ 1.0f };
-		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
-		std::filesystem::path Path = "";
 
 		//Sub Texture
 		bool IsSubTexture = false;
@@ -97,12 +97,13 @@ namespace Engine
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
 
-		void LoadTexture(const std::filesystem::path& path)
+		void LoadTexture(AssetHandle handle)
 		{
-			if (!path.empty())
+			if (handle.IsValid())
 			{
-				Path = path;
-				Texture = Texture2D::Create(Project::GetAssetFileSystemPath(path).string());
+				Texture = handle;
+				Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(Texture);
+				Project::GetActive()->GetEditorAssetManager()->SaveAsset(texture);
 
 				GenerateSubTexture();
 			}
@@ -112,14 +113,14 @@ namespace Engine
 		{
 			if (IsSubTexture && Texture)
 			{
-				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
+				Ref<Texture2D> textureAsset = AssetManager::GetAsset<Texture2D>(Texture);
+				SubTexture = SubTexture2D::CreateFromCoords(textureAsset, SubCoords, SubCellSize, SubSpriteSize);
 			}
 		}
 
 		void ClearTexture()
 		{
-			Path.clear();
-			Texture = nullptr;
+			Texture = AssetHandle::INVALID();
 		}
 	};
 

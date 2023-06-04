@@ -334,8 +334,9 @@ namespace Engine
 			out << YAML::BeginMap; // SpriteRendererComponent
 
 			auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
+			out << YAML::Key << "Texture" << YAML::Value << spriteRendererComponent.Texture;
 			out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
-			out << YAML::Key << "Path" << YAML::Value << spriteRendererComponent.Path.string();
+			//out << YAML::Key << "Path" << YAML::Value << spriteRendererComponent.Path.string();
 			out << YAML::Key << "Tiling" << YAML::Value << spriteRendererComponent.Tiling;
 
 			out << YAML::Key << "IsSubTexture" << YAML::Value << spriteRendererComponent.IsSubTexture;
@@ -590,8 +591,9 @@ namespace Engine
 		if (spriteRendererComponent)
 		{
 			auto& spriteRenderer = entity.AddComponent<SpriteRendererComponent>();
+			spriteRenderer.Texture = spriteRendererComponent["Texture"].as<uint64_t>();
 			spriteRenderer.Color = spriteRendererComponent["Color"].as<glm::vec4>();
-			spriteRenderer.Path = spriteRendererComponent["Path"].as<std::string>();
+			//spriteRenderer.Path = spriteRendererComponent["Path"].as<std::string>();
 			spriteRenderer.Tiling = spriteRendererComponent["Tiling"].as<float>();
 
 			spriteRenderer.IsSubTexture = spriteRendererComponent["IsSubTexture"].as<bool>();
@@ -599,7 +601,8 @@ namespace Engine
 			spriteRenderer.SubCellSize = spriteRendererComponent["SubCellSize"].as<glm::vec2>();
 			spriteRenderer.SubSpriteSize = spriteRendererComponent["SubSpriteSize"].as<glm::vec2>();
 
-			spriteRenderer.LoadTexture(spriteRenderer.Path);
+			//spriteRenderer.LoadTexture(spriteRenderer.Path);
+			//AssetManager::GetAsset<Texture2D>(spriteRenderer.Texture);
 		}
 
 		auto circleRendererComponent = entityOut["CircleRendererComponent"];
