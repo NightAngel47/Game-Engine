@@ -29,7 +29,7 @@ namespace Engine
 		fout << out.c_str();
 	}
 
-	bool SceneSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset> asset) const
+	bool SceneSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
 		if (metadata.Path.empty())
 			return false;

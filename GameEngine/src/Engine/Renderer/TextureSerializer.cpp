@@ -12,7 +12,7 @@ namespace Engine
 		// TODO - is this needed?
 	}
 	
-	bool TextureSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset> asset) const
+	bool TextureSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
 		if (metadata.Path.empty())
 			return false;

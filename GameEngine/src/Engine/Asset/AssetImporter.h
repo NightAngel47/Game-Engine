@@ -7,7 +7,7 @@ namespace Engine
 	{
 	public:
 		virtual void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const = 0;
-		virtual bool TryLoadData(const AssetMetadata& metadata, Ref<Asset> asset) const = 0;
+		virtual bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const = 0;
 	};
 
 	using AssetSerializerMap = std::unordered_map<AssetType, Ref<AssetSerializer>>;

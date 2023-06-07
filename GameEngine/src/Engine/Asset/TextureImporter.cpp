@@ -43,6 +43,7 @@ namespace Engine
 		}
 
 		Ref<Texture2D> texture = Texture2D::Create(spec, data);
+		texture->Handle = handle;
 		data.Release();
 		return texture;
 	}

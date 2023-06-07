@@ -6,10 +6,13 @@ namespace Engine
 {
 	Ref<Scene> SceneImporter::ImportScene(AssetHandle handle, const AssetMetadata& metadata, bool isResource)
 	{
-		Ref<Scene> scene = CreateRef<Scene>();
+		Ref<Asset> scene = CreateRef<Scene>();
 		SceneSerializer serializer = SceneSerializer();
 		if (serializer.TryLoadData(metadata, scene))
-			return scene;
+		{
+			scene->Handle = handle;
+			return As<Scene>(scene);
+		}
 		
 		return nullptr;
 	}
