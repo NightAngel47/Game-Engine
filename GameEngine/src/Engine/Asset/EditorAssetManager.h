@@ -10,7 +10,7 @@ namespace Engine
 	public:
 		EditorAssetManager();
 
-		Ref<Asset> GetAsset(AssetHandle handle) const override;
+		Ref<Asset> GetAsset(AssetHandle handle) override;
 
 		bool IsAssetHandleValid(AssetHandle handle) const override;
 		bool IsAssetLoaded(AssetHandle handle) const override;
@@ -25,7 +25,5 @@ namespace Engine
 	private:
 		AssetMap m_LoadedAssets;
 		AssetRegistry m_AssetRegistry;
-
-		AssetMap m_MemoryAssets;
 	};
 }

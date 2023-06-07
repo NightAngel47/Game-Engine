@@ -14,9 +14,11 @@ namespace Engine
 			ENGINE_CORE_INFO("Creating Empty Asset Registry");
 			m_AssetRegistry = AssetRegistry();
 		}
+
+		m_LoadedAssets = AssetMap();
 	}
 
-	Ref<Asset> EditorAssetManager::GetAsset(AssetHandle handle) const
+	Ref<Asset> EditorAssetManager::GetAsset(AssetHandle handle)
 	{
 		if (!IsAssetHandleValid(handle))
 			return nullptr;
@@ -30,6 +32,7 @@ namespace Engine
 		{
 			const AssetMetadata& metadata = GetAssetMetadata(handle);
 			asset = AssetImporter::ImportAsset(handle, metadata);
+			m_LoadedAssets[handle] = asset;
 		}
 
 		return asset;

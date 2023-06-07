@@ -9,7 +9,8 @@ namespace Engine
 	class AssetManagerBase
 	{
 	public:
-		virtual Ref<Asset> GetAsset(AssetHandle handle) const = 0;
+		//virtual Ref<Asset> GetAsset(AssetHandle handle) const = 0;
+		virtual Ref<Asset> GetAsset(AssetHandle handle) = 0;
 		//virtual Ref<Asset> GetAsset(const std::filesystem::path& path) const = 0;
 
 		virtual bool IsAssetHandleValid(AssetHandle handle) const = 0;
