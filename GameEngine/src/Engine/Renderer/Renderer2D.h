@@ -26,13 +26,16 @@ namespace Engine
 		// Primitives
 		static void DrawQuad(const glm::vec2& position = glm::vec2(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const glm::vec4& color = glm::vec4(1.0f));
 		static void DrawQuad(const glm::vec3& position = glm::vec3(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const glm::vec4& color = glm::vec4(1.0f));
-		static void DrawQuad(const glm::vec2& position = glm::vec2(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const Ref<Texture2D>& texture = nullptr, const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
-		static void DrawQuad(const glm::vec3& position = glm::vec3(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const Ref<Texture2D>& texture = nullptr, const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
+		//static void DrawQuad(const glm::vec2& position = glm::vec2(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const Ref<Texture2D>& texture = nullptr, const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
+		static void DrawQuad(const glm::vec2& position = glm::vec2(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const AssetHandle texture = AssetHandle::INVALID(), const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
+		//static void DrawQuad(const glm::vec3& position = glm::vec3(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const Ref<Texture2D>& texture = nullptr, const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
+		static void DrawQuad(const glm::vec3& position = glm::vec3(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const AssetHandle texture = AssetHandle::INVALID(), const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
 		static void DrawQuad(const glm::vec2& position = glm::vec2(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const Ref<SubTexture2D>& subtexture = nullptr, const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
 		static void DrawQuad(const glm::vec3& position = glm::vec3(0.0f), const float rotation = 0.0f, const glm::vec2& size = glm::vec2(1.0f), const Ref<SubTexture2D>& subtexture = nullptr, const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
 
 		static void DrawQuad(const glm::mat4& transform = glm::mat4(1.0f), const glm::vec4& color = glm::vec4(1.0f), int entityID = -1);
-		static void DrawQuad(const glm::mat4& transform = glm::mat4(1.0f), const Ref<Texture2D>& texture = nullptr, const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int entityID = -1);
+		//static void DrawQuad(const glm::mat4& transform = glm::mat4(1.0f), const Ref<Texture2D>& texture = nullptr, const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int entityID = -1);
+		static void DrawQuad(const glm::mat4& transform = glm::mat4(1.0f), const AssetHandle texture = AssetHandle::INVALID(), const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int entityID = -1);
 		static void DrawQuad(const glm::mat4& transform = glm::mat4(1.0f), const Ref<SubTexture2D>& subtexture = nullptr, const float tiling = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int entityID = -1);
 		
 		static void DrawCircle(const glm::mat4& transform = glm::mat4(1.0f), const glm::vec4& color = glm::vec4(1.0f), const float thickness = 1.0f, const float fade = 0.005f, int entityID = -1);

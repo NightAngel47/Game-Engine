@@ -343,12 +343,14 @@ namespace Engine
 		DrawQuad(Math::GenRectTransform(position, rotation, size), color);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float tiling, const glm::vec4& color)
+	//void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float tiling, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const AssetHandle texture, const float tiling, const glm::vec4& color)
 	{
 		DrawQuad({position.x, position.y, 0.0f}, rotation, size, texture, tiling, color);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float tiling, const glm::vec4& color)
+	//void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float tiling, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const AssetHandle texture, const float tiling, const glm::vec4& color)
 	{
 		DrawQuad(Math::GenRectTransform(position, rotation, size), texture, tiling, color);
 	}
@@ -373,7 +375,8 @@ namespace Engine
 		SetQuadVertexBuffer(transform, color, textureCoords, 0.0f, 1.0f, entityID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float tiling, const glm::vec4& color, int entityID)
+	//void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float tiling, const glm::vec4& color, int entityID)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const AssetHandle texture, const float tiling, const glm::vec4& color, int entityID)
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
@@ -382,7 +385,7 @@ namespace Engine
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_Renderer2DData.TextureSlotIndex; i++)
 		{
-			if (*s_Renderer2DData.TextureSlots[i].get() == *texture.get())
+			if (s_Renderer2DData.TextureSlots[i]->Handle == texture)
 			{
 				textureIndex = (float)i;
 				break;
@@ -395,7 +398,7 @@ namespace Engine
 				Flush();
 			
 			textureIndex = (float)s_Renderer2DData.TextureSlotIndex;
-			s_Renderer2DData.TextureSlots[s_Renderer2DData.TextureSlotIndex] = texture;
+			s_Renderer2DData.TextureSlots[s_Renderer2DData.TextureSlotIndex] = AssetManager::GetAsset<Texture2D>(texture);
 			s_Renderer2DData.TextureSlotIndex++;
 		}
 		
@@ -406,13 +409,13 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		const Ref<Texture2D> texture = subtexture->GetTexture();
+		const AssetHandle texture = subtexture->GetTexture();
 		const glm::vec2* textureCoords = subtexture->GetTexCoords();
 		
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_Renderer2DData.TextureSlotIndex; i++)
 		{
-			if (*s_Renderer2DData.TextureSlots[i] == *texture)
+			if (s_Renderer2DData.TextureSlots[i]->Handle == texture)
 			{
 				textureIndex = (float)i;
 				break;
@@ -425,7 +428,7 @@ namespace Engine
 				Flush();
 			
 			textureIndex = (float)s_Renderer2DData.TextureSlotIndex;
-			s_Renderer2DData.TextureSlots[s_Renderer2DData.TextureSlotIndex] = texture;
+			s_Renderer2DData.TextureSlots[s_Renderer2DData.TextureSlotIndex] = AssetManager::GetAsset<Texture2D>(texture);
 			s_Renderer2DData.TextureSlotIndex++;
 		}
 		
@@ -487,8 +490,7 @@ namespace Engine
 			}
 			else
 			{
-				Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(src.Texture);
-				DrawQuad(transform, texture, src.Tiling, src.Color, entityID);
+				DrawQuad(transform, src.Texture, src.Tiling, src.Color, entityID);
 			}
 		}
 		else
