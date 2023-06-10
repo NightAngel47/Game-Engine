@@ -674,9 +674,34 @@ namespace Engine
 
 	bool EditorLayer::OnWindowDrop(WindowDropEvent& e)
 	{
-		for (auto& path : e.GetPaths())
+		EditorAssetManager& editorManager = *Project::GetActive()->GetEditorAssetManager();
+
+		for (auto& fullPath : e.GetPaths())
 		{
-			ENGINE_CORE_TRACE("Dropped: " + path.string());
+			ENGINE_CORE_TRACE("Dropped: " + fullPath.string());
+
+			std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetAssetDirectory());
+
+			AssetHandle handle = editorManager.GetAssetHandleFromFilePath(relativePath);
+
+			if (handle.IsValid())
+				break;
+
+			handle = AssetHandle(); // generate new handle for asset
+
+			AssetMetadata metadata = AssetMetadata();
+			metadata.Path = relativePath.string();
+
+			if (relativePath.extension() == ".png")
+			{
+				metadata.Type = AssetType::Texture2D;
+			}
+			else
+			{
+				metadata.Type = AssetType::None;
+			}
+
+			editorManager.SaveAssetToRegistry(handle, metadata);
 		}
 
 		return true;
