@@ -559,6 +559,7 @@ namespace Engine
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
 		dispatcher.Dispatch<MouseButtonPressedEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
+		dispatcher.Dispatch<WindowDropEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnWindowDrop));
 	}
 
 	bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
@@ -669,6 +670,16 @@ namespace Engine
 		}
 		
 		return false;
+	}
+
+	bool EditorLayer::OnWindowDrop(WindowDropEvent& e)
+	{
+		for (auto& path : e.GetPaths())
+		{
+			ENGINE_CORE_TRACE("Dropped: " + path.string());
+		}
+
+		return true;
 	}
 
 	void EditorLayer::OnOverlayRender()
