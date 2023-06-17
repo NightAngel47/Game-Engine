@@ -281,33 +281,71 @@ namespace Engine
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
 		ImGui::Checkbox("Toggle Gizmo Mode (World/Local)", &m_IsGizmoWorld);
 
+		ImGui::Separator();
 		ImGui::Text("UI Settings");
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
 
 		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
 
-		//ImGui::BeginTable("Asset Paths", 3, ImGuiTableFlags_Resizable);
-		//
-		//int row = 0;
-		//for (const auto& [path, handle] : AssetManager::GetAssetPathsMap())
-		//{
-		//	ImGui::TableNextRow();
-		//
-		//	ImGui::TableSetColumnIndex(0);
-		//	ImGui::Text((std::to_string(row)).c_str());
-		//
-		//	ImGui::TableSetColumnIndex(1);
-		//	ImGui::Text(path.string().c_str());
-		//
-		//	ImGui::TableSetColumnIndex(2);
-		//	ImGui::Text(std::to_string((uint64_t)handle.AssetID).c_str());
-		//
-		//	++row;
-		//}
-		//
-		//
-		//ImGui::EndTable();
+		ImGui::Separator();
+		auto& editorAssetManager = *Project::GetActive()->GetEditorAssetManager();
+
+		{
+			ImGui::BeginTable("Asset Registry", 3, ImGuiTableFlags_Resizable);
+
+			ImGui::TableSetupColumn("Handle");
+			ImGui::TableSetupColumn("Type");
+			ImGui::TableSetupColumn("Path");
+			ImGui::TableHeadersRow();
+
+			int row = 0;
+			for (const auto& [handle, metadata] : editorAssetManager.GetAssetRegistry())
+			{
+				ImGui::TableNextRow();
+
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text(std::to_string((uint64_t)handle).c_str());
+
+				ImGui::TableSetColumnIndex(1);
+				std::string assetTypeStr = Utils::AssetTypeToString(metadata.Type);
+				ImGui::Text(assetTypeStr.c_str());
+
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text(metadata.Path.string().c_str());
+
+				++row;
+			}
+			ImGui::EndTable();
+		}
+
+		{
+			ImGui::BeginTable("Assets Loaded", 3, ImGuiTableFlags_Resizable);
+
+			ImGui::TableSetupColumn("Handle");
+			ImGui::TableSetupColumn("Type");
+			ImGui::TableSetupColumn("Uses");
+			ImGui::TableHeadersRow();
+
+			int row = 0;
+			for (const auto& [handle, asset] : editorAssetManager.GetLoadedAssets())
+			{
+				ImGui::TableNextRow();
+
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text(std::to_string((uint64_t)handle).c_str());
+
+				ImGui::TableSetColumnIndex(1);
+				std::string assetTypeStr = Utils::AssetTypeToString(asset->GetAssetType());
+				ImGui::Text(assetTypeStr.c_str());
+
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text(std::to_string((long)asset.use_count()).c_str());
+
+				++row;
+			}
+			ImGui::EndTable();
+		}
 
 		ImGui::End();
 

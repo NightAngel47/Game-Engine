@@ -22,6 +22,9 @@ namespace Engine
 		void SaveAsset(const Ref<Asset>& asset) override;
 
 		void SaveAssetToRegistry(AssetHandle handle, const AssetMetadata& metadata);
+
+		const AssetRegistry& GetAssetRegistry() const { return m_AssetRegistry; }
+		const AssetMap& GetLoadedAssets() const { return m_LoadedAssets; }
 	private:
 		AssetMap m_LoadedAssets;
 		AssetRegistry m_AssetRegistry;
