@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-	Ref<Scene> SceneImporter::ImportScene(AssetHandle handle, const AssetMetadata& metadata, bool isResource)
+	Ref<Scene> SceneImporter::ImportScene(AssetHandle handle, const AssetMetadata& metadata)
 	{
 		Ref<Asset> scene = CreateRef<Scene>();
 		SceneSerializer serializer = SceneSerializer();

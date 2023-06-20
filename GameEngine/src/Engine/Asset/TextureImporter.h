@@ -7,6 +7,7 @@ namespace Engine
 	class TextureImporter
 	{
 	public:
-		static Ref<Texture2D> ImportTexture2D(AssetHandle handle, const AssetMetadata& metadata, bool isResource = false);
+		static Ref<Texture2D> ImportTexture2D(AssetHandle handle, const AssetMetadata& metadata);
+		static Ref<Texture2D> LoadTexture2D(const std::filesystem::path& filepath);
 	};
 }

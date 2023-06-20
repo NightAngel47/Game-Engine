@@ -17,49 +17,12 @@ namespace Engine
 	{
 		s_Font = Font::GetDefault();
 
-		//m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
-		//m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");
-		//m_IconStep = Texture2D::Create("Resources/Icons/StepButton.png");
-		//m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
-		//m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
-		//m_Outline = Texture2D::Create("Resources/Icons/Outline.png");
-
-		{
-			AssetMetadata metadata = AssetMetadata();
-			metadata.Path = "Resources/Icons/PlayButton.png";
-			metadata.Type = AssetType::Texture2D;
-			m_IconPlay = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
-		}
-		{
-			AssetMetadata metadata = AssetMetadata();
-			metadata.Path = "Resources/Icons/PauseButton.png";
-			metadata.Type = AssetType::Texture2D;
-			m_IconPause = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
-		}
-		{
-			AssetMetadata metadata = AssetMetadata();
-			metadata.Path = "Resources/Icons/StepButton.png";
-			metadata.Type = AssetType::Texture2D;
-			m_IconStep = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
-		}
-		{
-			AssetMetadata metadata = AssetMetadata();
-			metadata.Path = "Resources/Icons/SimulateButton.png";
-			metadata.Type = AssetType::Texture2D;
-			m_IconSimulate = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
-		}
-		{
-			AssetMetadata metadata = AssetMetadata();
-			metadata.Path = "Resources/Icons/StopButton.png";
-			metadata.Type = AssetType::Texture2D;
-			m_IconStop = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
-		}
-		{
-			AssetMetadata metadata = AssetMetadata();
-			metadata.Path = "Resources/Icons/Outline.png";
-			metadata.Type = AssetType::Texture2D;
-			m_Outline = TextureImporter::ImportTexture2D(AssetHandle(), metadata, true);
-		}
+		m_IconPlay = TextureImporter::LoadTexture2D("Resources/Icons/PlayButton.png");
+		m_IconPause = TextureImporter::LoadTexture2D("Resources/Icons/PauseButton.png");
+		m_IconStep = TextureImporter::LoadTexture2D("Resources/Icons/StepButton.png");
+		m_IconSimulate = TextureImporter::LoadTexture2D("Resources/Icons/SimulateButton.png");
+		m_IconStop = TextureImporter::LoadTexture2D("Resources/Icons/StopButton.png");
+		m_Outline = TextureImporter::LoadTexture2D("Resources/Icons/Outline.png");
 
 		FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };

@@ -12,8 +12,5 @@ namespace Engine
 
 		void Serialize(const AssetRegistry& assetRegistry);
 		bool TryLoadData(AssetRegistry& assetRegistry);
-
-	private:
-		const std::filesystem::path GetAssetRegistryPath();
 	};
 }

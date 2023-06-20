@@ -25,23 +25,25 @@ namespace Engine
 
 		out << YAML::EndSeq;
 
-		std::ofstream fout(GetAssetRegistryPath().string());
+		std::ofstream fout(Project::GetAssetRegistryPath().string());
 		fout << out.c_str();
 	}
 
 	bool AssetRegistrySerializer::TryLoadData(AssetRegistry& assetRegistry)
 	{
-		if (!std::filesystem::exists(GetAssetRegistryPath()))
+		std::filesystem::path assetRegistryPath = Project::GetAssetRegistryPath();
+
+		if (!std::filesystem::exists(assetRegistryPath))
 			return false;
 
 		YAML::Node data;
 		try
 		{
-			data = YAML::LoadFile(GetAssetRegistryPath().string());
+			data = YAML::LoadFile(assetRegistryPath.string());
 		}
 		catch (YAML::ParserException e)
 		{
-			ENGINE_CORE_ERROR("Failed to load asset registry file '{0}'\n {1}", GetAssetRegistryPath().string(), e.what());
+			ENGINE_CORE_ERROR("Failed to load asset registry file '{0}'\n {1}", assetRegistryPath.string(), e.what());
 			return false;
 		}
 
@@ -63,12 +65,4 @@ namespace Engine
 
 		return true;
 	}
-
-
-	const std::filesystem::path AssetRegistrySerializer::GetAssetRegistryPath()
-	{
-		std::filesystem::path assetRegistryPath = "AssetRegistry.areg";
-		return Project::GetProjectDirectory() / assetRegistryPath;
-	}
-
 }

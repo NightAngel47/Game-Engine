@@ -6,7 +6,16 @@
 
 namespace Engine
 {
-	Ref<Texture2D> TextureImporter::ImportTexture2D(AssetHandle handle, const AssetMetadata& metadata, bool isResource)
+	Ref<Texture2D> TextureImporter::ImportTexture2D(AssetHandle handle, const AssetMetadata& metadata)
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		Ref<Texture2D> texture = LoadTexture2D(Project::GetAssetFileSystemPath(metadata.Path).string());
+		texture->Handle = handle;
+		return texture;
+	}
+
+	Ref<Texture2D> TextureImporter::LoadTexture2D(const std::filesystem::path& filepath)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
@@ -15,8 +24,7 @@ namespace Engine
 		Buffer data;
 		{
 			ENGINE_PROFILE_SCOPE("stbi_load - TextureImporter::ImportTexture2D");
-			std::string assetPath = isResource ? metadata.Path.string() : Project::GetAssetFileSystemPath(metadata.Path).string();
-			data.Data = stbi_load(assetPath.c_str(), &width, &height, &channels, 0);
+			data.Data = stbi_load(filepath.string().c_str(), &width, &height, &channels, 0);
 		}
 
 		if (data.Data == nullptr)
@@ -34,17 +42,18 @@ namespace Engine
 
 		switch (channels)
 		{
-			case 3:
-				spec.Format = ImageFormat::RGB8;
-				break;
-			case 4:
-				spec.Format = ImageFormat::RGBA8;
-				break;
+		case 3:
+			spec.Format = ImageFormat::RGB8;
+			break;
+		case 4:
+			spec.Format = ImageFormat::RGBA8;
+			break;
 		}
 
 		Ref<Texture2D> texture = Texture2D::Create(spec, data);
-		texture->Handle = handle;
+		texture->Handle = AssetHandle();
 		data.Release();
 		return texture;
 	}
+
 }

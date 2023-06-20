@@ -398,7 +398,9 @@ namespace Engine
 				Flush();
 			
 			textureIndex = (float)s_Renderer2DData.TextureSlotIndex;
-			s_Renderer2DData.TextureSlots[s_Renderer2DData.TextureSlotIndex] = AssetManager::GetAsset<Texture2D>(texture);
+			Ref<Texture2D> texture2D = AssetManager::GetAsset<Texture2D>(texture);
+			ENGINE_CORE_VERIFY(texture2D);
+			s_Renderer2DData.TextureSlots[s_Renderer2DData.TextureSlotIndex] = texture2D;
 			s_Renderer2DData.TextureSlotIndex++;
 		}
 		

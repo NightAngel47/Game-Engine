@@ -18,6 +18,7 @@ namespace Engine
 		ENGINE_CORE_TRACE("Serializing Project '{0}'", config.Name);
 		out << YAML::Key << "StartScene" << YAML::Value << config.StartScene.string();
 		out << YAML::Key << "AssetDirectory" << YAML::Value << config.AssetDirectory.string();
+		out << YAML::Key << "AssetRegistryPath" << YAML::Value << config.AssetRegistryPath.string();
 		out << YAML::Key << "ScriptModulePath" << YAML::Value << config.ScriptModulePath.string();
 
 		out << YAML::EndMap; // Project
@@ -50,6 +51,7 @@ namespace Engine
 		ENGINE_CORE_TRACE("Deserializing project '{0}'", config.Name);
 		config.StartScene = projectNode["StartScene"].as<std::string>();
 		config.AssetDirectory = projectNode["AssetDirectory"].as<std::string>();
+		config.AssetRegistryPath = projectNode["AssetRegistryPath"].as<std::string>();
 		config.ScriptModulePath = projectNode["ScriptModulePath"].as<std::string>();
 
 		return true;

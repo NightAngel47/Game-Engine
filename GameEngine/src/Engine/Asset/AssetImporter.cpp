@@ -12,7 +12,7 @@ namespace Engine
 {
 	static std::unordered_map<AssetType, Ref<AssetSerializer>> s_Serializers;
 
-	using AssetImportFunction = std::function<Ref<Asset>(AssetHandle, const AssetMetadata&, bool isResource)>;
+	using AssetImportFunction = std::function<Ref<Asset>(AssetHandle, const AssetMetadata&)>;
 	static std::unordered_map<AssetType, AssetImportFunction> s_AssetImportFunctions = 
 	{
 		{ AssetType::Scene,		SceneImporter::ImportScene},
@@ -46,7 +46,7 @@ namespace Engine
 			return nullptr;
 		}
 
-		return s_AssetImportFunctions.at(metadata.Type)(handle, metadata, false);
+		return s_AssetImportFunctions.at(metadata.Type)(handle, metadata);
 	}
 
 	void AssetImporter::SerializeAsset(const AssetMetadata& metadata, const Ref<Asset>& asset)

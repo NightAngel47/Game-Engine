@@ -17,6 +17,7 @@ namespace Engine
 		std::filesystem::path StartScene;
 
 		std::filesystem::path AssetDirectory;
+		std::filesystem::path AssetRegistryPath;
 		std::filesystem::path ScriptModulePath;
 	};
 
@@ -41,6 +42,12 @@ namespace Engine
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
 			return GetProjectDirectory() / s_ActiveProject->m_Config.AssetDirectory;
+		}
+
+		static std::filesystem::path GetAssetRegistryPath()
+		{
+			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
+			return GetAssetDirectory() / s_ActiveProject->m_Config.AssetRegistryPath;
 		}
 
 		static std::filesystem::path GetAssetFileSystemPath(const std::filesystem::path& path)
