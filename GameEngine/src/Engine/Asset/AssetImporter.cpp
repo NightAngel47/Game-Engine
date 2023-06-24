@@ -32,14 +32,6 @@ namespace Engine
 
 	Ref<Asset> AssetImporter::ImportAsset(AssetHandle handle, const AssetMetadata& metadata)
 	{
-		/*
-		Ref<Asset> asset;
-		if (!s_Serializers.at(metadata.Type)->TryLoadData(metadata, asset))
-			ENGINE_CORE_ERROR("Failed to import asset!");
-
-		return asset;
-		*/
-
 		if (s_AssetImportFunctions.find(metadata.Type) == s_AssetImportFunctions.end())
 		{
 			ENGINE_CORE_ERROR("No importer availabel for asset type: {}", Utils::AssetTypeToString(metadata.Type));

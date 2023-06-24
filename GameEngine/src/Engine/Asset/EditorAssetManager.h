@@ -18,6 +18,8 @@ namespace Engine
 		const AssetMetadata& GetAssetMetadata(AssetHandle handle) const override;
 		const AssetHandle GetAssetHandleFromFilePath(const std::filesystem::path& path);
 
+		void ImportAsset(const std::filesystem::path& path);
+
 		void SaveAssetAs(const Ref<Asset>& asset, const std::filesystem::path& path);
 		void SaveAsset(const Ref<Asset>& asset) override;
 

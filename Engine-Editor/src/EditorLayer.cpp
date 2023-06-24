@@ -680,29 +680,7 @@ namespace Engine
 		for (auto& fullPath : e.GetPaths())
 		{
 			ENGINE_CORE_TRACE("Dropped: " + fullPath.string());
-
-			std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetAssetDirectory());
-
-			AssetHandle handle = editorManager.GetAssetHandleFromFilePath(relativePath);
-
-			if (handle.IsValid())
-				break;
-
-			handle = AssetHandle(); // generate new handle for asset
-
-			AssetMetadata metadata = AssetMetadata();
-			metadata.Path = relativePath.string();
-
-			if (relativePath.extension() == ".png")
-			{
-				metadata.Type = AssetType::Texture2D;
-			}
-			else
-			{
-				metadata.Type = AssetType::None;
-			}
-
-			editorManager.SaveAssetToRegistry(handle, metadata);
+			editorManager.ImportAsset(fullPath);
 		}
 
 		return true;

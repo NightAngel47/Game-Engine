@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Asset/EditorAssetManager.h"
 #include "Engine/Asset/AssetRegistrySerializer.h"
+#include "Engine/Project/Project.h"
 
 namespace Engine
 {
@@ -65,6 +66,37 @@ namespace Engine
 				return handle;
 
 		return AssetHandle::INVALID();
+	}
+
+
+	void EditorAssetManager::ImportAsset(const std::filesystem::path& path)
+	{
+		std::filesystem::path relativePath = std::filesystem::relative(path, Project::GetAssetDirectory());
+
+		AssetHandle handle = GetAssetHandleFromFilePath(relativePath);
+
+		if (handle.IsValid())
+		{
+			ENGINE_CORE_WARN("Asset is already imported: {}", path);
+			return;
+		}
+
+		handle = AssetHandle(); // generate new handle for asset
+
+		AssetMetadata metadata = AssetMetadata();
+		metadata.Path = relativePath;
+
+		if (relativePath.extension() == ".png")
+			metadata.Type = AssetType::Texture2D;
+		else if (relativePath.extension() == ".scene")
+			metadata.Type = AssetType::Scene;
+		else
+			metadata.Type = AssetType::None;
+
+		Ref<Asset> asset = AssetImporter::ImportAsset(handle, metadata);
+		asset->Handle = handle;
+		if (asset)
+			SaveAssetToRegistry(handle, metadata);
 	}
 
 	void EditorAssetManager::SaveAssetAs(const Ref<Asset>& asset, const std::filesystem::path& path)

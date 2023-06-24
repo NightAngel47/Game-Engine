@@ -17,7 +17,7 @@ namespace Engine
 			out << YAML::BeginMap; // Asset
 			
 			out << YAML::Key << "Handle" << YAML::Value << handle;
-			out << YAML::Key << "FilePath" << YAML::Value << metadata.Path.string();
+			out << YAML::Key << "FilePath" << YAML::Value << metadata.Path.generic_string();
 			out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
 			
 			out << YAML::EndMap; // Asset

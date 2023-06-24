@@ -646,6 +646,7 @@ namespace Engine
 			std::string textureName = component.Texture.IsValid() ? std::to_string(component.Texture) : "None";
 			ImGui::Button(textureName.c_str(), buttonSize);
 
+			/*
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -678,6 +679,7 @@ namespace Engine
 			
 				ImGui::EndDragDropTarget();
 			}
+			*/
 
 			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
 				component.ClearTexture();
