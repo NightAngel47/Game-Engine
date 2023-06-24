@@ -71,30 +71,28 @@ namespace Engine
 			for (const auto& [item, treeNodeIndex] : node->Children)
 			{
 				std::string itemStr = item.generic_string();
-				//bool isDirectory = std::filesystem::is_directory(Project::GetAssetDirectory() / item);
+				bool isDirectory = std::filesystem::is_directory(Project::GetAssetDirectory() / item);
 
 				ImGui::PushID(itemStr.c_str());
 
 				ImGui::TableNextColumn();
 
-				Ref<Texture2D> icon = std::filesystem::is_directory(Project::GetAssetDirectory() / item) ? m_DirectoryIcon : m_FileIcon;
+				Ref<Texture2D> icon = isDirectory ? m_DirectoryIcon : m_FileIcon;
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
 
-				/*
 				if (ImGui::BeginDragDropSource())
 				{
-					auto relativePath = std::filesystem::relative(item, m_BaseDirectory);
-					const wchar_t* itemPath = relativePath.c_str();
-					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t), ImGuiCond_Once);
+					auto assetPath = GetPathFromAssetTree(treeNodeIndex);
+					const AssetHandle* handle = &Project::GetActive()->GetEditorAssetManager()->GetAssetHandleFromFilePath(assetPath);
+					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", handle, sizeof(AssetHandle), ImGuiCond_Once);
 					ImGui::EndDragDropSource();
 				}
-				*/
 
 				ImGui::PopStyleColor();
 				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 				{
-					if (std::filesystem::is_directory(Project::GetAssetDirectory() / item))
+					if (isDirectory)
 					{
 						m_CurrentDirectory /= item.filename();
 					}
@@ -131,16 +129,6 @@ namespace Engine
 
 					ImGui::EndPopup();
 				}
-
-				/*
-				if (ImGui::BeginDragDropSource())
-				{
-					auto relativePath = std::filesystem::relative(path, m_BaseDirectory);
-					const wchar_t* itemPath = relativePath.c_str();
-					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t), ImGuiCond_Once);
-					ImGui::EndDragDropSource();
-				}
-				*/
 
 				ImGui::PopStyleColor();
 				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
@@ -190,6 +178,23 @@ namespace Engine
 				}
 			}
 		}
+	}
+
+
+	const std::filesystem::path ContentBrowserPanel::GetPathFromAssetTree(const uint32_t treeNodeIndex) const
+	{
+		std::filesystem::path assetPath = "";
+
+		uint32_t currentNodeIndex = treeNodeIndex;
+		while (currentNodeIndex != 0)
+		{
+			auto node = m_TreeNodes[currentNodeIndex];
+			assetPath = currentNodeIndex == treeNodeIndex ? node.Path : node.Path / assetPath;
+
+			currentNodeIndex = node.Parent;
+		}
+
+		return assetPath;
 	}
 
 }

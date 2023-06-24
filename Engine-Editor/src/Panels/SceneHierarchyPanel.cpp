@@ -646,40 +646,31 @@ namespace Engine
 			std::string textureName = component.Texture.IsValid() ? std::to_string(component.Texture) : "None";
 			ImGui::Button(textureName.c_str(), buttonSize);
 
-			/*
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 				{
-					const wchar_t* path = (const wchar_t*)payload->Data;
-					const wchar_t* fileExtension = std::wcsrchr(path, '.');
-				
-					if (std::wcscmp(fileExtension, L".png") == 0)
+					const AssetHandle* handlePayload = (const AssetHandle*)payload->Data;
+					AssetHandle handle = *handlePayload;
+					auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+					if (editorAssetManager->IsAssetHandleValid(handle))
 					{
-						auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
-						AssetHandle handle = editorAssetManager->GetAssetHandleFromFilePath(path);
-						if (!handle.IsValid())
+						if (editorAssetManager->GetAssetMetadata(handle).Type != AssetType::Texture2D)
 						{
-							AssetMetadata metadata = AssetMetadata();
-							metadata.Path = path;
-							metadata.Type = AssetType::Texture2D;
-
-							handle = AssetHandle();
-							editorAssetManager->SaveAssetToRegistry(handle, metadata);
+							ENGINE_CORE_WARN("Asset was not a texture!");
+							return;
 						}
 
 						component.LoadTexture(handle);
 					}
 					else
 					{
-						std::wstring ws(fileExtension);
-						ENGINE_CORE_WARN("File type is not supported by drag and drop in the Sprite Renderer Texture Slot: " + std::string(ws.begin(), ws.end()));
+						ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
 					}
 				}
 			
 				ImGui::EndDragDropTarget();
 			}
-			*/
 
 			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
 				component.ClearTexture();

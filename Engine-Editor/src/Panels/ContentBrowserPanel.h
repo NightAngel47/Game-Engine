@@ -13,8 +13,6 @@ namespace Engine
 
 		void OnImGuiRender();
 	private:
-		void RefreshAssetTree();
-	private:
 		std::filesystem::path m_BaseDirectory;
 		std::filesystem::path m_CurrentDirectory;
 
@@ -42,6 +40,9 @@ namespace Engine
 		};
 
 		Mode m_Mode = Mode::Asset;
+	private:
+		void RefreshAssetTree();
+		const std::filesystem::path GetPathFromAssetTree(const uint32_t treeNodeIndex) const; // down here so it can reference TreeNode
 	};	
 }
 
