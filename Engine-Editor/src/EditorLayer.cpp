@@ -342,13 +342,9 @@ namespace Engine
 				{
 					auto metadata = editorAssetManager->GetAssetMetadata(handle);
 					if (metadata.Type == AssetType::Scene)
-					{
 						OpenScene(metadata.Path);
-					}
 					else
-					{
 						ENGINE_CORE_WARN("AssetType is not supported by drag and drop in the Viewport: {}", Utils::AssetTypeToString(metadata.Type));
-					}
 				}
 				else
 				{
