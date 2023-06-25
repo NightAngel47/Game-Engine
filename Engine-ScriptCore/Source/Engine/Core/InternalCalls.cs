@@ -117,6 +117,16 @@ namespace Engine.Core
 
 		#endregion Physics2DContact
 
+		#region SceneManager
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void SceneManager_LoadSceneByHandle(ulong handle);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void SceneManager_LoadSceneByPath(string path);
+
+		#endregion SceneManager
+
 		#region Entity
 
 		[MethodImpl(MethodImplOptions.InternalCall)]

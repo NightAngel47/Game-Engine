@@ -4,6 +4,9 @@
 #include "Engine/Asset/AssetManager.h"
 #include "Engine/Asset/EditorAssetManager.h"
 #include "Engine/Asset/RuntimeAssetManager.h"
+#include "Engine/Scene/SceneManager.h"
+#include "Engine/Scene/EditorSceneManager.h"
+#include "Engine/Scene/RuntimeSceneManager.h"
 
 #include <string>
 #include <filesystem>
@@ -60,6 +63,10 @@ namespace Engine
 		Ref<EditorAssetManager> GetEditorAssetManager() { return As<EditorAssetManager>(m_AssetManager); }
 		Ref<RuntimeAssetManager> GetRuntimeAssetManager() { return As<RuntimeAssetManager>(m_AssetManager); }
 
+		Ref<SceneManagerBase> GetSceneManager() { return m_SceneManager; }
+		Ref<EditorSceneManager> GetEditorSceneManager() { return As<EditorSceneManager>(m_SceneManager); }
+		Ref<RuntimeSceneManager> GetRuntimeSceneManager() { return As<RuntimeSceneManager>(m_SceneManager); }
+
 		static Ref<Project> New();
 		static Ref<Project> Load(const std::filesystem::path& path);
 		static void Save(const std::filesystem::path& path);
@@ -68,6 +75,7 @@ namespace Engine
 		ProjectConfig m_Config;
 		std::filesystem::path m_ProjectDirectory;
 		Ref<AssetManagerBase> m_AssetManager;
+		Ref<SceneManagerBase> m_SceneManager;
 			
 		inline static Ref<Project> s_ActiveProject;
 	};

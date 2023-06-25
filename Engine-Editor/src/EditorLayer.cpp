@@ -30,9 +30,10 @@ namespace Engine
 		fbSpec.Height = 720;
 		m_Framebuffer = Framebuffer::Create(fbSpec);
 
-		//m_EditorScene = CreateRef<Scene>();
-		//m_ActiveScene = m_EditorScene;
-		NewScene();
+		m_EditorScene = CreateRef<Scene>("Untitled");
+		m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+		m_EditorScenePath.clear();
+		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 
 		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
@@ -54,7 +55,7 @@ namespace Engine
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 		
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetContext(SceneManager::GetActiveScene());
 	}
 
 	void EditorLayer::OnDetach()
@@ -66,7 +67,7 @@ namespace Engine
 	{
 		m_FrameTime = ts.GetMilliseconds();
 
-		m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+		SceneManager::GetActiveScene()->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 		
 		// Resize
 		if (FramebufferSpecification spec = m_Framebuffer->GetSpecification(); 
@@ -94,19 +95,19 @@ namespace Engine
 				// Update
 				m_EditorCamera.OnUpdate(ts);
 
-				m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+				SceneManager::GetActiveScene()->OnUpdateEditor(ts, m_EditorCamera);
 				break;
 			}
 			case SceneState::Play:
 			{
-				m_ActiveScene->OnUpdateRuntime(ts);
+				SceneManager::GetActiveScene()->OnUpdateRuntime(ts);
 				break;
 			}
 			case SceneState::Simulate:
 			{
 				m_EditorCamera.OnUpdate(ts);
 
-				m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
+				SceneManager::GetActiveScene()->OnUpdateSimulation(ts, m_EditorCamera);
 				break;
 			}
 			default:
@@ -223,7 +224,7 @@ namespace Engine
 		std::string name = "None";
 		if (m_HoveredEntityID.IsValid())
 		{
-			Entity hoveredEntity = m_ActiveScene->GetEntityWithUUID(m_HoveredEntityID);
+			Entity hoveredEntity = SceneManager::GetActiveScene()->GetEntityWithUUID(m_HoveredEntityID);
 			name = hoveredEntity.GetComponent<TagComponent>().Tag;
 		}
 		ImGui::Text("Hovered Entity: %s", name.c_str());
@@ -367,7 +368,7 @@ namespace Engine
 			ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
 
 			// Editor Camera if world otherwise ScreenCamera
-			const glm::mat4& cameraProjection = isEntityUI ? m_ActiveScene->GetScreenCamera().GetProjection() : m_EditorCamera.GetProjection();
+			const glm::mat4& cameraProjection = isEntityUI ? SceneManager::GetActiveScene()->GetScreenCamera().GetProjection() : m_EditorCamera.GetProjection();
 			glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 
 			// Snapping
@@ -522,22 +523,22 @@ namespace Engine
 			ImGui::SameLine();
 			{
 				Ref<Texture2D> icon = m_IconPause;
-				ImVec4 tintColor = m_ActiveScene->IsPaused() ? ImVec4(0.25f, 0.25f, 1, 1) : ImVec4(1, 1, 1, 1);
+				ImVec4 tintColor = SceneManager::GetActiveScene()->IsPaused() ? ImVec4(0.25f, 0.25f, 1, 1) : ImVec4(1, 1, 1, 1);
 				if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0), tintColor))
 				{
-					m_ActiveScene->SetPaused(!m_ActiveScene->IsPaused());
+					SceneManager::GetActiveScene()->SetPaused(!SceneManager::GetActiveScene()->IsPaused());
 				}
 			}
 			
 			// step button
-			if (m_ActiveScene->IsPaused())
+			if (SceneManager::GetActiveScene()->IsPaused())
 			{
 				ImGui::SameLine();
 				{
 					Ref<Texture2D> icon = m_IconStep;
 					if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 					{
-						m_ActiveScene->Step();
+						SceneManager::GetActiveScene()->Step();
 					}
 				}
 			}
@@ -685,7 +686,7 @@ namespace Engine
 	{
 		if (m_SceneState == SceneState::Play)
 		{
-			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
+			Entity camera = SceneManager::GetActiveScene()->GetPrimaryCameraEntity();
 			if (!camera) return;
 
 			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetWorldSpaceTransform());
@@ -701,7 +702,7 @@ namespace Engine
 		if (m_ShowPhysicsColliders)
 		{
 			{ // Visualize Box Collider 2D
-				auto view = m_ActiveScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+				auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
 
 				for (auto entity : view)
 				{
@@ -717,7 +718,7 @@ namespace Engine
 			}
 
 			{ // Visualize Circle Collider 2D
-				auto view = m_ActiveScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+				auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
 
 				for (auto entity : view)
 				{
@@ -748,7 +749,7 @@ namespace Engine
 
 		// UI Overlays
 
-		Renderer2D::BeginScene(m_ActiveScene->GetScreenCamera(), glm::mat4(1.0f));
+		Renderer2D::BeginScene(SceneManager::GetActiveScene()->GetScreenCamera(), glm::mat4(1.0f));
 
 		// Draw selected entity outline
 		if (m_SceneHierarchyPanel.IsSelectedEntityValid() && isEntityUI)
@@ -799,11 +800,10 @@ namespace Engine
 
 	void EditorLayer::NewScene()
 	{
-		m_EditorScene = CreateRef<Scene>("Untitled");
+		m_EditorScene = SceneManager::CreateNewScene();
         m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
 		m_EditorScenePath.clear();
-		m_ActiveScene = m_EditorScene;
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_SceneHierarchyPanel.SetContext(SceneManager::GetActiveScene());
 	}
 
 	void EditorLayer::OpenScene()
@@ -829,10 +829,9 @@ namespace Engine
 		NewScene();
 
 		AssetHandle sceneHandle = Project::GetActive()->GetEditorAssetManager()->GetAssetHandleFromFilePath(path);
-		m_EditorScene = AssetManager::GetAsset<Scene>(sceneHandle);
-		m_ActiveScene = m_EditorScene;
+		m_EditorScene = SceneManager::LoadScene(sceneHandle);
 		m_EditorScenePath = path;
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetContext(SceneManager::GetActiveScene());
 	}
 
 	void EditorLayer::SaveSceneAs()
@@ -841,13 +840,12 @@ namespace Engine
 		std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetAssetDirectory());
 
 		m_EditorScenePath = relativePath;
-		m_ActiveScene->SetSceneName(relativePath.filename().string());
+		SceneManager::GetActiveScene()->SetSceneName(relativePath.filename().string());
 
 		AssetMetadata metadata = AssetMetadata();
 		metadata.Path = fullPath;
 		metadata.Type = AssetType::Scene;
 
-		//AssetManager::SaveAsset<Scene>(metadata, m_EditorScene);
 		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, m_EditorScenePath);
 	}
 
@@ -863,7 +861,6 @@ namespace Engine
 			metadata.Path = m_EditorScenePath;
 			metadata.Type = AssetType::Scene;
 
-			//AssetManager::SaveAsset<Scene>(metadata, m_EditorScene);
 			Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, m_EditorScenePath);
 		}
 	}
@@ -875,7 +872,7 @@ namespace Engine
 		if (m_SceneHierarchyPanel.IsSelectedEntityValid())
 		{
 			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-			Entity newEntity = m_ActiveScene->DuplicateEntity(selectedEntity);
+			Entity newEntity = SceneManager::GetActiveScene()->DuplicateEntity(selectedEntity);
 			m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
 		}
 	}
@@ -895,14 +892,14 @@ namespace Engine
 		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
 		{
 			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
-			m_HoveredEntityID = pixelData == -1 ? UUID::INVALID() : Entity((entt::entity)pixelData, m_ActiveScene.get()).GetUUID();
+			m_HoveredEntityID = pixelData == -1 ? UUID::INVALID() : Entity((entt::entity)pixelData, SceneManager::GetActiveScene().get()).GetUUID();
 		}
 		else
 		{
 			m_HoveredEntityID = UUID::INVALID();
 		}
 
-		if (m_ActiveScene->IsRunning())
+		if (SceneManager::GetActiveScene()->IsRunning())
 			UIEngine::SetViewportMousePos(mouseX, mouseY);
 	}
 
@@ -914,10 +911,11 @@ namespace Engine
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
 		m_SceneState = SceneState::Play;
 
-		m_ActiveScene = Scene::Copy(m_EditorScene);
-		m_ActiveScene->OnRuntimeStart();
+		//SceneManager::GetActiveScene() = Scene::Copy(m_EditorScene);
+		Project::GetActive()->GetEditorSceneManager()->LoadSceneCopy(m_EditorScene);
+		SceneManager::GetActiveScene()->OnRuntimeStart();
 
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetContext(SceneManager::GetActiveScene());
 	}
 
 	void EditorLayer::OnSceneSimulate()
@@ -928,10 +926,11 @@ namespace Engine
 		ENGINE_CORE_TRACE("SceneState changed to Simulate.");
 		m_SceneState = SceneState::Simulate;
 
-		m_ActiveScene = Scene::Copy(m_EditorScene);
-		m_ActiveScene->OnSimulationStart();
+		//SceneManager::GetActiveScene() = Scene::Copy(m_EditorScene);
+		Project::GetActive()->GetEditorSceneManager()->LoadSceneCopy(m_EditorScene);
+		SceneManager::GetActiveScene()->OnSimulationStart();
 
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetContext(SceneManager::GetActiveScene());
 	}
 
 	void EditorLayer::OnSceneStop()
@@ -939,17 +938,17 @@ namespace Engine
 		ENGINE_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
 
 		if (m_SceneState == SceneState::Play)
-			m_ActiveScene->OnRuntimeStop();
+			SceneManager::GetActiveScene()->OnRuntimeStop();
 		else if (m_SceneState == SceneState::Simulate)
-			m_ActiveScene->OnSimulationStop();
+			SceneManager::GetActiveScene()->OnSimulationStop();
 
 
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
 		m_SceneState = SceneState::Edit;
-		m_ActiveScene->SetPaused(false);
-		m_ActiveScene = m_EditorScene;
+		SceneManager::GetActiveScene()->SetPaused(false);
+		SceneManager::LoadScene(m_EditorScene->Handle);
 
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetContext(SceneManager::GetActiveScene());
 	}
 
 }

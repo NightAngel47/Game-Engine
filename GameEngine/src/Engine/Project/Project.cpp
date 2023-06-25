@@ -21,6 +21,7 @@ namespace Engine
 			s_ActiveProject = project;
 
 			project->m_AssetManager = CreateRef<EditorAssetManager>();
+			project->m_SceneManager = CreateRef<EditorSceneManager>();
 			
 			AssetImporter::Init();
 
