@@ -335,25 +335,24 @@ namespace Engine
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
-				const wchar_t* path = (const wchar_t*)payload->Data;
-				const wchar_t* fileExtension = std::wcsrchr(path, '.');
-				
-				if (fileExtension)
+				const AssetHandle* handlePayload = (const AssetHandle*)payload->Data;
+				AssetHandle handle = *handlePayload;
+				auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+				if (editorAssetManager->IsAssetHandleValid(handle))
 				{
-					if (std::wcscmp(fileExtension, L".scene") == 0)
+					auto metadata = editorAssetManager->GetAssetMetadata(handle);
+					if (metadata.Type == AssetType::Scene)
 					{
-						OpenScene(path);
+						OpenScene(metadata.Path);
 					}
 					else
 					{
-						std::wstring ws(fileExtension);
-						ENGINE_CORE_WARN("File type is not supported by drag and drop in the Viewport: " + std::string(ws.begin(), ws.end()));
+						ENGINE_CORE_WARN("AssetType is not supported by drag and drop in the Viewport: {}", Utils::AssetTypeToString(metadata.Type));
 					}
 				}
 				else
 				{
-					std::wstring ws(path);
-					ENGINE_CORE_WARN("Dragged item is either not a file or not supported by drag and drop in the Viewport: " + std::string(ws.begin(), ws.end()));
+					ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
 				}
 			}
 			

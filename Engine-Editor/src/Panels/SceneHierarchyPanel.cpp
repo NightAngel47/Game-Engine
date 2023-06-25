@@ -654,13 +654,11 @@ namespace Engine
 					auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 					if (editorAssetManager->IsAssetHandleValid(handle))
 					{
-						if (editorAssetManager->GetAssetMetadata(handle).Type != AssetType::Texture2D)
-						{
+						if (editorAssetManager->GetAssetMetadata(handle).Type == AssetType::Texture2D)
+							component.LoadTexture(handle);
+						else
 							ENGINE_CORE_WARN("Asset was not a texture!");
-							return;
-						}
 
-						component.LoadTexture(handle);
 					}
 					else
 					{
