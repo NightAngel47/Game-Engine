@@ -642,8 +642,7 @@ namespace Engine
 			ImGui::Text("Texture");
 			ImGui::SameLine();
 
-			//std::string textureName = component.Path.empty() ? "None" : component.Path.string();
-			std::string textureName = component.Texture.IsValid() ? std::to_string(component.Texture) : "None";
+			std::string textureName = component.Texture.IsValid() ? Project::GetActive()->GetAssetManager()->GetAssetMetadata(component.Texture).Path.filename().string() : "None";
 			ImGui::Button(textureName.c_str(), buttonSize);
 
 			if (ImGui::BeginDragDropTarget())
