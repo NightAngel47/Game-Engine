@@ -102,8 +102,6 @@ namespace Engine
 			if (handle.IsValid())
 			{
 				Texture = handle;
-				//Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(Texture);
-				//Project::GetActive()->GetEditorAssetManager()->SaveAsset(texture);
 
 				GenerateSubTexture();
 			}
@@ -113,7 +111,6 @@ namespace Engine
 		{
 			if (IsSubTexture && Texture)
 			{
-				//Ref<Texture2D> textureAsset = AssetManager::GetAsset<Texture2D>(Texture);
 				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
 			}
 		}
@@ -121,6 +118,12 @@ namespace Engine
 		void ClearTexture()
 		{
 			Texture = AssetHandle::INVALID();
+		}
+
+		const Ref<Texture2D> GetTexture2D()
+		{
+			if (Texture.IsValid())
+				return AssetManager::GetAsset<Texture2D>(Texture);
 		}
 	};
 
