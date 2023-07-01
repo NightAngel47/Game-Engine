@@ -194,10 +194,10 @@ namespace Engine
 
 	void Physics2DEngine::OnPhysicsStop()
 	{
-		s_physics2DEngineData->SceneContext = nullptr;
+		delete s_physics2DEngineData->PhysicsWorld;
 		s_physics2DEngineData->PhysicsWorld = nullptr;
 
-		DestroyQueuedBodiesToDestroy();
+		s_physics2DEngineData->SceneContext = nullptr;
 
 		delete s_physics2DEngineData;
 	}
