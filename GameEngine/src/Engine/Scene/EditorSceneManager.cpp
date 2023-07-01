@@ -6,25 +6,45 @@ namespace Engine
 {
 	Ref<Scene> EditorSceneManager::LoadScene(const AssetHandle handle)
 	{
-		m_ActiveScene = AssetManager::GetAsset<Scene>(handle);
+		ActiveSceneRuntimeStop();
+
+		auto scene = AssetManager::GetAsset<Scene>(handle);
+		m_ActiveScene = Scene::Copy(scene);
+		m_ActiveScene->Handle = handle;
+
+		ActiveSceneRuntimeStart();
+
 		return m_ActiveScene;
 	}
 
 	Ref<Scene> EditorSceneManager::LoadScene(const std::filesystem::path& path)
 	{
+		ActiveSceneRuntimeStop();
+
 		const AssetHandle handle = Project::GetActive()->GetEditorAssetManager()->GetAssetHandleFromFilePath(path);
-		m_ActiveScene = AssetManager::GetAsset<Scene>(handle);
+		auto scene = AssetManager::GetAsset<Scene>(handle);
+		m_ActiveScene = Scene::Copy(scene);
+		m_ActiveScene->Handle = handle;
+
+		ActiveSceneRuntimeStart();
+
 		return m_ActiveScene;
 	}
 
 	Ref<Scene> EditorSceneManager::CreateNewScene(const std::string& name)
 	{
+		ActiveSceneRuntimeStop();
+
 		m_ActiveScene = CreateRef<Scene>(name);
+
+		ActiveSceneRuntimeStart();
+
 		return m_ActiveScene;
 	}
 
-	void EditorSceneManager::LoadSceneCopy(const Ref<Scene> scene)
+	Ref<Scene> EditorSceneManager::LoadSceneCopy(const Ref<Scene> scene)
 	{
-		m_ActiveScene = Scene::Copy(scene);
+		return m_ActiveScene = Scene::Copy(scene);
 	}
+
 }

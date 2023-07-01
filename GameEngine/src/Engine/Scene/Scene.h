@@ -36,6 +36,7 @@ namespace Engine
 
 		Entity DuplicateEntity(Entity entity);
 		bool DoesEntityExist(UUID uuid);
+		bool IsEntityHandleValid(entt::entity handle);
 		Entity GetEntityWithUUID(UUID uuid);
 		Entity FindEntityByName(const std::string_view& entityName);
 		

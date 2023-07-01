@@ -59,13 +59,6 @@ namespace Engine
 		bool m_PrimaryCamera = true;
 		EditorCamera m_EditorCamera;
 
-		enum class SceneState
-		{
-			Edit = 0, Play = 1, Simulate = 2
-		};
-
-		SceneState m_SceneState = SceneState::Edit;
-
 		// Stats
 		float m_FrameTime = 0;
 

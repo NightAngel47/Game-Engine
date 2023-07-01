@@ -124,8 +124,10 @@ namespace Engine
 		if (!IsAssetHandleValid(handle))
 			return;
 
-		const AssetMetadata& metadata = GetAssetMetadata(handle);
+		if (IsAssetLoaded(handle))
+			m_LoadedAssets[handle] = asset;
 
+		const AssetMetadata& metadata = GetAssetMetadata(handle);
 		AssetImporter::SerializeAsset(metadata, asset);
 		SaveAssetToRegistry(handle, metadata);
 	}

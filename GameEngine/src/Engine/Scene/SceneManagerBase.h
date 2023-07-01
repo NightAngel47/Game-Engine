@@ -12,7 +12,5 @@ namespace Engine
 		virtual Ref<Scene> CreateNewScene(const std::string& name = "Untitled") = 0;
 
 		virtual const Ref<Scene> GetActiveScene() const = 0;
-	private:
-		friend class SceneManager;
 	};
 }

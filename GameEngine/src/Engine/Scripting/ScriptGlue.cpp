@@ -336,18 +336,12 @@ namespace InternalCalls
 
 	void ScriptGlue::SceneManager_LoadSceneByHandle(Engine::AssetHandle handle)
 	{
-		Engine::SceneManager::GetActiveScene()->OnRuntimeStop();
-
-		Engine::Ref<Engine::Scene> scene = Engine::SceneManager::LoadScene(handle);
-		scene->OnRuntimeStart();
+		Engine::SceneManager::LoadScene(handle);
 	}
 
 	void ScriptGlue::SceneManager_LoadSceneByPath(MonoString* path)
 	{
-		Engine::SceneManager::GetActiveScene()->OnRuntimeStop();
-
-		Engine::Ref<Engine::Scene> scene = Engine::SceneManager::LoadScene(Engine::ScriptEngine::MonoStringToUTF8(path));
-		scene->OnRuntimeStart();
+		Engine::SceneManager::LoadScene(Engine::ScriptEngine::MonoStringToUTF8(path));
 	}
 
 #pragma endregion SceneManager

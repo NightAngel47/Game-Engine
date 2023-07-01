@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Scene/SceneManager.h"
 #include "Engine/Project/Project.h"
+#include "Engine/Core/Application.h"
 
 namespace Engine
 {
