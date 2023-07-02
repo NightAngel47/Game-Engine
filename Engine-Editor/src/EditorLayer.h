@@ -34,6 +34,7 @@ namespace Engine
 		void NewScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
+		void OpenScene(const AssetHandle handle);
 		void SaveSceneAs();
 		void SaveScene();
 
@@ -50,9 +51,7 @@ namespace Engine
 	private:
 		Ref<Framebuffer> m_Framebuffer;
 
-		//Ref<Scene> m_ActiveScene;
 		Ref<Scene> m_EditorScene;
-		std::filesystem::path m_EditorScenePath;
 		
 		UUID m_HoveredEntityID = UUID::INVALID();
 

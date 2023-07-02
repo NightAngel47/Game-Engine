@@ -30,12 +30,6 @@ namespace Engine
 		fbSpec.Height = 720;
 		m_Framebuffer = Framebuffer::Create(fbSpec);
 
-		//m_EditorScene = CreateRef<Scene>("Untitled");
-		//m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-		//m_EditorScenePath.clear();
-		//m_SceneHierarchyPanel.SetContext(m_EditorScene);
-		//NewScene();
-
 		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
 		{
@@ -58,8 +52,6 @@ namespace Engine
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
-		
-		//m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}
 
 	void EditorLayer::OnDetach()
@@ -207,6 +199,7 @@ namespace Engine
 				{
 					ScriptEngine::ReloadAssembly();
 					// TODO prompt user to save any changes before reloading scene
+					//OpenScene(m_EditorScene->Handle); // reload scene to match new assembly state
 					SceneManager::LoadScene(m_EditorScene->Handle); // reload scene to match new assembly state
 				}
 
@@ -630,6 +623,7 @@ namespace Engine
 				if (control)
 				{
 					ScriptEngine::ReloadAssembly();
+					SceneManager::LoadScene(m_EditorScene->Handle); // reload scene to match new assembly state
 				}
 				else
 				{
@@ -820,7 +814,6 @@ namespace Engine
 	{
 		m_EditorScene = SceneManager::CreateNewScene();
         m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
-		m_EditorScenePath.clear();
         m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}
 
@@ -842,13 +835,18 @@ namespace Engine
 			return;
 		}
 
+		AssetHandle sceneHandle = Project::GetActive()->GetEditorAssetManager()->GetAssetHandleFromFilePath(path);
+		if (sceneHandle.IsValid())
+			OpenScene(sceneHandle);
+	}
+
+	void EditorLayer::OpenScene(const AssetHandle handle)
+	{
 		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) OnSceneStop();
 
 		NewScene();
 
-		AssetHandle sceneHandle = Project::GetActive()->GetEditorAssetManager()->GetAssetHandleFromFilePath(path);
-		m_EditorScene = SceneManager::LoadScene(sceneHandle);
-		m_EditorScenePath = path;
+		m_EditorScene = SceneManager::LoadScene(handle);
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}
 
@@ -859,32 +857,24 @@ namespace Engine
 		std::filesystem::path fullPath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
 		std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetAssetDirectory());
 
-		m_EditorScenePath = relativePath;
 		SceneManager::GetActiveScene()->SetSceneName(relativePath.filename().string());
 
 		AssetMetadata metadata = AssetMetadata();
 		metadata.Path = fullPath;
 		metadata.Type = AssetType::Scene;
 
-		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, m_EditorScenePath);
+		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, relativePath);
 	}
 
 	void EditorLayer::SaveScene()
 	{
 		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) return;
 
-		if (m_EditorScenePath.empty())
-		{
-			SaveSceneAs();
-		}
+		EditorAssetManager& editorAssetManager = *Project::GetActive()->GetEditorAssetManager();
+		if (editorAssetManager.IsAssetHandleValid(m_EditorScene->Handle))
+			editorAssetManager.SaveAsset(m_EditorScene);
 		else
-		{
-			AssetMetadata metadata = AssetMetadata();
-			metadata.Path = m_EditorScenePath;
-			metadata.Type = AssetType::Scene;
-
-			Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, m_EditorScenePath);
-		}
+			SaveSceneAs();
 	}
 
 	void EditorLayer::OnDuplicateEntity()
