@@ -5,6 +5,30 @@
 
 namespace Engine
 {
+	static std::map<std::filesystem::path, AssetType> s_AssetExtensionMap =
+	{
+		{".scene", AssetType::Scene},
+
+		{".png", AssetType::Texture2D},
+		{".jpg", AssetType::Texture2D},
+		{".jpeg", AssetType::Texture2D},
+
+		{".prefab", AssetType::Prefab},
+
+		{".cs", AssetType::ScriptFile}
+	};
+
+	static const AssetType GetAssetTypeFromFileExtension(const std::filesystem::path& extension)
+	{
+		if (s_AssetExtensionMap.find(extension) == s_AssetExtensionMap.end())
+		{
+			ENGINE_CORE_WARN("Could not find asset type based on extension: {}", extension);
+			return AssetType::None;
+		}
+		
+		return s_AssetExtensionMap.at(extension);
+	}
+
 	EditorAssetManager::EditorAssetManager()
 	{
 		AssetRegistrySerializer assetRegistrySerializer = AssetRegistrySerializer();
@@ -85,13 +109,8 @@ namespace Engine
 
 		AssetMetadata metadata = AssetMetadata();
 		metadata.Path = relativePath;
-
-		if (relativePath.extension() == ".png")
-			metadata.Type = AssetType::Texture2D;
-		else if (relativePath.extension() == ".scene")
-			metadata.Type = AssetType::Scene;
-		else
-			metadata.Type = AssetType::None;
+		metadata.Type = GetAssetTypeFromFileExtension(relativePath.extension());
+		ENGINE_CORE_ASSERT(metadata.Type != AssetType::None, "Asset type was None when importing!");
 
 		Ref<Asset> asset = AssetImporter::ImportAsset(handle, metadata);
 		asset->Handle = handle;

@@ -7,6 +7,7 @@
 #include "Engine/Core/Application.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Scene/Entity.h"
+#include "Engine/Scene/SceneManager.h"
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>

@@ -210,9 +210,7 @@ namespace Engine
 	        {
 
 				if (ImGui::MenuItem("Open Sprite View"))
-				{
 					m_ShowSpriteWindow = true;
-				}
 
 	            ImGui::EndMenu();
 	        }
@@ -340,8 +338,7 @@ namespace Engine
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
-				const AssetHandle* handlePayload = (const AssetHandle*)payload->Data;
-				AssetHandle handle = *handlePayload;
+				AssetHandle handle = *(AssetHandle*)payload->Data;
 				auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 				if (editorAssetManager->IsAssetHandleValid(handle))
 				{
@@ -669,9 +666,7 @@ namespace Engine
 		if (e.GetMouseButton() == Mouse::ButtonLeft)
 		{
 			if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
-			{
 				m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntityID);
-			}
 		}
 		
 		return false;
@@ -797,7 +792,9 @@ namespace Engine
 		if (Project::Load(path))
 		{
 			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
-			OpenScene(Project::GetActive()->GetConfig().StartScene);
+
+			AssetHandle startScene = Project::GetActive()->GetConfig().StartScene;
+			AssetManager::IsAssetHandleValid(startScene) ? OpenScene(startScene) : NewScene();
 		}
 		else
 		{

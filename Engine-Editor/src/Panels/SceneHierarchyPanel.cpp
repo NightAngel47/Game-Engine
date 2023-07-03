@@ -301,8 +301,12 @@ namespace Engine
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-				interaction.ClearInteraction();
+			if (isValid)
+			{
+				ImGui::SameLine();
+				if (ImGui::Button("X", ImVec2{ lineHeight, lineHeight }))
+					interaction.ClearInteraction();
+			}
 
 			ImGui::Text("Function");
 			ImGui::SameLine();
@@ -631,27 +635,44 @@ namespace Engine
 		
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
 		{
-			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+			ImGui::Text("Color");
+			ImGui::SameLine();
+			ImGui::ColorEdit4("##Color", glm::value_ptr(component.Color));
 			
-			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-			const ImVec2 buttonSize = {0.0f, lineHeight};
 			ImGui::Text("Texture");
 			ImGui::SameLine();
 
-			std::string textureName = component.Texture.IsValid() ? Project::GetActive()->GetAssetManager()->GetAssetMetadata(component.Texture).Path.filename().string() : "None";
+			auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+
+			std::string textureName = "None";
+			if (component.Texture.IsValid())
+			{
+				if (AssetManager::IsAssetHandleValid(component.Texture))
+				{
+					const AssetMetadata& metadata = editorAssetManager->GetAssetMetadata(component.Texture);
+					textureName = metadata.Path.filename().string();
+				}
+				else
+				{
+					textureName = "Invalid";
+					ENGINE_CORE_WARN("Assigned Texture Handle as invalid: {}", component.Texture);
+				}
+			}
+
+			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			ImVec2 textSize = ImGui::CalcTextSize(textureName.c_str());
+			const ImVec2 buttonSize = { textSize.x + GImGui->Style.FramePadding.x * 2.0f, lineHeight };
 			ImGui::Button(textureName.c_str(), buttonSize);
 
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 				{
-					const AssetHandle* handlePayload = (const AssetHandle*)payload->Data;
-					AssetHandle handle = *handlePayload;
-					auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+					AssetHandle handle = *(AssetHandle*)payload->Data;
 					if (editorAssetManager->IsAssetHandleValid(handle))
 					{
 						if (editorAssetManager->GetAssetMetadata(handle).Type == AssetType::Texture2D)
-							component.LoadTexture(handle);
+							component.AssignTexture(handle);
 						else
 							ENGINE_CORE_WARN("Asset was not a texture!");
 
@@ -665,10 +686,16 @@ namespace Engine
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-				component.ClearTexture();
+			if (component.Texture.IsValid())
+			{
+				ImGui::SameLine();
+				if (ImGui::Button("X", ImVec2{ lineHeight, lineHeight }))
+					component.ClearTexture();
+			}
 			
-			ImGui::DragFloat("Tiling", &component.Tiling, 0.1f);
+			ImGui::Text("Tiling");
+			ImGui::SameLine();
+			ImGui::DragFloat("##Tiling", &component.Tiling, 0.1f);
 
 			ImGui::Separator();
 			bool subtextureInvalidated = false;
@@ -684,9 +711,7 @@ namespace Engine
 				subtextureInvalidated = true;
 
 			if (subtextureInvalidated)
-			{
 				component.GenerateSubTexture();
-			}
 		});
 		
 		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)

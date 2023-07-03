@@ -602,7 +602,7 @@ namespace Engine
 			spriteRenderer.SubSpriteSize = spriteRendererComponent["SubSpriteSize"].as<glm::vec2>();
 
 			//spriteRenderer.LoadTexture(spriteRenderer.Path);
-			spriteRenderer.LoadTexture(spriteRenderer.Texture);
+			spriteRenderer.AssignTexture(spriteRenderer.Texture);
 			//AssetManager::GetAsset<Texture2D>(spriteRenderer.Texture);
 		}
 

@@ -10,6 +10,7 @@ namespace Engine
 
 		auto scene = AssetManager::GetAsset<Scene>(handle);
 		m_ActiveScene = Scene::Copy(scene);
+		m_ActiveScene->SetSceneName(scene->GetSceneName());
 		m_ActiveScene->Handle = handle;
 
 		ActiveSceneRuntimeStart();
@@ -24,6 +25,7 @@ namespace Engine
 		const AssetHandle handle = Project::GetActive()->GetEditorAssetManager()->GetAssetHandleFromFilePath(path);
 		auto scene = AssetManager::GetAsset<Scene>(handle);
 		m_ActiveScene = Scene::Copy(scene);
+		m_ActiveScene->SetSceneName(scene->GetSceneName());
 		m_ActiveScene->Handle = handle;
 
 		ActiveSceneRuntimeStart();

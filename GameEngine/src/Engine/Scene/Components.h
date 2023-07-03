@@ -97,7 +97,7 @@ namespace Engine
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
 
-		void LoadTexture(AssetHandle handle)
+		void AssignTexture(AssetHandle handle)
 		{
 			if (handle.IsValid())
 			{

@@ -1,10 +1,8 @@
 #pragma once
 
 #include "Engine/Core/Base.h"
-#include "Engine/Asset/AssetManager.h"
 #include "Engine/Asset/EditorAssetManager.h"
 #include "Engine/Asset/RuntimeAssetManager.h"
-#include "Engine/Scene/SceneManager.h"
 #include "Engine/Scene/EditorSceneManager.h"
 #include "Engine/Scene/RuntimeSceneManager.h"
 
@@ -17,7 +15,7 @@ namespace Engine
 	{
 		std::string Name;
 
-		std::filesystem::path StartScene;
+		AssetHandle StartScene;
 
 		std::filesystem::path AssetDirectory;
 		std::filesystem::path AssetRegistryPath;

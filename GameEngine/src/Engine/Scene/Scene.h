@@ -23,6 +23,7 @@ namespace Engine
 		
 		static Ref<Scene> Copy(Ref<Scene> other);
 		void SetSceneName(const std::string& name) { if (!name.empty()) m_Name = name; }
+		const std::string GetSceneName() const { return m_Name; }
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());

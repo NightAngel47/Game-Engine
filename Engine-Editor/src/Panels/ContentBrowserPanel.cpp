@@ -8,7 +8,7 @@ namespace Engine
 	ContentBrowserPanel::ContentBrowserPanel()
 		:m_BaseDirectory(Project::GetAssetDirectory()), m_CurrentDirectory(m_BaseDirectory)
 	{
-		m_TreeNodes.push_back(TreeNode("."));
+		m_TreeNodes.push_back(TreeNode(".", AssetHandle::INVALID()));
 
 		m_DirectoryIcon = TextureImporter::LoadTexture2D("Resources/Icons/ContentBrowser/DirectoryIcon.png");
 		m_FileIcon = TextureImporter::LoadTexture2D("Resources/Icons/ContentBrowser/FileIcon.png");
@@ -83,9 +83,8 @@ namespace Engine
 
 				if (ImGui::BeginDragDropSource())
 				{
-					auto assetPath = GetPathFromAssetTree(treeNodeIndex);
-					const AssetHandle* handle = &Project::GetActive()->GetEditorAssetManager()->GetAssetHandleFromFilePath(assetPath);
-					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", handle, sizeof(AssetHandle), ImGuiCond_Once);
+					AssetHandle handle = m_TreeNodes[treeNodeIndex].Handle;
+					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", &handle, sizeof(AssetHandle), ImGuiCond_Once);
 					ImGui::EndDragDropSource();
 				}
 
@@ -169,7 +168,7 @@ namespace Engine
 				else
 				{
 					// add node
-					TreeNode newNode(path);
+					TreeNode newNode(path, handle);
 					newNode.Parent = currentNodeIndex;
 					m_TreeNodes.push_back(newNode);
 
@@ -179,22 +178,4 @@ namespace Engine
 			}
 		}
 	}
-
-
-	const std::filesystem::path ContentBrowserPanel::GetPathFromAssetTree(const uint32_t treeNodeIndex) const
-	{
-		std::filesystem::path assetPath = "";
-
-		uint32_t currentNodeIndex = treeNodeIndex;
-		while (currentNodeIndex != 0)
-		{
-			auto node = m_TreeNodes[currentNodeIndex];
-			assetPath = currentNodeIndex == treeNodeIndex ? node.Path : node.Path / assetPath;
-
-			currentNodeIndex = node.Parent;
-		}
-
-		return assetPath;
-	}
-
 }
