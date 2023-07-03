@@ -531,12 +531,8 @@ namespace Engine
 
 	void SceneHierarchyPanel::DrawComponents(Entity entity)
 	{
-		if(entity.HasComponent<TagComponent>())
-		{
-			auto& component = entity.GetComponent<TagComponent>();
-			ImGui::InputText("##Tag", &component.Tag);
-
-		}
+		if (entity.HasComponent<TagComponent>())
+			ImGui::InputText("##Tag", &entity.GetComponent<TagComponent>().Tag);
 
 		// Draw Add Component Button at the top right next to the tag input field.
 		ImGui::SameLine();
