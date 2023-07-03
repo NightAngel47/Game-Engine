@@ -2,6 +2,8 @@
 #include "Engine/UI/UIEngine.h"
 #include "Engine/Scripting/ScriptEngine.h"
 
+#include <cstring>
+
 namespace Engine
 {
 	struct UIEngineData
@@ -148,8 +150,29 @@ namespace Engine
 		auto paramType = Params[i]->Field.Type;
 		while (i < 8 && paramType != ScriptFieldType::None)
 		{
-			void* val = Params[i]->GetValue<void*>();
-			m_FunctionParams[i] = &val;
+			if (paramType == ScriptFieldType::Char)
+			{
+				char val[2];
+				memset(val, 0, sizeof(val));
+				val[0] = Params[i]->GetValue<char>();
+
+				auto monoString = ScriptEngine::StringToMonoString(val);
+				m_FunctionParams[i] = monoString;
+			}
+			else if (paramType == ScriptFieldType::String)
+			{
+				char val[64];
+				memset(val, 0, sizeof(val));
+				strcpy_s(val, sizeof(val), Params[i]->GetValue<std::string>().c_str());
+
+				auto monoString = ScriptEngine::StringToMonoString(val);
+				m_FunctionParams[i] = monoString;
+			}
+			else
+			{
+				void* val = Params[i]->GetValue<void*>();
+				m_FunctionParams[i] = &val;
+			}
 
 			++i;
 			paramType = Params[i]->Field.Type;
