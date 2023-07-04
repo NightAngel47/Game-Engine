@@ -83,6 +83,24 @@ namespace Engine
 		return it->second;
 	}
 
+
+	const AssetType EditorAssetManager::GetAssetType(AssetHandle handle) const
+	{
+		if (IsAssetHandleValid(handle))
+			return GetAssetMetadata(handle).Type;
+
+		return AssetType::None;
+	}
+
+
+	const std::filesystem::path& EditorAssetManager::GetAssetPath(AssetHandle handle) const
+	{
+		if (IsAssetHandleValid(handle))
+			return GetAssetMetadata(handle).Path;
+
+		return "";
+	}
+
 	const AssetHandle EditorAssetManager::GetAssetHandleFromFilePath(const std::filesystem::path& path)
 	{
 		for (const auto& [handle, metadata] : m_AssetRegistry)

@@ -350,11 +350,11 @@ namespace Engine
 				auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 				if (editorAssetManager->IsAssetHandleValid(handle))
 				{
-					auto metadata = editorAssetManager->GetAssetMetadata(handle);
-					if (metadata.Type == AssetType::Scene)
-						OpenScene(metadata.Path);
+					auto type = editorAssetManager->GetAssetType(handle);
+					if (type == AssetType::Scene)
+						OpenScene(handle);
 					else
-						ENGINE_CORE_WARN("AssetType is not supported by drag and drop in the Viewport: {}", Utils::AssetTypeToString(metadata.Type));
+						ENGINE_CORE_WARN("AssetType is not supported by drag and drop in the Viewport: {}", Utils::AssetTypeToString(type));
 				}
 				else
 				{
@@ -451,24 +451,27 @@ namespace Engine
 				AssetHandle startScene = config.StartScene;
 				ImGui::Text("Start Scene: ");
 				ImGui::SameLine();
+				auto& editorAssetManager = project->GetEditorAssetManager();
+				std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(startScene) ? editorAssetManager->GetAssetPath(startScene) : "None";
+				ImGui::Text(scenePath.generic_string().c_str());
+				ImGui::SameLine();
 				if (ImGui::InputScalar("##StartSceneHandle", ImGuiDataType_U64, &startScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly));
 				if (ImGui::BeginDragDropTarget())
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 					{
 						AssetHandle handle = *(AssetHandle*)payload->Data;
-						auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 						if (editorAssetManager->IsAssetHandleValid(handle))
 						{
-							auto metadata = editorAssetManager->GetAssetMetadata(handle);
-							if (metadata.Type == AssetType::Scene)
+							auto type = editorAssetManager->GetAssetType(handle);
+							if (type == AssetType::Scene)
 							{
 								config.StartScene = handle;
 								project->Save();
 							}
 							else
 							{
-								ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(metadata.Type));
+								ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(type));
 							}
 						}
 						else

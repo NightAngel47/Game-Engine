@@ -18,6 +18,8 @@ namespace Engine
 		bool IsAssetLoaded(AssetHandle handle) const override;
 
 		const AssetMetadata& GetAssetMetadata(AssetHandle handle) const;
+		const AssetType GetAssetType(AssetHandle handle) const;
+		const std::filesystem::path& GetAssetPath(AssetHandle handle) const;
 		const AssetHandle GetAssetHandleFromFilePath(const std::filesystem::path& path);
 
 		void ImportAsset(const std::filesystem::path& path);

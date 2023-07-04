@@ -645,8 +645,7 @@ namespace Engine
 			{
 				if (AssetManager::IsAssetHandleValid(component.Texture))
 				{
-					const AssetMetadata& metadata = editorAssetManager->GetAssetMetadata(component.Texture);
-					textureName = metadata.Path.filename().string();
+					textureName = editorAssetManager->GetAssetPath(component.Texture).filename().string();
 				}
 				else
 				{
@@ -667,7 +666,7 @@ namespace Engine
 					AssetHandle handle = *(AssetHandle*)payload->Data;
 					if (editorAssetManager->IsAssetHandleValid(handle))
 					{
-						if (editorAssetManager->GetAssetMetadata(handle).Type == AssetType::Texture2D)
+						if (editorAssetManager->GetAssetType(handle) == AssetType::Texture2D)
 							component.AssignTexture(handle);
 						else
 							ENGINE_CORE_WARN("Asset was not a texture!");
