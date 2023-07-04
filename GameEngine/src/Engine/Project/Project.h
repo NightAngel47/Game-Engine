@@ -42,19 +42,19 @@ namespace Engine
 		static std::filesystem::path GetAssetDirectory()
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
-			return GetProjectDirectory() / s_ActiveProject->m_Config.AssetDirectory;
+			return (GetProjectDirectory() / s_ActiveProject->m_Config.AssetDirectory);
 		}
 
 		static std::filesystem::path GetAssetRegistryPath()
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
-			return GetAssetDirectory() / s_ActiveProject->m_Config.AssetRegistryPath;
+			return (GetAssetDirectory() / s_ActiveProject->m_Config.AssetRegistryPath);
 		}
 
 		static std::filesystem::path GetAssetFileSystemPath(const std::filesystem::path& path)
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
-			return GetAssetDirectory() / path;
+			return (GetAssetDirectory() / path);
 		}
 
 		Ref<AssetManagerBase> GetAssetManager() { return m_AssetManager; }
@@ -67,7 +67,8 @@ namespace Engine
 
 		static Ref<Project> New();
 		static Ref<Project> Load(const std::filesystem::path& path);
-		static void Save(const std::filesystem::path& path);
+		static void SaveAs(const std::filesystem::path& path);
+		static void Save();
 
 	private:
 		ProjectConfig m_Config;

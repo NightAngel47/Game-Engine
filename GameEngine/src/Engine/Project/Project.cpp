@@ -33,10 +33,21 @@ namespace Engine
 		return nullptr;
 	}
 
-	void Project::Save(const std::filesystem::path& path)
+	void Project::SaveAs(const std::filesystem::path& path)
 	{
 		ProjectSerializer serializer(s_ActiveProject);
 		s_ActiveProject->m_ProjectDirectory = path.parent_path();
 		serializer.Serialize(path);
 	}
+
+	void Project::Save()
+	{
+		ProjectSerializer serializer(s_ActiveProject);
+		auto project = Project::GetActive();
+
+		std::filesystem::path projectFile{project->GetConfig().Name + ".gameproj"};
+		std::filesystem::path path{project->GetProjectDirectory() / projectFile};
+		serializer.Serialize(path);
+	}
+
 }

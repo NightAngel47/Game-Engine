@@ -74,6 +74,7 @@ namespace Engine
 		bool m_ShowPhysicsColliders = true;
 
 		bool m_ShowSpriteWindow = false;
+		bool m_ShowProjectSettingsWindow = false;
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;

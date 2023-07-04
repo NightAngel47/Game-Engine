@@ -190,7 +190,15 @@ namespace Engine
 					Application::Get().Close();
 	        	
 	            ImGui::EndMenu();
-	        }
+			}
+
+			if (ImGui::BeginMenu("Edit"))
+			{
+				if (ImGui::MenuItem("Project Settings"))
+					m_ShowProjectSettingsWindow = true;
+
+				ImGui::EndMenu();
+			}
 			
 			if (ImGui::BeginMenu("Script"))
 	        {
@@ -424,6 +432,73 @@ namespace Engine
 		UI_Toolbar();
 		
 		ImGui::End();
+
+		if (m_ShowProjectSettingsWindow)
+		{
+			ImGui::Begin("Project Settings", &m_ShowProjectSettingsWindow);
+
+			Ref<Project> project = Project::GetActive();
+
+			if (project)
+			{
+				ProjectConfig& config = project->GetConfig();
+
+				ImGui::Text("Project: ");
+				ImGui::SameLine();
+				ImGui::Text(config.Name.c_str());
+				ImGui::Separator();
+
+				AssetHandle startScene = config.StartScene;
+				ImGui::Text("Start Scene: ");
+				ImGui::SameLine();
+				if (ImGui::InputScalar("##StartSceneHandle", ImGuiDataType_U64, &startScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly));
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						AssetHandle handle = *(AssetHandle*)payload->Data;
+						auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+						if (editorAssetManager->IsAssetHandleValid(handle))
+						{
+							auto metadata = editorAssetManager->GetAssetMetadata(handle);
+							if (metadata.Type == AssetType::Scene)
+							{
+								config.StartScene = handle;
+								project->Save();
+							}
+							else
+							{
+								ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(metadata.Type));
+							}
+						}
+						else
+						{
+							ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
+						}
+					}
+
+					ImGui::EndDragDropTarget();
+				}
+
+				ImGui::Text("Project Directory: ");
+				ImGui::SameLine();
+				ImGui::Text(project->GetProjectDirectory().generic_string().c_str());
+
+				ImGui::Text("Asset Directory: ");
+				ImGui::SameLine();
+				ImGui::Text(project->GetAssetDirectory().generic_string().c_str());
+
+				ImGui::Text("Asset Registry Path: ");
+				ImGui::SameLine();
+				ImGui::Text(project->GetAssetRegistryPath().generic_string().c_str());
+
+				ImGui::Text("Script Module Path: ");
+				ImGui::SameLine();
+				ImGui::Text(Project::GetAssetFileSystemPath(config.ScriptModulePath).generic_string().c_str());
+			}
+
+			ImGui::End();
+		}
 
 		if (m_ShowSpriteWindow)
 		{
@@ -804,7 +879,7 @@ namespace Engine
 
 	void EditorLayer::SaveProject()
 	{
-		//Project::Save();
+		Project::Save();
 	}
 
 	void EditorLayer::NewScene()
