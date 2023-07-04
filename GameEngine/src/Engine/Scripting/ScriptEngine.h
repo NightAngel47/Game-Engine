@@ -106,8 +106,21 @@ namespace Engine
 			memcpy(m_Buffer, &value, sizeof(T));
 		}
 
+		template<>
+		std::string GetValue()
+		{
+			return m_StringBuffer;
+		}
+
+		template<>
+		void SetValue(std::string value)
+		{
+			m_StringBuffer = value;
+		}
+
 	private:
 		uint8_t m_Buffer[64];
+		std::string m_StringBuffer;
 
 		friend class ScriptEngine;
 		friend class ScriptInstance;
@@ -234,8 +247,6 @@ namespace Engine
 		template<>
 		std::string GetFieldValue(const std::string& name)
 		{
-			static_assert(sizeof(std::string) <= 64, "Type too large!");
-
 			bool success = GetFieldValueInternal(name, s_FieldValueBuffer);
 			if (!success)
 			{
@@ -256,8 +267,6 @@ namespace Engine
 		template<>
 		void SetFieldValue(const std::string& name, std::string* value)
 		{
-			static_assert(sizeof(std::string) <= 64, "Type too large!");
-
 			SetFieldValueInternal(name, ScriptEngine::StringToMonoString(*value));
 		}
 
@@ -296,6 +305,7 @@ namespace Engine
 		OnCollisionExit2D OnCollisionExit2DThunk = nullptr;
 
 		inline static char s_FieldValueBuffer[64];
+		inline static std::string s_FieldValueStringBuffer;
 
 		friend class ScriptEngine;
 		friend struct ScriptFieldInstance;

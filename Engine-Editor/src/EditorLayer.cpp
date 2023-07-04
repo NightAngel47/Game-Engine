@@ -925,6 +925,8 @@ namespace Engine
 		if (sceneState == EditorSceneState::Simulate)
 			OnSceneStop();
 
+		SaveScene();
+
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
 		editorSceneManager.SetEditorSceneState(EditorSceneState::Play);
 

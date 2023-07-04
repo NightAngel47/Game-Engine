@@ -570,7 +570,7 @@ namespace Engine
 				{
 					if (fieldInstance.Field.Type == ScriptFieldType::String)
 					{
-						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(*(std::string*)fieldInstance.m_Buffer));
+						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(fieldInstance.m_StringBuffer));
 					}
 					else
 					{

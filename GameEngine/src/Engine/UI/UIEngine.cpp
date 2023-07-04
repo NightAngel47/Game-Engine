@@ -161,10 +161,7 @@ namespace Engine
 			}
 			else if (paramType == ScriptFieldType::String)
 			{
-				char val[64];
-				memset(val, 0, sizeof(val));
-				strcpy_s(val, sizeof(val), Params[i]->GetValue<std::string>().c_str());
-
+				std::string val = Params[i]->GetValue<std::string>();
 				auto monoString = ScriptEngine::StringToMonoString(val);
 				m_FunctionParams[i] = monoString;
 			}
