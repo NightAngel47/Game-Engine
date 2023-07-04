@@ -474,8 +474,6 @@ namespace Engine
 							break;
 						}
 						case ScriptFieldType::Entity:
-						case ScriptFieldType::Void:
-						case ScriptFieldType::None:
 						default:
 							FieldTypeUnsupported(paramType);
 							break;
@@ -921,20 +919,6 @@ namespace Engine
 					case ScriptFieldType::String:
 					{
 						std::string data;
-						//if (sceneRunning)
-						//{
-						//	strcpy_s(data, sizeof(data), scriptInstance->GetFieldValue<std::string>(name).c_str());
-						//}
-						//else if (fieldExists)
-						//{
-						//	strcpy_s(data, sizeof(data), scriptField.GetValue<std::string>().c_str());
-						//}
-						//else
-						//{
-						//	std::string strVal = ScriptEngine::GetDefaultScriptFieldMap(component.ClassName).at(name).GetValue<std::string>();
-						//	strcpy_s(data, sizeof(data), strVal.c_str());
-						//	scriptField.SetValue(strVal);
-						//}
 						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, std::string);
 						if (ImGui::InputText(("##" + name).c_str(), &data, ImGuiInputTextFlags_EnterReturnsTrue))
 							sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(data)) : scriptField.SetValue(std::string(data));
@@ -1029,8 +1013,6 @@ namespace Engine
 						break;
 					}
 					case ScriptFieldType::Entity:
-					case ScriptFieldType::Void:
-					case ScriptFieldType::None:
 					default:
 						FieldTypeUnsupported(field.Type);
 						break;
