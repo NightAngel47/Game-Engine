@@ -16,5 +16,4 @@ public:
 	void OnEvent(Engine::Event& e) override;
 
 private:
-	Engine::Ref<Engine::Scene> m_ActiveScene;
 };

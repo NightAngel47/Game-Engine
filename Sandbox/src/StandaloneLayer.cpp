@@ -6,9 +6,6 @@ static Engine::Ref<Engine::Font> s_Font;
 void Standalone::OnAttach()
 {
 	s_Font = Engine::Font::GetDefault();
-	
-	m_ActiveScene = Engine::CreateRef<Engine::Scene>();
-
 	std::filesystem::path projectFilePath;
 
 #if ENGINE_DIST
@@ -28,23 +25,14 @@ void Standalone::OnAttach()
 
 	if (Engine::Project::Load(projectFilePath))
 	{
-		Engine::ScriptEngine::Init();
-		std::filesystem::path startScenePath = Engine::Project::GetActive()->GetConfig().StartScene;
-
-		m_ActiveScene = Engine::CreateRef<Engine::Scene>(startScenePath.filename().string());
-		auto& window = Engine::Application::Get().GetWindow();
-		m_ActiveScene->OnViewportResize(window.GetWidth(), window.GetHeight());
-
-		Engine::SceneSerializer serializer(m_ActiveScene);
-		serializer.Deserialize(startScenePath);
+		Engine::AssetHandle handle = Engine::Project::GetActive()->GetConfig().StartScene;
+		Engine::SceneManager::LoadScene(handle);
 	}
 	else
 	{
 		ENGINE_CORE_ERROR("Didn't load valid project, closing.");
 		Engine::Application::Get().Close();
 	}
-
-	m_ActiveScene->OnRuntimeStart();
 }
 
 void Standalone::OnDetach()
@@ -59,9 +47,9 @@ void Standalone::OnUpdate(Engine::Timestep ts)
 	Engine::RenderCommand::Clear();
 
 	auto& window = Engine::Application::Get().GetWindow();
-	m_ActiveScene->OnViewportResize(window.GetWidth(), window.GetHeight());
+	Engine::SceneManager::GetActiveScene()->OnViewportResize(window.GetWidth(), window.GetHeight());
 
-	m_ActiveScene->OnUpdateRuntime(ts);
+	Engine::SceneManager::GetActiveScene()->OnUpdateRuntime(ts);
 
 	glm::vec2 mousePos = Engine::Input::GetMousePosition();
 	Engine::UIEngine::SetViewportMousePos(mousePos.x, window.GetHeight() - mousePos.y); // y is inverted
