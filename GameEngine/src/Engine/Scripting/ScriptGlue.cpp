@@ -341,7 +341,15 @@ namespace InternalCalls
 
 	void ScriptGlue::SceneManager_LoadSceneByPath(MonoString* path)
 	{
-		Engine::SceneManager::LoadScene(Engine::ScriptEngine::MonoStringToUTF8(path));
+		std::string sceneName = Engine::ScriptEngine::MonoStringToUTF8(path);
+		for (const auto& [handle, name] : Engine::SceneManager::GetSceneMap())
+		{
+			if (sceneName == name)
+			{
+				Engine::SceneManager::LoadScene(handle);
+				return;
+			}
+		}
 	}
 
 #pragma endregion SceneManager

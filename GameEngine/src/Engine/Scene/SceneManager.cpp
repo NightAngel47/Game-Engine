@@ -10,9 +10,9 @@ namespace Engine
 		return Project::GetActive()->GetSceneManager()->LoadScene(handle);
 	}
 
-	Ref<Scene> SceneManager::LoadScene(const std::filesystem::path& path)
+	Ref<Scene> SceneManager::CreateNewScene(const std::string& name)
 	{
-		return Project::GetActive()->GetSceneManager()->LoadScene(path);
+		return Project::GetActive()->GetSceneManager()->CreateNewScene(name);
 	}
 
 	const Ref<Scene> SceneManager::GetActiveScene()
@@ -20,8 +20,8 @@ namespace Engine
 		return Project::GetActive()->GetSceneManager()->GetActiveScene();
 	}
 
-	Ref<Scene> SceneManager::CreateNewScene(const std::string& name)
+	const std::map<Engine::AssetHandle, std::string>& SceneManager::GetSceneMap()
 	{
-		return Project::GetActive()->GetSceneManager()->CreateNewScene(name);
+		return Project::GetActive()->GetSceneManager()->GetSceneMap();
 	}
 }

@@ -30,6 +30,9 @@ namespace Engine
 		auto view = s_UIEngineData->SceneContext->GetAllEntitiesWith<UILayoutComponent>();
 		for (auto e : view)
 		{
+			if (!s_UIEngineData->SceneContext->IsEntityHandleValid(e))
+				continue;
+			
 			Entity entity = { e, s_UIEngineData->SceneContext };
 			bool isOver = UIEngine::IsOverElement(entity, viewportWidth, viewportHeight);
 

@@ -12,8 +12,10 @@ namespace Engine
 	class EditorSceneManager : public SceneManagerBase
 	{
 	public:
+		EditorSceneManager();
+
 		Ref<Scene> LoadScene(const AssetHandle handle) override;
-		Ref<Scene> LoadScene(const std::filesystem::path& path) override;
+		Ref<Scene> LoadScene(const std::filesystem::path& path);
 
 		Ref<Scene> CreateNewScene(const std::string& name = "Untitled") override;
 
@@ -23,6 +25,8 @@ namespace Engine
 
 		const EditorSceneState GetEditorSceneState() const { return m_SceneState; }
 		void SetEditorSceneState(const EditorSceneState state) { m_SceneState = state; }
+
+		const std::map<AssetHandle, std::string>& GetSceneMap() const override { return m_SceneMap; }
 
 	private:
 		void ActiveSceneRuntimeStop()
@@ -39,6 +43,8 @@ namespace Engine
 
 	private:
 		Ref<Scene> m_ActiveScene = CreateRef<Scene>("Untitled");
+		std::map<AssetHandle, std::string> m_SceneMap;
+
 		EditorSceneState m_SceneState = EditorSceneState::Edit;
 	};
 }

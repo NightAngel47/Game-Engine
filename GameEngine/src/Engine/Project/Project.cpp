@@ -20,8 +20,14 @@ namespace Engine
 			project->m_ProjectDirectory = path.parent_path();
 			s_ActiveProject = project;
 
+#ifdef ENGINE_DIST
+			project->m_AssetManager = CreateRef<RuntimeAssetManager>();
+			project->m_SceneManager = CreateRef<RuntimeSceneManager>();
+#else
 			project->m_AssetManager = CreateRef<EditorAssetManager>();
 			project->m_SceneManager = CreateRef<EditorSceneManager>();
+#endif // ENGINE_DIST
+
 			
 			AssetImporter::Init();
 

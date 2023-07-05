@@ -4,6 +4,16 @@
 
 namespace Engine
 {
+	EditorSceneManager::EditorSceneManager()
+	{
+		const auto& registry = Project::GetActive()->GetEditorAssetManager()->GetAssetRegistry();
+		for (const auto& [handle, metadata] : registry)
+		{
+			if (metadata.Type == AssetType::Scene)
+				m_SceneMap[handle] = metadata.Path.generic_string();
+		}
+	}
+
 	Ref<Scene> EditorSceneManager::LoadScene(const AssetHandle handle)
 	{
 		ActiveSceneRuntimeStop();
