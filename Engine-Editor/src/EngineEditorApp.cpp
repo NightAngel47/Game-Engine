@@ -28,6 +28,7 @@ namespace Engine
 		ApplicationSpecification spec;
 		spec.Name = "Editor";
 		spec.CommandLineArgs = args;
+		spec.Runtime = false;
 
 		return new EngineEditor(spec);
 	}
