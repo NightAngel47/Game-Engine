@@ -18,17 +18,6 @@ namespace Engine
 		{".cs", AssetType::ScriptFile}
 	};
 
-	static const AssetType GetAssetTypeFromFileExtension(const std::filesystem::path& extension)
-	{
-		if (s_AssetExtensionMap.find(extension) == s_AssetExtensionMap.end())
-		{
-			ENGINE_CORE_WARN("Could not find asset type based on extension: {}", extension);
-			return AssetType::None;
-		}
-		
-		return s_AssetExtensionMap.at(extension);
-	}
-
 	EditorAssetManager::EditorAssetManager()
 	{
 		AssetRegistrySerializer assetRegistrySerializer = AssetRegistrySerializer();
@@ -176,6 +165,18 @@ namespace Engine
 
 		AssetRegistrySerializer assetRegistrySerializer = AssetRegistrySerializer();
 		assetRegistrySerializer.Serialize(m_AssetRegistry);
+	}
+
+
+	AssetType EditorAssetManager::GetAssetTypeFromFileExtension(const std::filesystem::path& extension)
+	{
+		if (s_AssetExtensionMap.find(extension) == s_AssetExtensionMap.end())
+		{
+			ENGINE_CORE_WARN("Could not find asset type based on extension: {}", extension);
+			return AssetType::None;
+		}
+
+		return s_AssetExtensionMap.at(extension);
 	}
 
 }

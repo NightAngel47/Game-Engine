@@ -81,10 +81,11 @@ namespace Engine
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
 
+				AssetHandle indexHandle = m_TreeNodes[treeNodeIndex].Handle;
+
 				if (ImGui::BeginDragDropSource())
 				{
-					AssetHandle handle = m_TreeNodes[treeNodeIndex].Handle;
-					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", &handle, sizeof(AssetHandle), ImGuiCond_Once);
+					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", &indexHandle, sizeof(AssetHandle), ImGuiCond_Once);
 					ImGui::EndDragDropSource();
 				}
 
@@ -92,9 +93,10 @@ namespace Engine
 				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 				{
 					if (isDirectory)
-					{
 						m_CurrentDirectory /= item.filename();
-					}
+
+					if (Project::GetActive()->GetEditorAssetManager()->GetAssetType(indexHandle) == AssetType::Scene)
+						SceneManager::LoadScene(indexHandle);
 				}
 
 				ImGui::TextWrapped(itemStr.c_str());
@@ -104,6 +106,8 @@ namespace Engine
 		}
 		else
 		{
+			Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+
 			for (const auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
 			{
 				const auto& path = directoryEntry.path();
@@ -118,11 +122,12 @@ namespace Engine
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
 
-				if (ImGui::BeginPopupContextItem())
+				const auto& assetType = editorAssetManager->GetAssetTypeFromFileExtension(path.extension());
+				if (assetType != AssetType::None && ImGui::BeginPopupContextItem())
 				{
 					if (ImGui::MenuItem("Import Asset"))
 					{
-						Project::GetActive()->GetEditorAssetManager()->ImportAsset(path);
+						editorAssetManager->ImportAsset(path);
 						RefreshAssetTree();
 					}
 

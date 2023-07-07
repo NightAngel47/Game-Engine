@@ -638,7 +638,7 @@ namespace Engine
 			ImGui::Text("Texture");
 			ImGui::SameLine();
 
-			auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+			Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 
 			std::string textureName = "None";
 			if (component.Texture.IsValid())

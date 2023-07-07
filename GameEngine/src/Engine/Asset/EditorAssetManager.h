@@ -31,6 +31,8 @@ namespace Engine
 
 		const AssetRegistry& GetAssetRegistry() const { return m_AssetRegistry; }
 		const AssetMap& GetLoadedAssets() const { return m_LoadedAssets; }
+
+		static AssetType GetAssetTypeFromFileExtension(const std::filesystem::path& extension);
 	private:
 		AssetMap m_LoadedAssets;
 		AssetRegistry m_AssetRegistry;

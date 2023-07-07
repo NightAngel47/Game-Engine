@@ -263,7 +263,7 @@ namespace Engine
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
 
 		ImGui::Separator();
-		auto& editorAssetManager = *Project::GetActive()->GetEditorAssetManager();
+		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 
 		{
 			ImGui::BeginTable("Asset Registry", 3, ImGuiTableFlags_Resizable);
@@ -274,7 +274,7 @@ namespace Engine
 			ImGui::TableHeadersRow();
 
 			int row = 0;
-			for (const auto& [handle, metadata] : editorAssetManager.GetAssetRegistry())
+			for (const auto& [handle, metadata] : editorAssetManager->GetAssetRegistry())
 			{
 				ImGui::TableNextRow();
 
@@ -302,7 +302,7 @@ namespace Engine
 			ImGui::TableHeadersRow();
 
 			int row = 0;
-			for (const auto& [handle, asset] : editorAssetManager.GetLoadedAssets())
+			for (const auto& [handle, asset] : editorAssetManager->GetLoadedAssets())
 			{
 				ImGui::TableNextRow();
 
@@ -347,7 +347,7 @@ namespace Engine
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
 				AssetHandle handle = *(AssetHandle*)payload->Data;
-				auto& editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+				Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 				if (editorAssetManager->IsAssetHandleValid(handle))
 				{
 					auto type = editorAssetManager->GetAssetType(handle);
@@ -451,7 +451,7 @@ namespace Engine
 				AssetHandle startScene = config.StartScene;
 				ImGui::Text("Start Scene: ");
 				ImGui::SameLine();
-				auto& editorAssetManager = project->GetEditorAssetManager();
+				Ref<EditorAssetManager> editorAssetManager = project->GetEditorAssetManager();
 				std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(startScene) ? editorAssetManager->GetAssetPath(startScene) : "None";
 				ImGui::Text(scenePath.generic_string().c_str());
 				ImGui::SameLine();
@@ -752,12 +752,12 @@ namespace Engine
 
 	bool EditorLayer::OnWindowDrop(WindowDropEvent& e)
 	{
-		EditorAssetManager& editorManager = *Project::GetActive()->GetEditorAssetManager();
+		Ref<EditorAssetManager> editorManager = Project::GetActive()->GetEditorAssetManager();
 
 		for (auto& fullPath : e.GetPaths())
 		{
 			ENGINE_CORE_TRACE("Dropped: " + fullPath.string());
-			editorManager.ImportAsset(fullPath);
+			editorManager->ImportAsset(fullPath);
 		}
 
 		return true;
@@ -945,9 +945,9 @@ namespace Engine
 	{
 		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) return;
 
-		EditorAssetManager& editorAssetManager = *Project::GetActive()->GetEditorAssetManager();
-		if (editorAssetManager.IsAssetHandleValid(m_EditorScene->Handle))
-			editorAssetManager.SaveAsset(m_EditorScene);
+		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+		if (editorAssetManager->IsAssetHandleValid(m_EditorScene->Handle))
+			editorAssetManager->SaveAsset(m_EditorScene);
 		else
 			SaveSceneAs();
 	}
