@@ -1,4 +1,5 @@
 #include "ExampleLayer.h"
+#include "Engine/Asset/TextureImporter.h"
 
 #include <imgui/imgui.h>
 
@@ -94,7 +95,7 @@ void ExampleLayer::OnAttach()
 
 	auto textureShader = m_ShaderLibrary.Load("assets/shaders/Renderer2D_Quad.glsl");
 
-	m_Texture = Engine::Texture2D::Create("assets/textures/shipGreen_manned.png");
+	m_Texture = Engine::TextureImporter::LoadTexture2D("assets/textures/shipGreen_manned.png");
 	
 	textureShader->Bind();
 	textureShader->SetInt("u_Texture", 0);

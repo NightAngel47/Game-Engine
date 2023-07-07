@@ -26,8 +26,7 @@ namespace Engine
 		fontTextureSpec.Format = ImageFormat::RGB8;
 		fontTextureSpec.GenerateMips = false;
 
-		Ref<Texture2D> texture = Texture2D::Create(fontTextureSpec);
-		texture->SetData((void*)bitmap.pixels, bitmap.width * bitmap.height * 3);
+		Ref<Texture2D> texture = Texture2D::Create(fontTextureSpec, Buffer((void*)bitmap.pixels, bitmap.width * bitmap.height * 3));
 		return texture;
 	}
 

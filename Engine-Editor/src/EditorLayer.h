@@ -22,6 +22,7 @@ namespace Engine
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+		bool OnWindowDrop(WindowDropEvent& e);
 
 		void OnOverlayRender();
 
@@ -30,9 +31,10 @@ namespace Engine
 		void OpenProject(const std::filesystem::path& path);
 		void SaveProject();
 
-		void NewScene(const std::filesystem::path& path = std::string());
+		void NewScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
+		void OpenScene(const AssetHandle handle);
 		void SaveSceneAs();
 		void SaveScene();
 
@@ -49,21 +51,12 @@ namespace Engine
 	private:
 		Ref<Framebuffer> m_Framebuffer;
 
-		Ref<Scene> m_ActiveScene;
 		Ref<Scene> m_EditorScene;
-		std::filesystem::path m_EditorScenePath;
 		
 		UUID m_HoveredEntityID = UUID::INVALID();
 
 		bool m_PrimaryCamera = true;
 		EditorCamera m_EditorCamera;
-
-		enum class SceneState
-		{
-			Edit = 0, Play = 1, Simulate = 2
-		};
-
-		SceneState m_SceneState = SceneState::Edit;
 
 		// Stats
 		float m_FrameTime = 0;
@@ -80,13 +73,15 @@ namespace Engine
 
 		bool m_ShowPhysicsColliders = true;
 
-		bool m_ShowSpriteWindow = true;
+		bool m_ShowSpriteWindow = false;
+		bool m_ShowProjectSettingsWindow = false;
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		Scope<ContentBrowserPanel> m_ContentBrowserPanel;
 
 		// Editor Resources
+		
 		Ref<Texture2D> m_IconPlay, m_IconPause, m_IconStep, m_IconSimulate, m_IconStop, m_Outline;
 	};
 

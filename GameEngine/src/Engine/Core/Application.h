@@ -33,6 +33,8 @@ namespace Engine
 		std::string Name = "Game Application";
 		std::string WorkingDirectory;
 		ApplicationCommandLineArgs CommandLineArgs;
+
+		bool Runtime = true;
 	};
 	
 	class Application

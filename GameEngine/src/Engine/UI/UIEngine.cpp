@@ -2,6 +2,8 @@
 #include "Engine/UI/UIEngine.h"
 #include "Engine/Scripting/ScriptEngine.h"
 
+#include <cstring>
+
 namespace Engine
 {
 	struct UIEngineData
@@ -28,6 +30,9 @@ namespace Engine
 		auto view = s_UIEngineData->SceneContext->GetAllEntitiesWith<UILayoutComponent>();
 		for (auto e : view)
 		{
+			if (!s_UIEngineData->SceneContext->IsEntityHandleValid(e))
+				continue;
+			
 			Entity entity = { e, s_UIEngineData->SceneContext };
 			bool isOver = UIEngine::IsOverElement(entity, viewportWidth, viewportHeight);
 
@@ -148,8 +153,26 @@ namespace Engine
 		auto paramType = Params[i]->Field.Type;
 		while (i < 8 && paramType != ScriptFieldType::None)
 		{
-			void* val = Params[i]->GetValue<void*>();
-			m_FunctionParams[i] = &val;
+			if (paramType == ScriptFieldType::Char)
+			{
+				char val[2];
+				memset(val, 0, sizeof(val));
+				val[0] = Params[i]->GetValue<char>();
+
+				auto monoString = ScriptEngine::StringToMonoString(val);
+				m_FunctionParams[i] = monoString;
+			}
+			else if (paramType == ScriptFieldType::String)
+			{
+				std::string val = Params[i]->GetValue<std::string>();
+				auto monoString = ScriptEngine::StringToMonoString(val);
+				m_FunctionParams[i] = monoString;
+			}
+			else
+			{
+				void* val = Params[i]->GetValue<void*>();
+				m_FunctionParams[i] = &val;
+			}
 
 			++i;
 			paramType = Params[i]->Field.Type;

@@ -19,10 +19,12 @@
 #include <sstream>
 #include <array>
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "Engine/Core/Base.h"
+#include "Engine/Core/Buffer.h"
 
 #include "Engine/Core/Log.h"
 

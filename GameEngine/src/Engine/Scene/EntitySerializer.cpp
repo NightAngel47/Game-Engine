@@ -238,32 +238,32 @@ namespace Engine
 		}
 	}
 
-	void EntitySerializer::Serialize(YAML::Emitter& out)
+	void EntitySerializer::Serialize(YAML::Emitter& out, Entity entity, const Ref<Scene>& scene)
 	{
-		ENGINE_CORE_ASSERT(m_Entity.HasComponent<IDComponent>(), "Entity must have UUID!");
+		ENGINE_CORE_ASSERT(entity.HasComponent<IDComponent>(), "Entity must have UUID!");
 
 		out << YAML::BeginMap; // Entity
-		UUID uuid = m_Entity.GetUUID();
+		UUID uuid = entity.GetUUID();
 		out << YAML::Key << "Entity" << YAML::Value << uuid;
 
-		if (m_Entity.HasComponent<TagComponent>())
+		if (entity.HasComponent<TagComponent>())
 		{
 			out << YAML::Key << "TagComponent";
 			out << YAML::BeginMap; // TagComponent
 
-			std::string& name = m_Entity.GetComponent<TagComponent>().Tag;
+			std::string& name = entity.GetComponent<TagComponent>().Tag;
 			out << YAML::Key << "Tag" << YAML::Value << name;
 			ENGINE_CORE_TRACE("Serializing entity with ID = {0}, name {1}", uuid, name);
 
 			out << YAML::EndMap; // TagComponent
 		}
 
-		if (m_Entity.HasComponent<RelationshipComponent>())
+		if (entity.HasComponent<RelationshipComponent>())
 		{
 			out << YAML::Key << "RelationshipComponent";
 			out << YAML::BeginMap; // RelationshipComponent
 
-			auto& relationshipComponent = m_Entity.GetComponent<RelationshipComponent>();
+			auto& relationshipComponent = entity.GetComponent<RelationshipComponent>();
 			out << YAML::Key << "ChildrenCount" << YAML::Value << relationshipComponent.ChildrenCount;
 			out << YAML::Key << "FirstChild" << YAML::Value << relationshipComponent.FirstChild;
 			out << YAML::Key << "NextChild" << YAML::Value << relationshipComponent.NextChild;
@@ -273,12 +273,12 @@ namespace Engine
 			out << YAML::EndMap; // RelationshipComponent
 		}
 
-		if (m_Entity.HasComponent<TransformComponent>())
+		if (entity.HasComponent<TransformComponent>())
 		{
 			out << YAML::Key << "TransformComponent";
 			out << YAML::BeginMap; // TransformComponent
 
-			auto& transformComponent = m_Entity.GetComponent<TransformComponent>();
+			auto& transformComponent = entity.GetComponent<TransformComponent>();
 			out << YAML::Key << "Position" << YAML::Value << transformComponent.Position;
 			out << YAML::Key << "Rotation" << YAML::Value << transformComponent.Rotation;
 			out << YAML::Key << "Scale" << YAML::Value << transformComponent.Scale;
@@ -286,12 +286,12 @@ namespace Engine
 			out << YAML::EndMap; // TransformComponent
 		}
 
-		if (m_Entity.HasComponent<UILayoutComponent>())
+		if (entity.HasComponent<UILayoutComponent>())
 		{
 			out << YAML::Key << "UILayoutComponent";
 			out << YAML::BeginMap; // UILayoutComponent
 
-			auto& uiLayoutComponent = m_Entity.GetComponent<UILayoutComponent>();
+			auto& uiLayoutComponent = entity.GetComponent<UILayoutComponent>();
 			out << YAML::Key << "Size" << YAML::Value << uiLayoutComponent.Size;
 			out << YAML::Key << "AnchorMin" << YAML::Value << uiLayoutComponent.AnchorMin;
 			out << YAML::Key << "AnchorMax" << YAML::Value << uiLayoutComponent.AnchorMax;
@@ -299,12 +299,12 @@ namespace Engine
 			out << YAML::EndMap; // UILayoutComponent
 		}
 
-		if (m_Entity.HasComponent<CameraComponent>())
+		if (entity.HasComponent<CameraComponent>())
 		{
 			out << YAML::Key << "CameraComponent";
 			out << YAML::BeginMap; // CameraComponent
 
-			auto& cameraComponent = m_Entity.GetComponent<CameraComponent>();
+			auto& cameraComponent = entity.GetComponent<CameraComponent>();
 			auto& camera = cameraComponent.Camera;
 
 			out << YAML::Key << "Camera";
@@ -328,14 +328,15 @@ namespace Engine
 			out << YAML::EndMap; // CameraComponent
 		}
 
-		if (m_Entity.HasComponent<SpriteRendererComponent>())
+		if (entity.HasComponent<SpriteRendererComponent>())
 		{
 			out << YAML::Key << "SpriteRendererComponent";
 			out << YAML::BeginMap; // SpriteRendererComponent
 
-			auto& spriteRendererComponent = m_Entity.GetComponent<SpriteRendererComponent>();
+			auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
+			out << YAML::Key << "Texture" << YAML::Value << spriteRendererComponent.Texture;
 			out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
-			out << YAML::Key << "Path" << YAML::Value << spriteRendererComponent.Path.string();
+			//out << YAML::Key << "Path" << YAML::Value << spriteRendererComponent.Path.string();
 			out << YAML::Key << "Tiling" << YAML::Value << spriteRendererComponent.Tiling;
 
 			out << YAML::Key << "IsSubTexture" << YAML::Value << spriteRendererComponent.IsSubTexture;
@@ -346,12 +347,12 @@ namespace Engine
 			out << YAML::EndMap; // SpriteRendererComponent
 		}
 
-		if (m_Entity.HasComponent<CircleRendererComponent>())
+		if (entity.HasComponent<CircleRendererComponent>())
 		{
 			out << YAML::Key << "CircleRendererComponent";
 			out << YAML::BeginMap; // CircleRendererComponent
 
-			auto& circleRendererComponent = m_Entity.GetComponent<CircleRendererComponent>();
+			auto& circleRendererComponent = entity.GetComponent<CircleRendererComponent>();
 			out << YAML::Key << "Color" << YAML::Value << circleRendererComponent.Color;
 			out << YAML::Key << "Radius" << YAML::Value << circleRendererComponent.Radius;
 			out << YAML::Key << "Thickness" << YAML::Value << circleRendererComponent.Thickness;
@@ -360,12 +361,12 @@ namespace Engine
 			out << YAML::EndMap; // CircleRendererComponent
 		}
 
-		if (m_Entity.HasComponent<TextRendererComponent>())
+		if (entity.HasComponent<TextRendererComponent>())
 		{
 			out << YAML::Key << "TextRendererComponent";
 			out << YAML::BeginMap; // TextRendererComponent
 
-			auto& textRendererComponent = m_Entity.GetComponent<TextRendererComponent>();
+			auto& textRendererComponent = entity.GetComponent<TextRendererComponent>();
 			out << YAML::Key << "TextString" << YAML::Value << textRendererComponent.TextString;
 			//out << YAML::Key << "FontAsset" << YAML::Value << textRendererComponent.FontAsset; // TODO
 			out << YAML::Key << "Color" << YAML::Value << textRendererComponent.Color;
@@ -375,12 +376,12 @@ namespace Engine
 			out << YAML::EndMap; // TextRendererComponent
 		}
 
-		if (m_Entity.HasComponent<ScriptComponent>())
+		if (entity.HasComponent<ScriptComponent>())
 		{
 			out << YAML::Key << "ScriptComponent";
 			out << YAML::BeginMap; // ScriptComponent
 
-			auto& scriptComponent = m_Entity.GetComponent<ScriptComponent>();
+			auto& scriptComponent = entity.GetComponent<ScriptComponent>();
 			out << YAML::Key << "ClassName" << YAML::Value << scriptComponent.ClassName;
 
 			// Fields
@@ -388,7 +389,7 @@ namespace Engine
 			if (scriptFields.size() > 0)
 			{
 				out << YAML::Key << "ScriptFields" << YAML::Value;
-				auto& entityFields = ScriptEngine::GetScriptFieldMap(m_Entity);
+				auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
 				out << YAML::BeginSeq;
 				for (auto const& [name, field] : scriptFields)
 				{
@@ -434,12 +435,12 @@ namespace Engine
 			out << YAML::EndMap; // ScriptComponent
 		}
 
-		if (m_Entity.HasComponent<Rigidbody2DComponent>())
+		if (entity.HasComponent<Rigidbody2DComponent>())
 		{
 			out << YAML::Key << "Rigidbody2DComponent";
 			out << YAML::BeginMap; // Rigidbody2DComponent
 
-			auto& rigidbody2DComponent = m_Entity.GetComponent<Rigidbody2DComponent>();
+			auto& rigidbody2DComponent = entity.GetComponent<Rigidbody2DComponent>();
 			out << YAML::Key << "Type" << YAML::Value << Utils::Rigidbody2DBodyTypeToString(rigidbody2DComponent.Type);
 			out << YAML::Key << "FixedRotation" << YAML::Value << rigidbody2DComponent.FixedRotation;
 			out << YAML::Key << "Smoothing" << YAML::Value << Utils::Rigidbody2DSmoothingTypeToString(rigidbody2DComponent.Smoothing);
@@ -447,12 +448,12 @@ namespace Engine
 			out << YAML::EndMap; // Rigidbody2DComponent
 		}
 
-		if (m_Entity.HasComponent<BoxCollider2DComponent>())
+		if (entity.HasComponent<BoxCollider2DComponent>())
 		{
 			out << YAML::Key << "BoxCollider2DComponent";
 			out << YAML::BeginMap; // BoxCollider2DComponent
 
-			auto& boxCollider2DComponent = m_Entity.GetComponent<BoxCollider2DComponent>();
+			auto& boxCollider2DComponent = entity.GetComponent<BoxCollider2DComponent>();
 			out << YAML::Key << "Offset" << YAML::Value << boxCollider2DComponent.Offset;
 			out << YAML::Key << "Size" << YAML::Value << boxCollider2DComponent.Size;
 			out << YAML::Key << "Sensor" << YAML::Value << boxCollider2DComponent.Sensor;
@@ -464,12 +465,12 @@ namespace Engine
 			out << YAML::EndMap; // BoxCollider2DComponent
 		}
 
-		if (m_Entity.HasComponent<CircleCollider2DComponent>())
+		if (entity.HasComponent<CircleCollider2DComponent>())
 		{
 			out << YAML::Key << "CircleCollider2DComponent";
 			out << YAML::BeginMap; // CircleCollider2DComponent
 
-			auto& circleCollider2DComponent = m_Entity.GetComponent<CircleCollider2DComponent>();
+			auto& circleCollider2DComponent = entity.GetComponent<CircleCollider2DComponent>();
 			out << YAML::Key << "Offset" << YAML::Value << circleCollider2DComponent.Offset;
 			out << YAML::Key << "Radius" << YAML::Value << circleCollider2DComponent.Radius;
 			out << YAML::Key << "Sensor" << YAML::Value << circleCollider2DComponent.Sensor;
@@ -481,12 +482,12 @@ namespace Engine
 			out << YAML::EndMap; // CircleCollider2DComponent
 		}
 
-		if (m_Entity.HasComponent<UIButtonComponent>())
+		if (entity.HasComponent<UIButtonComponent>())
 		{
 			out << YAML::Key << "UIButtonComponent";
 			out << YAML::BeginMap; // UIButtonComponent
 
-			auto& uiButtonComponent = m_Entity.GetComponent<UIButtonComponent>();
+			auto& uiButtonComponent = entity.GetComponent<UIButtonComponent>();
 			out << YAML::Key << "NormalColor" << YAML::Value << uiButtonComponent.NormalColor;
 			out << YAML::Key << "HoverColor" << YAML::Value << uiButtonComponent.HoverColor;
 			out << YAML::Key << "PressedColor" << YAML::Value << uiButtonComponent.PressedColor;
@@ -498,24 +499,24 @@ namespace Engine
 			out << YAML::EndMap; // UIButtonComponent
 		}
 
-		auto& relationship = m_Entity.GetComponent<RelationshipComponent>();
+		auto& relationship = entity.GetComponent<RelationshipComponent>();
 		if (relationship.HasChildren())
 		{
-			Entity parentEntity = m_Entity;
+			Entity parentEntity = entity;
 			out << YAML::Key << "ChildEntities" << YAML::Value << YAML::BeginSeq;
 
 			UUID childIterator = relationship.FirstChild;
 			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
 			{
-				m_Entity = m_Scene->GetEntityWithUUID(childIterator);
-				Serialize(out);
+				entity = scene->GetEntityWithUUID(childIterator);
+				Serialize(out, entity, scene);
 
-				childIterator = m_Entity.GetComponent<RelationshipComponent>().NextChild;
+				childIterator = entity.GetComponent<RelationshipComponent>().NextChild;
 				if (!childIterator.IsValid())
 					break;
 			}
 
-			m_Entity = parentEntity;
+			entity = parentEntity;
 
 			out << YAML::EndSeq; // ChildEntities
 		}
@@ -523,31 +524,31 @@ namespace Engine
 		out << YAML::EndMap; // Entity
 	}
 
-	Engine::Entity EntitySerializer::Deserialize(YAML::Node& entity, bool isPrefab)
+	Entity EntitySerializer::Deserialize(YAML::Node& entityOut, Entity entity, Ref<Scene>& scene, bool isPrefab)
 	{
-		UUID uuid = isPrefab ? UUID() : entity["Entity"].as<uint64_t>();
+		UUID uuid = isPrefab ? UUID() : entityOut["Entity"].as<uint64_t>();
 
 		std::string name;
-		auto tagComponent = entity["TagComponent"];
+		auto tagComponent = entityOut["TagComponent"];
 		if (tagComponent)
 			name = tagComponent["Tag"].as<std::string>();
 
 		ENGINE_CORE_TRACE("Deserializing entity {0}: {1}", uuid, name);
-		m_Entity = m_Scene->CreateEntityWithUUID(uuid, name);
+		entity = scene->CreateEntityWithUUID(uuid, name);
 
-		auto transformComponent = entity["TransformComponent"];
+		auto transformComponent = entityOut["TransformComponent"];
 		if (transformComponent)
 		{
-			auto& tc = m_Entity.GetComponent<TransformComponent>();
+			auto& tc = entity.GetComponent<TransformComponent>();
 			tc.Position = transformComponent["Position"].as<glm::vec3>();
 			tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
 			tc.Scale = transformComponent["Scale"].as<glm::vec3>();
 		}
 
-		auto relationshipComponent = entity["RelationshipComponent"];
+		auto relationshipComponent = entityOut["RelationshipComponent"];
 		if (relationshipComponent)
 		{
-			auto& relationship = m_Entity.GetComponent<RelationshipComponent>();
+			auto& relationship = entity.GetComponent<RelationshipComponent>();
 			relationship.ChildrenCount = relationshipComponent["ChildrenCount"].as<uint64_t>();
 			relationship.FirstChild = relationshipComponent["FirstChild"].as<uint64_t>();
 			relationship.NextChild = relationshipComponent["NextChild"].as<uint64_t>();
@@ -555,19 +556,19 @@ namespace Engine
 			relationship.Parent = relationshipComponent["Parent"].as<uint64_t>();
 		}
 
-		auto uiLayoutComponent = entity["UILayoutComponent"];
+		auto uiLayoutComponent = entityOut["UILayoutComponent"];
 		if (uiLayoutComponent)
 		{
-			auto& ui = m_Entity.AddComponent<UILayoutComponent>();
+			auto& ui = entity.AddComponent<UILayoutComponent>();
 			ui.Size = uiLayoutComponent["Size"].as<glm::vec2>();
 			ui.AnchorMin = uiLayoutComponent["AnchorMin"].as<glm::vec2>();
 			ui.AnchorMax = uiLayoutComponent["AnchorMax"].as<glm::vec2>();
 		}
 
-		auto cameraComponent = entity["CameraComponent"];
+		auto cameraComponent = entityOut["CameraComponent"];
 		if (cameraComponent)
 		{
-			auto& cc = m_Entity.AddComponent<CameraComponent>();
+			auto& cc = entity.AddComponent<CameraComponent>();
 			auto& camera = cc.Camera;
 
 			auto& cameraProps = cameraComponent["Camera"];
@@ -586,12 +587,13 @@ namespace Engine
 			cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
 		}
 
-		auto spriteRendererComponent = entity["SpriteRendererComponent"];
+		auto spriteRendererComponent = entityOut["SpriteRendererComponent"];
 		if (spriteRendererComponent)
 		{
-			auto& spriteRenderer = m_Entity.AddComponent<SpriteRendererComponent>();
+			auto& spriteRenderer = entity.AddComponent<SpriteRendererComponent>();
+			spriteRenderer.Texture = spriteRendererComponent["Texture"].as<uint64_t>();
 			spriteRenderer.Color = spriteRendererComponent["Color"].as<glm::vec4>();
-			spriteRenderer.Path = spriteRendererComponent["Path"].as<std::string>();
+			//spriteRenderer.Path = spriteRendererComponent["Path"].as<std::string>();
 			spriteRenderer.Tiling = spriteRendererComponent["Tiling"].as<float>();
 
 			spriteRenderer.IsSubTexture = spriteRendererComponent["IsSubTexture"].as<bool>();
@@ -599,23 +601,25 @@ namespace Engine
 			spriteRenderer.SubCellSize = spriteRendererComponent["SubCellSize"].as<glm::vec2>();
 			spriteRenderer.SubSpriteSize = spriteRendererComponent["SubSpriteSize"].as<glm::vec2>();
 
-			spriteRenderer.LoadTexture(spriteRenderer.Path);
+			//spriteRenderer.LoadTexture(spriteRenderer.Path);
+			spriteRenderer.AssignTexture(spriteRenderer.Texture);
+			//AssetManager::GetAsset<Texture2D>(spriteRenderer.Texture);
 		}
 
-		auto circleRendererComponent = entity["CircleRendererComponent"];
+		auto circleRendererComponent = entityOut["CircleRendererComponent"];
 		if (circleRendererComponent)
 		{
-			auto& circleRenderer = m_Entity.AddComponent<CircleRendererComponent>();
+			auto& circleRenderer = entity.AddComponent<CircleRendererComponent>();
 			circleRenderer.Color = circleRendererComponent["Color"].as<glm::vec4>();
 			circleRenderer.Radius = circleRendererComponent["Radius"].as<float>();
 			circleRenderer.Thickness = circleRendererComponent["Thickness"].as<float>();
 			circleRenderer.Fade = circleRendererComponent["Fade"].as<float>();
 		}
 
-		auto textRendererComponent = entity["TextRendererComponent"];
+		auto textRendererComponent = entityOut["TextRendererComponent"];
 		if (textRendererComponent)
 		{
-			auto& textRenderer = m_Entity.AddComponent<TextRendererComponent>();
+			auto& textRenderer = entity.AddComponent<TextRendererComponent>();
 			textRenderer.TextString = textRendererComponent["TextString"].as<std::string>();
 			// textRenderer.FontAsset = font; // TODO
 			textRenderer.Color = textRendererComponent["Color"].as<glm::vec4>();
@@ -623,10 +627,10 @@ namespace Engine
 			textRenderer.LineSpacing = textRendererComponent["LineSpacing"].as<float>();
 		}
 
-		auto scriptComponent = entity["ScriptComponent"];
+		auto scriptComponent = entityOut["ScriptComponent"];
 		if (scriptComponent)
 		{
-			auto& sc = m_Entity.AddComponent<ScriptComponent>();
+			auto& sc = entity.AddComponent<ScriptComponent>();
 			sc.ClassName = scriptComponent["ClassName"].as<std::string>();
 
 			auto scriptFields = scriptComponent["ScriptFields"];
@@ -636,7 +640,7 @@ namespace Engine
 				if (entityClass)
 				{
 					const auto& fields = entityClass->GetScriptFields();
-					auto& entityFields = ScriptEngine::GetScriptFieldMap(m_Entity);
+					auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
 
 					for (auto scriptField : scriptFields)
 					{
@@ -684,19 +688,19 @@ namespace Engine
 			}
 		}
 
-		auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
+		auto rigidbody2DComponent = entityOut["Rigidbody2DComponent"];
 		if (rigidbody2DComponent)
 		{
-			auto& rigidbody2D = m_Entity.AddComponent<Rigidbody2DComponent>();
+			auto& rigidbody2D = entity.AddComponent<Rigidbody2DComponent>();
 			rigidbody2D.Type = Utils::Rigidbody2DBodyTypeFromString(rigidbody2DComponent["Type"].as<std::string>());
 			rigidbody2D.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
 			rigidbody2D.Smoothing = Utils::Rigidbody2DSmoothingTypeFromString(rigidbody2DComponent["Smoothing"].as<std::string>());
 		}
 
-		auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
+		auto boxCollider2DComponent = entityOut["BoxCollider2DComponent"];
 		if (boxCollider2DComponent)
 		{
-			auto& boxCollider2D = m_Entity.AddComponent<BoxCollider2DComponent>();
+			auto& boxCollider2D = entity.AddComponent<BoxCollider2DComponent>();
 			boxCollider2D.Offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
 			boxCollider2D.Size = boxCollider2DComponent["Size"].as<glm::vec2>();
 
@@ -708,10 +712,10 @@ namespace Engine
 			boxCollider2D.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<float>();
 		}
 
-		auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
+		auto circleCollider2DComponent = entityOut["CircleCollider2DComponent"];
 		if (circleCollider2DComponent)
 		{
-			auto& circleCollider2D = m_Entity.AddComponent<CircleCollider2DComponent>();
+			auto& circleCollider2D = entity.AddComponent<CircleCollider2DComponent>();
 			circleCollider2D.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
 			circleCollider2D.Radius = circleCollider2DComponent["Radius"].as<float>();
 
@@ -723,10 +727,10 @@ namespace Engine
 			circleCollider2D.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
 		}
 
-		auto uiButtonComponent = entity["UIButtonComponent"];
+		auto uiButtonComponent = entityOut["UIButtonComponent"];
 		if (uiButtonComponent)
 		{
-			auto& uiButton = m_Entity.AddComponent<UIButtonComponent>();
+			auto& uiButton = entity.AddComponent<UIButtonComponent>();
 			uiButton.NormalColor = uiButtonComponent["NormalColor"].as<glm::vec4>();
 			uiButton.HoverColor = uiButtonComponent["HoverColor"].as<glm::vec4>();
 			uiButton.PressedColor = uiButtonComponent["PressedColor"].as<glm::vec4>();
@@ -736,17 +740,17 @@ namespace Engine
 			DeserializeUIInteraction(uiButtonComponent, uiButton.ReleasedEvent, "ReleasedEvent");
 		}
 
-		auto childEntities = entity["ChildEntities"];
+		auto childEntities = entityOut["ChildEntities"];
 		if (childEntities)
 		{
-			Entity parentEntity = m_Entity;
+			Entity parentEntity = entity;
 
 			bool firstChild = true;
 			UUID prevChild = UUID::INVALID();
 
 			for (auto childEntityNode : childEntities)
 			{
-				Entity childEntity = Deserialize(childEntityNode, isPrefab);
+				Entity childEntity = Deserialize(childEntityNode, entity, scene, isPrefab);
 
 				if (isPrefab)
 				{
@@ -762,7 +766,7 @@ namespace Engine
 					}
 					else
 					{
-						Entity prevChildEntity = m_Scene->GetEntityWithUUID(prevChild);
+						Entity prevChildEntity = scene->GetEntityWithUUID(prevChild);
 						prevChildEntity.GetComponent<RelationshipComponent>().NextChild = childID;
 						childRelationship.PrevChild = prevChild;
 					}
@@ -771,9 +775,9 @@ namespace Engine
 				}
 			}
 
-			m_Entity = parentEntity;
+			entity = parentEntity;
 		}
 
-		return m_Entity;
+		return entity;
 	}
 }

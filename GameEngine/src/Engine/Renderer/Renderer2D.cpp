@@ -200,9 +200,8 @@ namespace Engine
 		s_Renderer2DData.TextVertexBufferBase = new TextVertex[s_Renderer2DData.MaxVertices];
 		s_Renderer2DData.TextVertexArray->SetIndexBuffer(quadIB); // Use quad IB (identical implementation otherwise)
 
-		s_Renderer2DData.WhiteTexture = Texture2D::Create(TextureSpecification());
 		uint32_t whiteTextureData = 0xffffffff;
-		s_Renderer2DData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
+		s_Renderer2DData.WhiteTexture = Texture2D::Create(TextureSpecification(), Buffer(&whiteTextureData, sizeof(uint32_t)));
 
 		int32_t samplers[s_Renderer2DData.MaxTextureSlots];
 		for (uint32_t i = 0; i < s_Renderer2DData.MaxTextureSlots; i++)
@@ -383,7 +382,7 @@ namespace Engine
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_Renderer2DData.TextureSlotIndex; i++)
 		{
-			if (*s_Renderer2DData.TextureSlots[i].get() == *texture.get())
+			if (s_Renderer2DData.TextureSlots[i] == texture)
 			{
 				textureIndex = (float)i;
 				break;
@@ -396,6 +395,7 @@ namespace Engine
 				Flush();
 			
 			textureIndex = (float)s_Renderer2DData.TextureSlotIndex;
+			ENGINE_CORE_VERIFY(texture);
 			s_Renderer2DData.TextureSlots[s_Renderer2DData.TextureSlotIndex] = texture;
 			s_Renderer2DData.TextureSlotIndex++;
 		}
@@ -413,7 +413,7 @@ namespace Engine
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_Renderer2DData.TextureSlotIndex; i++)
 		{
-			if (*s_Renderer2DData.TextureSlots[i] == *texture)
+			if (s_Renderer2DData.TextureSlots[i] == texture)
 			{
 				textureIndex = (float)i;
 				break;
@@ -480,13 +480,16 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		if(src.Texture && src.IsSubTexture)
+		if (src.Texture.IsValid())
 		{
-			DrawQuad(transform, src.SubTexture, src.Tiling, src.Color, entityID);
-		}
-		else if (src.Texture)
-		{
-			DrawQuad(transform, src.Texture, src.Tiling, src.Color, entityID);
+			if (src.IsSubTexture)
+			{
+				DrawQuad(transform, src.SubTexture, src.Tiling, src.Color, entityID);
+			}
+			else
+			{
+				DrawQuad(transform, src.GetTexture2D(), src.Tiling, src.Color, entityID);
+			}
 		}
 		else
 		{

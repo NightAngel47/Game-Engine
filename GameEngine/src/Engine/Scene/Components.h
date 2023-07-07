@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Asset/AssetManager.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Renderer/Texture.h"
 #include "Engine/Renderer/SubTexture2D.h"
@@ -80,10 +81,9 @@ namespace Engine
 
 	struct SpriteRendererComponent
 	{
+		AssetHandle Texture = AssetHandle::INVALID();
 		glm::vec4 Color{ 1.0f };
-		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
-		std::filesystem::path Path = "";
 
 		//Sub Texture
 		bool IsSubTexture = false;
@@ -97,12 +97,11 @@ namespace Engine
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
 
-		void LoadTexture(const std::filesystem::path& path)
+		void AssignTexture(AssetHandle handle)
 		{
-			if (!path.empty())
+			if (handle.IsValid())
 			{
-				Path = path;
-				Texture = Texture2D::Create(Project::GetAssetFileSystemPath(path).string());
+				Texture = handle;
 
 				GenerateSubTexture();
 			}
@@ -118,8 +117,13 @@ namespace Engine
 
 		void ClearTexture()
 		{
-			Path.clear();
-			Texture = nullptr;
+			Texture = AssetHandle::INVALID();
+		}
+
+		const Ref<Texture2D> GetTexture2D()
+		{
+			if (Texture.IsValid())
+				return AssetManager::GetAsset<Texture2D>(Texture);
 		}
 	};
 

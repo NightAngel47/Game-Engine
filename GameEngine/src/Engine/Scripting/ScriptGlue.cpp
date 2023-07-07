@@ -6,6 +6,7 @@
 #include "Engine/Scene/Entity.h"
 #include "Engine/Math/Random.h"
 #include "Engine/Physics/Physics2D.h"
+#include "Engine/Scene/SceneManager.h"
 
 #include <box2d/b2_body.h>
 
@@ -74,6 +75,9 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector3_Normalize);
 
 		ENGINE_ADD_INTERNAL_CALL(Physics2DContact_GetEntityByID);
+
+		ENGINE_ADD_INTERNAL_CALL(SceneManager_LoadSceneByHandle);
+		ENGINE_ADD_INTERNAL_CALL(SceneManager_LoadSceneByPath);
 
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetName);
 		ENGINE_ADD_INTERNAL_CALL(Entity_HasComponent);
@@ -327,6 +331,28 @@ namespace InternalCalls
 	}
 
 #pragma endregion Physics2DContact
+
+#pragma region SceneManager
+
+	void ScriptGlue::SceneManager_LoadSceneByHandle(Engine::AssetHandle handle)
+	{
+		Engine::SceneManager::LoadScene(handle);
+	}
+
+	void ScriptGlue::SceneManager_LoadSceneByPath(MonoString* path)
+	{
+		std::string sceneName = Engine::ScriptEngine::MonoStringToUTF8(path);
+		for (const auto& [handle, name] : Engine::SceneManager::GetSceneMap())
+		{
+			if (sceneName == name)
+			{
+				Engine::SceneManager::LoadScene(handle);
+				return;
+			}
+		}
+	}
+
+#pragma endregion SceneManager
 
 #pragma region Entity
 

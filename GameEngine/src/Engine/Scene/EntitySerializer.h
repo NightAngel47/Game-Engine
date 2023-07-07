@@ -9,14 +9,10 @@ namespace Engine
 	class EntitySerializer
 	{
 	public:
-		EntitySerializer(Entity entity, const Ref<Scene>& scene)
-			: m_Entity(entity), m_Scene(scene) {}
+		EntitySerializer() = default;
 
-		void Serialize(YAML::Emitter& out);
+		void Serialize(YAML::Emitter& out, Entity entity, const Ref<Scene>& scene);
 
-		Entity Deserialize(YAML::Node& entity, bool isPrefab = false);
-	private:
-		Entity m_Entity;
-		Ref<Scene> m_Scene;
+		Entity Deserialize(YAML::Node& entityOut, Entity entity, Ref<Scene>& scene, bool isPrefab = false);
 	};
 }

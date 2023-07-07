@@ -194,9 +194,14 @@ namespace Engine
 		return m_EntityMap.find(uuid) != m_EntityMap.end();
 	}
 
+	bool Scene::IsEntityHandleValid(entt::entity handle)
+	{
+		return m_Registry.valid(handle);
+	}
+
 	Entity Scene::GetEntityWithUUID(UUID uuid)
 	{
-		ENGINE_CORE_ASSERT(m_EntityMap.find(uuid) != m_EntityMap.end(), "Could not find Entity with UUID: " + std::to_string(uuid) + " in Scene: " + m_Name);
+		ENGINE_CORE_ASSERT(DoesEntityExist(uuid), "Could not find Entity with UUID: " + std::to_string(uuid) + " in Scene: " + m_Name);
 		return { m_EntityMap.at(uuid), this };
 	}
 

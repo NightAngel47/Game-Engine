@@ -7,6 +7,7 @@
 #include "Engine/Core/Application.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Scene/Entity.h"
+#include "Engine/Scene/SceneManager.h"
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
@@ -18,7 +19,7 @@
 #include <FileWatch.hpp>
 
 namespace Engine
-{				
+{
 	static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
 	{
 		{ "System.Void",			ScriptFieldType::Void },
@@ -292,6 +293,9 @@ namespace Engine
 		s_ScriptEngineData->CoreAssembly = nullptr;
 		s_ScriptEngineData->AppAssembly = nullptr;
 
+		// save copy of EntityScript Fields to restore values after reload
+		std::unordered_map<UUID, ScriptFieldMap> PreviousEntityScriptFields = s_ScriptEngineData->EntityScriptFields;
+
 		// clear s_ScriptEngineData
 		s_ScriptEngineData->EntityInstances.clear();
 		s_ScriptEngineData->EntityClasses.clear();
@@ -305,6 +309,37 @@ namespace Engine
 		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 
 		InternalCalls::ScriptGlue::RegisterComponentTypes();
+
+		// restore editor values to relevant fields after reload
+		const auto& scene = SceneManager::GetActiveScene();
+		for (auto& [entityID, previousFields] : PreviousEntityScriptFields)
+		{
+			if (!scene->DoesEntityExist(entityID))
+				continue;
+
+			Entity entity = scene->GetEntityWithUUID(entityID);
+			auto& fields = ScriptEngine::GetEntityClasses().at(entity.GetComponent<ScriptComponent>().ClassName)->GetScriptFields();
+			auto& entityFields = s_ScriptEngineData->EntityScriptFields[entityID];
+
+			for (auto& [fieldName, field] : fields)
+			{
+				// is the field access level still public?
+				if (!field.IsPublic())
+					continue;
+
+				// is the previous field still relevant?
+				if (previousFields.find(fieldName) == previousFields.end())
+					continue;
+
+				auto& previousField = previousFields.at(fieldName);
+
+				// is the field type still the same?
+				if (previousField.Field.Type != field.Type)
+					continue;
+
+				entityFields[fieldName] = previousField;
+			}
+		}
 	}
 
 	void ScriptEngine::LoadEntityClasses(MonoAssembly* assembly)
@@ -481,9 +516,7 @@ namespace Engine
 	{
 		const auto& entityClasses = s_ScriptEngineData->EntityClasses;
 		if (entityClasses.find(className) != entityClasses.end())
-		{
 			return true;
-		}
 
 		ENGINE_CORE_ERROR("Entity Class of " + className + " could not be found!");
 		return false;
@@ -537,7 +570,7 @@ namespace Engine
 				{
 					if (fieldInstance.Field.Type == ScriptFieldType::String)
 					{
-						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(*(std::string*)fieldInstance.m_Buffer));
+						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(fieldInstance.m_StringBuffer));
 					}
 					else
 					{

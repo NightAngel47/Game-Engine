@@ -88,6 +88,13 @@ namespace InternalCalls
 
 #pragma endregion Physics2DContact
 
+#pragma region SceneManager
+
+		static void SceneManager_LoadSceneByHandle(Engine::AssetHandle handle);
+		static void SceneManager_LoadSceneByPath(MonoString* path);
+
+#pragma endregion SceneManager
+
 #pragma region Entity
 
 		static MonoString* Entity_GetName(Engine::UUID entityID);

@@ -1,9 +1,9 @@
 #pragma once
-
 #include "Engine/Core/Timestep.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Scene/SceneCamera.h"
+#include "Engine/Asset/Assets.h"
 
 #include <entt.hpp>
 
@@ -13,7 +13,7 @@ namespace Engine
 {
 	class Entity;
 	
-	class Scene
+	class Scene : public Asset
 	{
 	public:
 		Scene() = default;
@@ -23,6 +23,7 @@ namespace Engine
 		
 		static Ref<Scene> Copy(Ref<Scene> other);
 		void SetSceneName(const std::string& name) { if (!name.empty()) m_Name = name; }
+		const std::string GetSceneName() const { return m_Name; }
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
@@ -36,6 +37,7 @@ namespace Engine
 
 		Entity DuplicateEntity(Entity entity);
 		bool DoesEntityExist(UUID uuid);
+		bool IsEntityHandleValid(entt::entity handle);
 		Entity GetEntityWithUUID(UUID uuid);
 		Entity FindEntityByName(const std::string_view& entityName);
 		
@@ -63,6 +65,8 @@ namespace Engine
 			return m_Registry.view<Components...>();
 		}
 
+		static AssetType GetStaticType() { return AssetType::Scene; }
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);

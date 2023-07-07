@@ -1,7 +1,7 @@
 #include "EditorLayer.h"
 
 #include "Engine/Renderer/Font.h"
-#include "Engine/UI/UIEngine.h"
+#include "Engine/Asset/TextureImporter.h"
 
 #include <imgui/imgui.h>
 #include <ImGuizmo/ImGuizmo.h>
@@ -17,12 +17,12 @@ namespace Engine
 	{
 		s_Font = Font::GetDefault();
 
-		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
-		m_IconPause = Texture2D::Create("Resources/Icons/PauseButton.png");
-		m_IconStep = Texture2D::Create("Resources/Icons/StepButton.png");
-		m_IconSimulate = Texture2D::Create("Resources/Icons/SimulateButton.png");
-		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
-		m_Outline = Texture2D::Create("Resources/Icons/Outline.png");
+		m_IconPlay = TextureImporter::LoadTexture2D("Resources/Icons/PlayButton.png");
+		m_IconPause = TextureImporter::LoadTexture2D("Resources/Icons/PauseButton.png");
+		m_IconStep = TextureImporter::LoadTexture2D("Resources/Icons/StepButton.png");
+		m_IconSimulate = TextureImporter::LoadTexture2D("Resources/Icons/SimulateButton.png");
+		m_IconStop = TextureImporter::LoadTexture2D("Resources/Icons/StopButton.png");
+		m_Outline = TextureImporter::LoadTexture2D("Resources/Icons/Outline.png");
 
 		FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
@@ -30,14 +30,14 @@ namespace Engine
 		fbSpec.Height = 720;
 		m_Framebuffer = Framebuffer::Create(fbSpec);
 
-		m_EditorScene = CreateRef<Scene>();
-		m_ActiveScene = m_EditorScene;
-
 		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
 		{
 			auto projectFilePath = commandLineArgs[1];
 			OpenProject(projectFilePath);
+
+			if (m_EditorScene == nullptr)
+				NewScene();
 		}
 		else
 		{
@@ -52,8 +52,6 @@ namespace Engine
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
-		
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 
 	void EditorLayer::OnDetach()
@@ -65,7 +63,10 @@ namespace Engine
 	{
 		m_FrameTime = ts.GetMilliseconds();
 
-		m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
+		auto activeScene = editorSceneManager.GetActiveScene();
+
+		activeScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 		
 		// Resize
 		if (FramebufferSpecification spec = m_Framebuffer->GetSpecification(); 
@@ -86,26 +87,30 @@ namespace Engine
 		m_Framebuffer->ClearAttachment(1, -1);
 
 		// Update Scene
-		switch (m_SceneState)
+		switch (editorSceneManager.GetEditorSceneState())
 		{
-			case SceneState::Edit:
+			case EditorSceneState::Edit:
 			{
 				// Update
 				m_EditorCamera.OnUpdate(ts);
 
-				m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+				activeScene->OnUpdateEditor(ts, m_EditorCamera);
 				break;
 			}
-			case SceneState::Play:
+			case EditorSceneState::Play:
 			{
-				m_ActiveScene->OnUpdateRuntime(ts);
+				activeScene->OnUpdateRuntime(ts);
+
+				if (m_SceneHierarchyPanel.GetContext() != activeScene)
+					m_SceneHierarchyPanel.SetContext(activeScene);
+
 				break;
 			}
-			case SceneState::Simulate:
+			case EditorSceneState::Simulate:
 			{
 				m_EditorCamera.OnUpdate(ts);
 
-				m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
+				activeScene->OnUpdateSimulation(ts, m_EditorCamera);
 				break;
 			}
 			default:
@@ -185,7 +190,15 @@ namespace Engine
 					Application::Get().Close();
 	        	
 	            ImGui::EndMenu();
-	        }
+			}
+
+			if (ImGui::BeginMenu("Edit"))
+			{
+				if (ImGui::MenuItem("Project Settings"))
+					m_ShowProjectSettingsWindow = true;
+
+				ImGui::EndMenu();
+			}
 			
 			if (ImGui::BeginMenu("Script"))
 	        {
@@ -194,7 +207,8 @@ namespace Engine
 				{
 					ScriptEngine::ReloadAssembly();
 					// TODO prompt user to save any changes before reloading scene
-					OpenScene(m_EditorScenePath); // reload scene to match new assembly state
+					//OpenScene(m_EditorScene->Handle); // reload scene to match new assembly state
+					SceneManager::LoadScene(m_EditorScene->Handle); // reload scene to match new assembly state
 				}
 
 	            ImGui::EndMenu();
@@ -204,9 +218,7 @@ namespace Engine
 	        {
 
 				if (ImGui::MenuItem("Open Sprite View"))
-				{
 					m_ShowSpriteWindow = true;
-				}
 
 	            ImGui::EndMenu();
 	        }
@@ -222,7 +234,7 @@ namespace Engine
 		std::string name = "None";
 		if (m_HoveredEntityID.IsValid())
 		{
-			Entity hoveredEntity = m_ActiveScene->GetEntityWithUUID(m_HoveredEntityID);
+			Entity hoveredEntity = SceneManager::GetActiveScene()->GetEntityWithUUID(m_HoveredEntityID);
 			name = hoveredEntity.GetComponent<TagComponent>().Tag;
 		}
 		ImGui::Text("Hovered Entity: %s", name.c_str());
@@ -243,11 +255,71 @@ namespace Engine
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
 		ImGui::Checkbox("Toggle Gizmo Mode (World/Local)", &m_IsGizmoWorld);
 
+		ImGui::Separator();
 		ImGui::Text("UI Settings");
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
 
 		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
+
+		ImGui::Separator();
+		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+
+		{
+			ImGui::BeginTable("Asset Registry", 3, ImGuiTableFlags_Resizable);
+
+			ImGui::TableSetupColumn("Handle");
+			ImGui::TableSetupColumn("Type");
+			ImGui::TableSetupColumn("Path");
+			ImGui::TableHeadersRow();
+
+			int row = 0;
+			for (const auto& [handle, metadata] : editorAssetManager->GetAssetRegistry())
+			{
+				ImGui::TableNextRow();
+
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text(std::to_string((uint64_t)handle).c_str());
+
+				ImGui::TableSetColumnIndex(1);
+				std::string assetTypeStr = Utils::AssetTypeToString(metadata.Type);
+				ImGui::Text(assetTypeStr.c_str());
+
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text(metadata.Path.string().c_str());
+
+				++row;
+			}
+			ImGui::EndTable();
+		}
+
+		{
+			ImGui::BeginTable("Assets Loaded", 3, ImGuiTableFlags_Resizable);
+
+			ImGui::TableSetupColumn("Handle");
+			ImGui::TableSetupColumn("Type");
+			ImGui::TableSetupColumn("Uses");
+			ImGui::TableHeadersRow();
+
+			int row = 0;
+			for (const auto& [handle, asset] : editorAssetManager->GetLoadedAssets())
+			{
+				ImGui::TableNextRow();
+
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text(std::to_string((uint64_t)handle).c_str());
+
+				ImGui::TableSetColumnIndex(1);
+				std::string assetTypeStr = Utils::AssetTypeToString(asset->GetAssetType());
+				ImGui::Text(assetTypeStr.c_str());
+
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text(std::to_string((long)asset.use_count()).c_str());
+
+				++row;
+			}
+			ImGui::EndTable();
+		}
 
 		ImGui::End();
 
@@ -274,25 +346,19 @@ namespace Engine
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
-				const wchar_t* path = (const wchar_t*)payload->Data;
-				const wchar_t* fileExtension = std::wcsrchr(path, '.');
-				
-				if (fileExtension)
+				AssetHandle handle = *(AssetHandle*)payload->Data;
+				Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+				if (editorAssetManager->IsAssetHandleValid(handle))
 				{
-					if (std::wcscmp(fileExtension, L".scene") == 0)
-					{
-						OpenScene(path);
-					}
+					auto type = editorAssetManager->GetAssetType(handle);
+					if (type == AssetType::Scene)
+						OpenScene(handle);
 					else
-					{
-						std::wstring ws(fileExtension);
-						ENGINE_CORE_WARN("File type is not supported by drag and drop in the Viewport: " + std::string(ws.begin(), ws.end()));
-					}
+						ENGINE_CORE_WARN("AssetType is not supported by drag and drop in the Viewport: {}", Utils::AssetTypeToString(type));
 				}
 				else
 				{
-					std::wstring ws(path);
-					ENGINE_CORE_WARN("Dragged item is either not a file or not supported by drag and drop in the Viewport: " + std::string(ws.begin(), ws.end()));
+					ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
 				}
 			}
 			
@@ -311,7 +377,7 @@ namespace Engine
 			ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
 
 			// Editor Camera if world otherwise ScreenCamera
-			const glm::mat4& cameraProjection = isEntityUI ? m_ActiveScene->GetScreenCamera().GetProjection() : m_EditorCamera.GetProjection();
+			const glm::mat4& cameraProjection = isEntityUI ? SceneManager::GetActiveScene()->GetScreenCamera().GetProjection() : m_EditorCamera.GetProjection();
 			glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 
 			// Snapping
@@ -367,6 +433,76 @@ namespace Engine
 		
 		ImGui::End();
 
+		if (m_ShowProjectSettingsWindow)
+		{
+			ImGui::Begin("Project Settings", &m_ShowProjectSettingsWindow);
+
+			Ref<Project> project = Project::GetActive();
+
+			if (project)
+			{
+				ProjectConfig& config = project->GetConfig();
+
+				ImGui::Text("Project: ");
+				ImGui::SameLine();
+				ImGui::Text(config.Name.c_str());
+				ImGui::Separator();
+
+				AssetHandle startScene = config.StartScene;
+				ImGui::Text("Start Scene: ");
+				ImGui::SameLine();
+				Ref<EditorAssetManager> editorAssetManager = project->GetEditorAssetManager();
+				std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(startScene) ? editorAssetManager->GetAssetPath(startScene) : "None";
+				ImGui::Text(scenePath.generic_string().c_str());
+				ImGui::SameLine();
+				if (ImGui::InputScalar("##StartSceneHandle", ImGuiDataType_U64, &startScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly));
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						AssetHandle handle = *(AssetHandle*)payload->Data;
+						if (editorAssetManager->IsAssetHandleValid(handle))
+						{
+							auto type = editorAssetManager->GetAssetType(handle);
+							if (type == AssetType::Scene)
+							{
+								config.StartScene = handle;
+								project->Save();
+							}
+							else
+							{
+								ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(type));
+							}
+						}
+						else
+						{
+							ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
+						}
+					}
+
+					ImGui::EndDragDropTarget();
+				}
+
+				ImGui::Text("Project Directory: ");
+				ImGui::SameLine();
+				ImGui::Text(project->GetProjectDirectory().generic_string().c_str());
+
+				ImGui::Text("Asset Directory: ");
+				ImGui::SameLine();
+				ImGui::Text(project->GetAssetDirectory().generic_string().c_str());
+
+				ImGui::Text("Asset Registry Path: ");
+				ImGui::SameLine();
+				ImGui::Text(project->GetAssetRegistryPath().generic_string().c_str());
+
+				ImGui::Text("Script Module Path: ");
+				ImGui::SameLine();
+				ImGui::Text(Project::GetAssetFileSystemPath(config.ScriptModulePath).generic_string().c_str());
+			}
+
+			ImGui::End();
+		}
+
 		if (m_ShowSpriteWindow)
 		{
 			ImGui::Begin("Sprite View", &m_ShowSpriteWindow);
@@ -377,10 +513,11 @@ namespace Engine
 				if (selectedEntity.HasComponent<SpriteRendererComponent>())
 				{
 					SpriteRendererComponent sprite = selectedEntity.GetComponent<SpriteRendererComponent>();
-					Ref<Texture2D> spriteTexture = sprite.Texture;
 
-					if (spriteTexture)
+					if (sprite.Texture.IsValid())
 					{
+						Ref<Texture2D> spriteTexture = AssetManager::GetAsset<Texture2D>(sprite.Texture);
+
 						float spriteWidth = spriteTexture->GetWidth();
 						float spriteHeight = spriteTexture->GetHeight();
 						glm::vec2 imageRegion = { spriteWidth, spriteHeight};
@@ -430,13 +567,17 @@ namespace Engine
 		float size = ImGui::GetWindowHeight() - 8.0f;
 		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
 
+		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager.GetEditorSceneState();
+		auto activeScene = editorSceneManager.GetActiveScene();
+
 		// play button
-		if (m_SceneState != SceneState::Simulate)
+		if (sceneState != EditorSceneState::Simulate)
 		{
-			Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconPlay : m_IconStop;
+			Ref<Texture2D> icon = sceneState == EditorSceneState::Edit ? m_IconPlay : m_IconStop;
 			if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 			{
-				if (m_SceneState == SceneState::Play)
+				if (sceneState == EditorSceneState::Play)
 					OnSceneStop();
 				else
 					OnScenePlay();
@@ -444,43 +585,42 @@ namespace Engine
 		}
 
 		// simulate button
-		if (m_SceneState != SceneState::Play)
+		if (sceneState != EditorSceneState::Play)
 		{
-			if (m_SceneState == SceneState::Edit)
+			if (sceneState == EditorSceneState::Edit)
 				ImGui::SameLine();
 
-			Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconSimulate : m_IconStop;
+			Ref<Texture2D> icon = sceneState == EditorSceneState::Edit ? m_IconSimulate : m_IconStop;
 			if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 			{
-				if (m_SceneState == SceneState::Simulate)
+				if (sceneState == EditorSceneState::Simulate)
 					OnSceneStop();
 				else
 					OnSceneSimulate();
 			}
 		}
 
-		if (m_SceneState != SceneState::Edit)
+		if (sceneState != EditorSceneState::Edit)
 		{
 			// pause button
 			ImGui::SameLine();
 			{
 				Ref<Texture2D> icon = m_IconPause;
-				ImVec4 tintColor = m_ActiveScene->IsPaused() ? ImVec4(0.25f, 0.25f, 1, 1) : ImVec4(1, 1, 1, 1);
+				bool isPaused = activeScene->IsPaused();
+				ImVec4 tintColor = isPaused ? ImVec4(0.25f, 0.25f, 1, 1) : ImVec4(1, 1, 1, 1);
 				if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0, 0, 0, 0), tintColor))
-				{
-					m_ActiveScene->SetPaused(!m_ActiveScene->IsPaused());
-				}
+					activeScene->SetPaused(!isPaused);
 			}
 			
 			// step button
-			if (m_ActiveScene->IsPaused())
+			if (activeScene->IsPaused())
 			{
 				ImGui::SameLine();
 				{
 					Ref<Texture2D> icon = m_IconStep;
 					if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
 					{
-						m_ActiveScene->Step();
+						activeScene->Step();
 					}
 				}
 			}
@@ -498,6 +638,7 @@ namespace Engine
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
 		dispatcher.Dispatch<MouseButtonPressedEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
+		dispatcher.Dispatch<WindowDropEvent>(ENGINE_BIND_EVENT_FN(EditorLayer::OnWindowDrop));
 	}
 
 	bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
@@ -557,6 +698,7 @@ namespace Engine
 				if (control)
 				{
 					ScriptEngine::ReloadAssembly();
+					SceneManager::LoadScene(m_EditorScene->Handle); // reload scene to match new assembly state
 				}
 				else
 				{
@@ -602,19 +744,34 @@ namespace Engine
 		if (e.GetMouseButton() == Mouse::ButtonLeft)
 		{
 			if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
-			{
 				m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntityID);
-			}
 		}
 		
 		return false;
 	}
 
+	bool EditorLayer::OnWindowDrop(WindowDropEvent& e)
+	{
+		Ref<EditorAssetManager> editorManager = Project::GetActive()->GetEditorAssetManager();
+
+		for (auto& fullPath : e.GetPaths())
+		{
+			ENGINE_CORE_TRACE("Dropped: " + fullPath.string());
+			editorManager->ImportAsset(fullPath);
+		}
+
+		return true;
+	}
+
 	void EditorLayer::OnOverlayRender()
 	{
-		if (m_SceneState == SceneState::Play)
+		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager.GetEditorSceneState();
+		auto activeScene = editorSceneManager.GetActiveScene();
+
+		if (sceneState == EditorSceneState::Play)
 		{
-			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
+			Entity camera = activeScene->GetPrimaryCameraEntity();
 			if (!camera) return;
 
 			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetWorldSpaceTransform());
@@ -630,7 +787,7 @@ namespace Engine
 		if (m_ShowPhysicsColliders)
 		{
 			{ // Visualize Box Collider 2D
-				auto view = m_ActiveScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+				auto view = activeScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
 
 				for (auto entity : view)
 				{
@@ -646,7 +803,7 @@ namespace Engine
 			}
 
 			{ // Visualize Circle Collider 2D
-				auto view = m_ActiveScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+				auto view = activeScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
 
 				for (auto entity : view)
 				{
@@ -677,7 +834,7 @@ namespace Engine
 
 		// UI Overlays
 
-		Renderer2D::BeginScene(m_ActiveScene->GetScreenCamera(), glm::mat4(1.0f));
+		Renderer2D::BeginScene(activeScene->GetScreenCamera(), glm::mat4(1.0f));
 
 		// Draw selected entity outline
 		if (m_SceneHierarchyPanel.IsSelectedEntityValid() && isEntityUI)
@@ -713,8 +870,9 @@ namespace Engine
 		if (Project::Load(path))
 		{
 			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
-			ScriptEngine::Init();
-			OpenScene(Project::GetActive()->GetConfig().StartScene);
+
+			AssetHandle startScene = Project::GetActive()->GetConfig().StartScene;
+			AssetManager::IsAssetHandleValid(startScene) ? OpenScene(startScene) : NewScene();
 		}
 		else
 		{
@@ -724,18 +882,14 @@ namespace Engine
 
 	void EditorLayer::SaveProject()
 	{
-		//Project::Save();
+		Project::Save();
 	}
 
-	void EditorLayer::NewScene(const std::filesystem::path& path)
+	void EditorLayer::NewScene()
 	{
-		std::string filenameString = path.empty() ? "Untitled" : path.filename().string();
-
-		m_EditorScene = CreateRef<Scene>(filenameString);
+		m_EditorScene = SceneManager::CreateNewScene();
         m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
-		m_EditorScenePath = path;
-		m_ActiveScene = m_EditorScene;
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}
 
 	void EditorLayer::OpenScene()
@@ -756,52 +910,64 @@ namespace Engine
 			return;
 		}
 
-		if (m_SceneState != SceneState::Edit) OnSceneStop();
+		AssetHandle sceneHandle = Project::GetActive()->GetEditorAssetManager()->GetAssetHandleFromFilePath(path);
+		if (sceneHandle.IsValid())
+			OpenScene(sceneHandle);
+	}
 
-		NewScene(path);
+	void EditorLayer::OpenScene(const AssetHandle handle)
+	{
+		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) OnSceneStop();
 
-		SceneSerializer serializer(m_ActiveScene);
-		serializer.Deserialize(path);
+		NewScene();
+
+		m_EditorScene = SceneManager::LoadScene(handle);
+		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}
 
 	void EditorLayer::SaveSceneAs()
 	{
-		std::filesystem::path filepath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
-		
-		m_EditorScenePath = filepath;
-		m_ActiveScene->SetSceneName(filepath.filename().string());
+		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) return;
 
-		SceneSerializer serializer(m_ActiveScene);
-		serializer.Serialize(m_EditorScenePath.string());
+		std::filesystem::path fullPath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
+		std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetAssetDirectory());
+
+		SceneManager::GetActiveScene()->SetSceneName(relativePath.filename().string());
+
+		AssetMetadata metadata = AssetMetadata();
+		metadata.Path = fullPath;
+		metadata.Type = AssetType::Scene;
+
+		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, relativePath);
 	}
 
 	void EditorLayer::SaveScene()
 	{
-		if (m_EditorScenePath.empty())
-		{
-			SaveSceneAs();
-		}
+		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) return;
+
+		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+		if (editorAssetManager->IsAssetHandleValid(m_EditorScene->Handle))
+			editorAssetManager->SaveAsset(m_EditorScene);
 		else
-		{
-			SceneSerializer serializer(m_ActiveScene);
-			serializer.Serialize(m_EditorScenePath.string());
-		}
+			SaveSceneAs();
 	}
 
 	void EditorLayer::OnDuplicateEntity()
 	{
-		if (m_SceneState != SceneState::Edit) return;
+		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) return;
 
 		if (m_SceneHierarchyPanel.IsSelectedEntityValid())
 		{
 			Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-			Entity newEntity = m_ActiveScene->DuplicateEntity(selectedEntity);
+			Entity newEntity = SceneManager::GetActiveScene()->DuplicateEntity(selectedEntity);
 			m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
 		}
 	}
 
 	void EditorLayer::MousePicking()
 	{
+		auto scene = SceneManager::GetActiveScene();
+
 		// Mouse picking
 		auto [mx, my] = ImGui::GetMousePos();
 		mx -= m_ViewportBounds[0].x;
@@ -815,61 +981,74 @@ namespace Engine
 		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
 		{
 			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
-			m_HoveredEntityID = pixelData == -1 ? UUID::INVALID() : Entity((entt::entity)pixelData, m_ActiveScene.get()).GetUUID();
+
+			if (pixelData > -1 && scene->IsEntityHandleValid((entt::entity)pixelData))
+				m_HoveredEntityID = Entity((entt::entity)pixelData, scene.get()).GetUUID();
+			else
+				m_HoveredEntityID = UUID::INVALID();
 		}
 		else
 		{
 			m_HoveredEntityID = UUID::INVALID();
 		}
 
-		if (m_ActiveScene->IsRunning())
+		if (scene->IsRunning())
 			UIEngine::SetViewportMousePos(mouseX, mouseY);
 	}
 
 	void EditorLayer::OnScenePlay()
 	{
-		if (m_SceneState == SceneState::Simulate)
+		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager.GetEditorSceneState();
+		if (sceneState == EditorSceneState::Simulate)
 			OnSceneStop();
 
+		SaveScene();
+
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
-		m_SceneState = SceneState::Play;
+		editorSceneManager.SetEditorSceneState(EditorSceneState::Play);
 
-		m_ActiveScene = Scene::Copy(m_EditorScene);
-		m_ActiveScene->OnRuntimeStart();
+		auto& scene = editorSceneManager.LoadSceneCopy(m_EditorScene);
+		scene->OnRuntimeStart();
 
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetContext(scene);
 	}
 
 	void EditorLayer::OnSceneSimulate()
 	{
-		if (m_SceneState == SceneState::Play)
+		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager.GetEditorSceneState();
+		if (sceneState == EditorSceneState::Play)
 			OnSceneStop();
 
 		ENGINE_CORE_TRACE("SceneState changed to Simulate.");
-		m_SceneState = SceneState::Simulate;
+		editorSceneManager.SetEditorSceneState(EditorSceneState::Simulate);
 
-		m_ActiveScene = Scene::Copy(m_EditorScene);
-		m_ActiveScene->OnSimulationStart();
+		auto& scene = editorSceneManager.LoadSceneCopy(m_EditorScene);
+		scene->OnSimulationStart();
 
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetContext(scene);
 	}
 
 	void EditorLayer::OnSceneStop()
 	{
-		ENGINE_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
+		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager.GetEditorSceneState();
+		ENGINE_CORE_ASSERT(sceneState == EditorSceneState::Play || sceneState == EditorSceneState::Simulate);
 
-		if (m_SceneState == SceneState::Play)
-			m_ActiveScene->OnRuntimeStop();
-		else if (m_SceneState == SceneState::Simulate)
-			m_ActiveScene->OnSimulationStop();
+		auto& scene = editorSceneManager.GetActiveScene();
+		if (sceneState == EditorSceneState::Play)
+			scene->OnRuntimeStop();
+		else if (sceneState == EditorSceneState::Simulate)
+			scene->OnSimulationStop();
 
 
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
-		m_SceneState = SceneState::Edit;
-		m_ActiveScene->SetPaused(false);
-		m_ActiveScene = m_EditorScene;
+		editorSceneManager.SetEditorSceneState(EditorSceneState::Edit);
+		scene->SetPaused(false);
+		m_EditorScene = editorSceneManager.LoadScene(m_EditorScene->Handle);
 
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}
 
 }

@@ -301,8 +301,12 @@ namespace Engine
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-				interaction.ClearInteraction();
+			if (isValid)
+			{
+				ImGui::SameLine();
+				if (ImGui::Button("X", ImVec2{ lineHeight, lineHeight }))
+					interaction.ClearInteraction();
+			}
 
 			ImGui::Text("Function");
 			ImGui::SameLine();
@@ -338,142 +342,138 @@ namespace Engine
 					auto paramType = interaction.Params[i]->Field.Type;
 					while (i < 8 && paramType != ScriptFieldType::None)
 					{
-						auto& param = interaction.Params[i];
+						ScriptFieldInstance& param = *interaction.Params[i];
 						switch (paramType)
 						{
 						case ScriptFieldType::Float:
 						{
 							float data = 0.0f;
-							data = param->GetValue<float>();
+							data = param.GetValue<float>();
 							if (ImGui::DragFloat(("##" + label + "Param" + std::to_string(i)).c_str(), &data, 0.1f))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Double:
 						{
 							double data = 0.0;
-							data = param->GetValue<double>();
+							data = param.GetValue<double>();
 							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_Double, &data, 0.1))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Bool:
 						{
 							bool data = false;
-							data = param->GetValue<bool>();
+							data = param.GetValue<bool>();
 							if (ImGui::Checkbox(("##" + label + "Param" + std::to_string(i)).c_str(), &data))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Char:
 						{
 							char data[2];
 							memset(data, 0, sizeof(data));
-							data[0] = param->GetValue<char>();
+							data[0] = param.GetValue<char>();
 							if (ImGui::InputText(("##" + label + "Param" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
-								param->SetValue(data[0]);
+								param.SetValue(data[0]);
 							break;
 						}
 						case ScriptFieldType::String:
 						{
-							char data[64];
-							memset(data, 0, sizeof(data));
-							strcpy_s(data, sizeof(data), param->GetValue<std::string>().c_str());
-							if (ImGui::InputText(("##" + label + "Param" + std::to_string(i)).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
-								param->SetValue(std::string(data));
+							std::string data = param.GetValue<std::string>();
+							if (ImGui::InputText(("##" + label + "Param" + std::to_string(i)).c_str(), &data, ImGuiInputTextFlags_EnterReturnsTrue))
+								param.SetValue<std::string>(data);
 							break;
 						}
 						case ScriptFieldType::SByte:
 						{
 							int8_t data = 0;
-							data = param->GetValue<int8_t>();
+							data = param.GetValue<int8_t>();
 							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S8, &data))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Short:
 						{
 							int16_t data = 0;
-							data = param->GetValue<int16_t>();
+							data = param.GetValue<int16_t>();
 							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S16, &data))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Int:
 						{
 							int32_t data = 0;
-							data = param->GetValue<int32_t>();
+							data = param.GetValue<int32_t>();
 							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S32, &data))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Long:
 						{
 							int64_t data = 0;
-							data = param->GetValue<int64_t>();
+							data = param.GetValue<int64_t>();
 							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S64, &data))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Byte:
 						{
 							uint8_t data = 0;
-							data = param->GetValue<uint8_t>();
+							data = param.GetValue<uint8_t>();
 							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U8, &data))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::UShort:
 						{
 							uint16_t data = 0;
-							data = param->GetValue<uint16_t>();
+							data = param.GetValue<uint16_t>();
 							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U16, &data))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::UInt:
 						{
 							uint32_t data = 0;
-							data = param->GetValue<uint32_t>();
+							data = param.GetValue<uint32_t>();
 							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U32, &data))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::ULong:
 						{
 							uint64_t data = 0;
-							data = param->GetValue<uint64_t>();
+							data = param.GetValue<uint64_t>();
 							if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Vector2:
 						{
 							glm::vec2 data = {};
-							data = param->GetValue<glm::vec2>();
+							data = param.GetValue<glm::vec2>();
 							if (ImGui::DragFloat2(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Vector3:
 						{
 							glm::vec3 data = {};
-							data = param->GetValue<glm::vec3>();
+							data = param.GetValue<glm::vec3>();
 							if (ImGui::DragFloat3(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Vector4:
 						{
 							glm::vec4 data = {};
-							data = param->GetValue<glm::vec4>();
+							data = param.GetValue<glm::vec4>();
 							if (ImGui::DragFloat4(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
-								param->SetValue(data);
+								param.SetValue(data);
 							break;
 						}
 						case ScriptFieldType::Entity:
-						case ScriptFieldType::Void:
-						case ScriptFieldType::None:
 						default:
 							FieldTypeUnsupported(paramType);
 							break;
@@ -531,12 +531,8 @@ namespace Engine
 
 	void SceneHierarchyPanel::DrawComponents(Entity entity)
 	{
-		if(entity.HasComponent<TagComponent>())
-		{
-			auto& component = entity.GetComponent<TagComponent>();
-			ImGui::InputText("##Tag", &component.Tag);
-
-		}
+		if (entity.HasComponent<TagComponent>())
+			ImGui::InputText("##Tag", &entity.GetComponent<TagComponent>().Tag);
 
 		// Draw Add Component Button at the top right next to the tag input field.
 		ImGui::SameLine();
@@ -635,41 +631,66 @@ namespace Engine
 		
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
 		{
-			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+			ImGui::Text("Color");
+			ImGui::SameLine();
+			ImGui::ColorEdit4("##Color", glm::value_ptr(component.Color));
 			
-			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-			const ImVec2 buttonSize = {0.0f, lineHeight};
 			ImGui::Text("Texture");
 			ImGui::SameLine();
 
-			std::string textureName = component.Path.empty() ? "None" : component.Path.string();
+			Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+
+			std::string textureName = "None";
+			if (component.Texture.IsValid())
+			{
+				if (AssetManager::IsAssetHandleValid(component.Texture))
+				{
+					textureName = editorAssetManager->GetAssetPath(component.Texture).filename().string();
+				}
+				else
+				{
+					textureName = "Invalid";
+					ENGINE_CORE_WARN("Assigned Texture Handle as invalid: {}", component.Texture);
+				}
+			}
+
+			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			ImVec2 textSize = ImGui::CalcTextSize(textureName.c_str());
+			const ImVec2 buttonSize = { textSize.x + GImGui->Style.FramePadding.x * 2.0f, lineHeight };
 			ImGui::Button(textureName.c_str(), buttonSize);
 
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 				{
-					const wchar_t* path = (const wchar_t*)payload->Data;
-					const wchar_t* fileExtension = std::wcsrchr(path, '.');
-				
-					if (std::wcscmp(fileExtension, L".png") == 0)
+					AssetHandle handle = *(AssetHandle*)payload->Data;
+					if (editorAssetManager->IsAssetHandleValid(handle))
 					{
-						component.LoadTexture(path);
+						if (editorAssetManager->GetAssetType(handle) == AssetType::Texture2D)
+							component.AssignTexture(handle);
+						else
+							ENGINE_CORE_WARN("Asset was not a texture!");
+
 					}
 					else
 					{
-						std::wstring ws(fileExtension);
-						ENGINE_CORE_WARN("File type is not supported by drag and drop in the Sprite Renderer Texture Slot: " + std::string(ws.begin(), ws.end()));
+						ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
 					}
 				}
 			
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-				component.ClearTexture();
+			if (component.Texture.IsValid())
+			{
+				ImGui::SameLine();
+				if (ImGui::Button("X", ImVec2{ lineHeight, lineHeight }))
+					component.ClearTexture();
+			}
 			
-			ImGui::DragFloat("Tiling", &component.Tiling, 0.1f);
+			ImGui::Text("Tiling");
+			ImGui::SameLine();
+			ImGui::DragFloat("##Tiling", &component.Tiling, 0.1f);
 
 			ImGui::Separator();
 			bool subtextureInvalidated = false;
@@ -685,9 +706,7 @@ namespace Engine
 				subtextureInvalidated = true;
 
 			if (subtextureInvalidated)
-			{
 				component.GenerateSubTexture();
-			}
 		});
 		
 		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
@@ -898,24 +917,9 @@ namespace Engine
 					}
 					case ScriptFieldType::String:
 					{
-						char data[64];
-						memset(data, 0, sizeof(data));
-						if (sceneRunning)
-						{
-							strcpy_s(data, sizeof(data), scriptInstance->GetFieldValue<std::string>(name).c_str());
-						}
-						else if (fieldExists)
-						{
-							strcpy_s(data, sizeof(data), scriptField.GetValue<std::string>().c_str());
-						}
-						else
-						{
-							std::string strVal = ScriptEngine::GetDefaultScriptFieldMap(component.ClassName).at(name).GetValue<std::string>();
-							strcpy_s(data, sizeof(data), strVal.c_str());
-							scriptField.SetValue(strVal);
-						}
-
-						if (ImGui::InputText(("##" + name).c_str(), data, sizeof(data), ImGuiInputTextFlags_EnterReturnsTrue))
+						std::string data;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, std::string);
+						if (ImGui::InputText(("##" + name).c_str(), &data, ImGuiInputTextFlags_EnterReturnsTrue))
 							sceneRunning ? scriptInstance->SetFieldValue(name, &std::string(data)) : scriptField.SetValue(std::string(data));
 						break;
 					}
@@ -1008,8 +1012,6 @@ namespace Engine
 						break;
 					}
 					case ScriptFieldType::Entity:
-					case ScriptFieldType::Void:
-					case ScriptFieldType::None:
 					default:
 						FieldTypeUnsupported(field.Type);
 						break;
@@ -1036,8 +1038,8 @@ namespace Engine
 	{
 		std::filesystem::path filepath = FileDialogs::SaveFile("Prefab (*.prefab)\0*.prefab\0");
 
-		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
-		serializer.Serialize(filepath);
+		PrefabSerializer serializer = PrefabSerializer();
+		serializer.Serialize(filepath, GetSelectedEntity(), m_Context);
 	}
 
 	void SceneHierarchyPanel::CreateFromPrefab()
@@ -1058,8 +1060,8 @@ namespace Engine
 			return;
 		}
 
-		PrefabSerializer serializer(GetSelectedEntity(), m_Context);
-		serializer.Deserialize(filepath);
+		PrefabSerializer serializer = PrefabSerializer();
+		serializer.Deserialize(filepath, GetSelectedEntity(), m_Context);
 	}
 
 	void SceneHierarchyPanel::CreateChildEntity()
