@@ -94,7 +94,7 @@ namespace Engine
 				glm::vec2 anchored = glm::clamp(ui.AnchorMax + ui.AnchorMin, -1.0f, 1.0f) / glm::vec2(2.0f);
 				anchored *= glm::vec2(m_Scene->m_ViewportWidth, m_Scene->m_ViewportHeight);
 				
-				transform = Math::GenRectTransform(glm::vec3(anchored, 0.0f) + worldPosition, worldRotation.z, glm::vec2(worldScale.x * ui.Size.x, worldScale.y * ui.Size.y));
+				transform = Math::GenRectTransform(glm::vec3(anchored, 0.0f) + worldPosition + glm::vec3(0.0f, 0.0f, 1.0f), worldRotation.z, glm::vec2(worldScale.x * ui.Size.x, worldScale.y * ui.Size.y));
 			}
 
 			return transform;
