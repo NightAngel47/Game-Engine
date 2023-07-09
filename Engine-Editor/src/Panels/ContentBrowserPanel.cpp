@@ -94,8 +94,7 @@ namespace Engine
 				{
 					if (isDirectory)
 						m_CurrentDirectory /= item.filename();
-
-					if (Project::GetActive()->GetEditorAssetManager()->GetAssetType(indexHandle) == AssetType::Scene)
+					else if (Project::GetActive()->GetEditorAssetManager()->GetAssetType(indexHandle) == AssetType::Scene)
 						SceneManager::LoadScene(indexHandle);
 				}
 
