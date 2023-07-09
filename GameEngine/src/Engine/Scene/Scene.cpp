@@ -347,18 +347,16 @@ namespace Engine
 
 	void Scene::OnUIStart()
 	{
-		UIEngine::OnUIStart(this);
+		UIEngine::OnUIStart();
 	}
 
 	void Scene::OnPhysics2DStart()
 	{
-		Physics2DEngine::OnPhysicsStart(this);
+		Physics2DEngine::OnPhysicsStart();
 	}
 
 	void Scene::OnScriptsCreate()
 	{
-		ScriptEngine::OnRuntimeStart(this);
-
 		// Instantiate Script Entities
 		auto view = m_Registry.view<ScriptComponent>();
 		for (auto e : view)
@@ -397,8 +395,6 @@ namespace Engine
 			Entity entity = { e, this };
 			ScriptEngine::OnDestroyEntity(entity);
 		}
-
-		ScriptEngine::OnRuntimeStop();
 	}
 
 	void Scene::OnUIUpdate(Timestep ts)

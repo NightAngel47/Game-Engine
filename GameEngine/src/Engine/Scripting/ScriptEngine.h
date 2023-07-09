@@ -166,14 +166,10 @@ namespace Engine
 
 		static void ReloadAssembly();
 
-		static void OnRuntimeStart(Scene* scene);
-		static void OnRuntimeStop();
-
 		static std::unordered_map<std::string, Ref<ScriptClass>> GetEntityClasses();
 		static ScriptFieldMap& GetScriptFieldMap(Entity entity);
 		static ScriptFieldMap GetDefaultScriptFieldMap(const std::string& scriptName);
 		static ScriptMethodMap GetScriptMethodMap(const std::string& scriptName);
-		static Scene* GetSceneContext();
 
 		static MonoAssembly* GetCoreAssembly();
 		

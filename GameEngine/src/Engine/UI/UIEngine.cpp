@@ -14,7 +14,7 @@ namespace Engine
 
 	static UIEngineData* s_UIEngineData = nullptr;
 
-	void UIEngine::OnUIStart(Scene* scene)
+	void UIEngine::OnUIStart()
 	{
 		ENGINE_PROFILE_FUNCTION();
 

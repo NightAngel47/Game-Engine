@@ -86,7 +86,7 @@ namespace Engine
 	class Physics2DEngine
 	{
 	public:
-		static void OnPhysicsStart(Scene* scene);
+		static void OnPhysicsStart();
 		static void OnPhysicsUpdate(Timestep ts);
 		static void OnPhysicsStop();
 

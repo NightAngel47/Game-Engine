@@ -18,7 +18,7 @@ namespace InternalCalls
 
 	static Engine::Entity GetEntityFromScene(Engine::UUID entityID)
 	{
-		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		Engine::Scene* scene = Engine::SceneManager::GetActiveScene().get();
 		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
 		Engine::Entity entity = scene->GetEntityWithUUID(entityID);
 		ENGINE_CORE_ASSERT(entity, "Entity with UUID: " + std::to_string(entityID) + " was not found in Scene!");
@@ -27,7 +27,7 @@ namespace InternalCalls
 
 	static Engine::Entity GetEntityFromScene(std::string entityName)
 	{
-		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		Engine::Scene* scene = Engine::SceneManager::GetActiveScene().get();
 		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
 		Engine::Entity entity = scene->FindEntityByName(entityName);
 		ENGINE_CORE_ASSERT(entity, "Entity with name: " + entityName + " was not found in Scene!");
@@ -404,7 +404,7 @@ namespace InternalCalls
 	uint64_t ScriptGlue::Entity_CreateEntity(MonoString* name)
 	{
 		std::string entityName = Engine::ScriptEngine::MonoStringToUTF8(name);
-		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		Engine::Scene* scene = Engine::SceneManager::GetActiveScene().get();
 		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
 		Engine::Entity entity = scene->CreateEntity(entityName);
 
@@ -424,7 +424,7 @@ namespace InternalCalls
 
 	void ScriptGlue::Entity_DestroyEntity(Engine::UUID entityID)
 	{
-		Engine::Scene* scene = Engine::ScriptEngine::GetSceneContext();
+		Engine::Scene* scene = Engine::SceneManager::GetActiveScene().get();
 		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
 		Engine::Entity entity = scene->GetEntityWithUUID(entityID);
 		ENGINE_CORE_ASSERT(entity, "Entity with UUID: " + std::to_string(entityID) + " was not found in Scene!");

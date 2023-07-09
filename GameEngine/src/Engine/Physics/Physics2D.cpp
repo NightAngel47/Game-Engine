@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scene/SceneManager.h"
 
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_polygon_shape.h>
@@ -19,8 +20,6 @@ namespace Engine
 
 	static struct Physics2DEngineData
 	{
-		Scene* SceneContext = nullptr;
-
 		b2World* PhysicsWorld = nullptr;
 		float Accumulator = 0.0f;
 		float AccumulatorRatio = 0.0f;
@@ -53,18 +52,17 @@ namespace Engine
 		s_physics2DEngineData->QueuedBodiesToDestroy.clear();
 	}
 
-	void Physics2DEngine::OnPhysicsStart(Scene* gameScene)
+	void Physics2DEngine::OnPhysicsStart()
 	{
 		s_physics2DEngineData = new Physics2DEngineData();
-		s_physics2DEngineData->SceneContext = gameScene;
 
 		s_physics2DEngineData->PhysicsWorld = new b2World({ 0.0f, -9.8f });
 		s_physics2DEngineData->PhysicsWorld->SetAutoClearForces(false);
 
-		auto view = s_physics2DEngineData->SceneContext->GetAllEntitiesWith<Rigidbody2DComponent>();
+		auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<Rigidbody2DComponent>();
 		for (auto e : view)
 		{
-			Entity entity = { e, s_physics2DEngineData->SceneContext };
+			Entity entity = { e, SceneManager::GetActiveScene().get() };
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
@@ -83,7 +81,7 @@ namespace Engine
 			}
 		}
 
-		if (s_physics2DEngineData->SceneContext->IsRunning())
+		if (SceneManager::GetActiveScene()->IsRunning())
 			s_physics2DEngineData->PhysicsWorld->SetContactListener(&g_ContactListener);
 	}
 
@@ -101,7 +99,7 @@ namespace Engine
 		}
 		s_physics2DEngineData->AccumulatorRatio = s_physics2DEngineData->Accumulator / s_physics2DEngineData->Settings.PhysicsTimestep;
 
-		auto view = s_physics2DEngineData->SceneContext->GetAllEntitiesWith<Rigidbody2DComponent>();
+		auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<Rigidbody2DComponent>();
 
 		const int nStepsClamped = std::min(nSteps, maxSteps);
 		for (int i = 0; i < nStepsClamped; ++i)
@@ -109,7 +107,7 @@ namespace Engine
 			// reset smoothing
 			for (auto e : view)
 			{
-				Entity entity = { e, s_physics2DEngineData->SceneContext };
+				Entity entity = { e, SceneManager::GetActiveScene().get() };
 				auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
 				b2Body* body = (b2Body*)rb2d.RuntimeBody;
@@ -153,7 +151,7 @@ namespace Engine
 
 		for (auto e : view)
 		{
-			Entity entity = { e, s_physics2DEngineData->SceneContext };
+			Entity entity = { e, SceneManager::GetActiveScene().get() };
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
 			b2Body* body = (b2Body*)rb2d.RuntimeBody;
@@ -196,8 +194,6 @@ namespace Engine
 	{
 		delete s_physics2DEngineData->PhysicsWorld;
 		s_physics2DEngineData->PhysicsWorld = nullptr;
-
-		s_physics2DEngineData->SceneContext = nullptr;
 
 		delete s_physics2DEngineData;
 	}
@@ -274,7 +270,7 @@ namespace Engine
 		UUID fixtureAEntityID = (UUID)fixtureA->GetBody()->GetUserData().pointer;
 		UUID fixtureBEntityID = (UUID)fixtureB->GetBody()->GetUserData().pointer;
 
-		if (!s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && !s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID))
+		if (!SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && !SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID))
 			return;
 
 		for (b2Body* body : s_physics2DEngineData->QueuedBodiesToDestroy)
@@ -285,23 +281,23 @@ namespace Engine
 			}
 		}
 
-		Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID(fixtureAEntityID);
-		Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID(fixtureBEntityID);
+		Entity entityA = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureAEntityID);
+		Entity entityB = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureBEntityID);
 
-		if (fixtureA->IsSensor() && s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
+		if (fixtureA->IsSensor() && SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerEnter2D(entityB, Physics2DContact{ fixtureAEntityID, fixtureBEntityID });
 		}
-		else if(fixtureB->IsSensor() && s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
+		else if(fixtureB->IsSensor() && SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerEnter2D(entityA, Physics2DContact{ fixtureBEntityID, fixtureAEntityID });
 		}
 		else
 		{
-			if (s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
+			if (SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
 				ScriptEngine::OnCollisionEnter2D(entityB, Physics2DContact{ fixtureAEntityID, fixtureBEntityID });
 			
-			if (s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
+			if (SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
 				ScriptEngine::OnCollisionEnter2D(entityA, Physics2DContact{ fixtureBEntityID, fixtureAEntityID });
 		}
 	}
@@ -314,7 +310,7 @@ namespace Engine
 		UUID fixtureAEntityID = (UUID)fixtureA->GetBody()->GetUserData().pointer;
 		UUID fixtureBEntityID = (UUID)fixtureB->GetBody()->GetUserData().pointer;
 
-		if (!s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && !s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID))
+		if (!SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && !SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID))
 			return;
 
 		for (b2Body* body : s_physics2DEngineData->QueuedBodiesToDestroy)
@@ -325,23 +321,23 @@ namespace Engine
 			}
 		}
 
-		Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID(fixtureAEntityID);
-		Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID(fixtureBEntityID);
+		Entity entityA = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureAEntityID);
+		Entity entityB = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureBEntityID);
 
-		if (fixtureA->IsSensor() && s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
+		if (fixtureA->IsSensor() && SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerExit2D(entityB, Physics2DContact{ fixtureAEntityID, fixtureBEntityID });
 		}
-		else if (fixtureB->IsSensor() && s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
+		else if (fixtureB->IsSensor() && SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerExit2D(entityA, Physics2DContact{ fixtureBEntityID, fixtureAEntityID });
 		}
 		else
 		{
-			if (s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
+			if (SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
 				ScriptEngine::OnCollisionExit2D(entityB, Physics2DContact{ fixtureAEntityID, fixtureBEntityID });
 
-			if (s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
+			if (SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
 				ScriptEngine::OnCollisionExit2D(entityA, Physics2DContact{ fixtureBEntityID, fixtureAEntityID });
 		}
 	}

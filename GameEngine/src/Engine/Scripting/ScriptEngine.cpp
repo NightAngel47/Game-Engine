@@ -82,8 +82,6 @@ namespace Engine
 		std::unordered_map<std::string, ScriptFieldMap> ScriptFieldsDefaults;
 		std::unordered_map<std::string, ScriptMethodMap> ScriptMethodMap;
 
-		Scene* SceneContext;
-
 		Scope<filewatch::FileWatch<std::filesystem::path>> AppAssemblyFileWatcher;
 		bool AssemblyReloadPending = false;
 	};
@@ -448,16 +446,6 @@ namespace Engine
 		}
 	}
 
-	void ScriptEngine::OnRuntimeStart(Scene* scene)
-	{
-		s_ScriptEngineData->SceneContext = scene;
-	}
-
-	void ScriptEngine::OnRuntimeStop()
-	{
-		s_ScriptEngineData->SceneContext = nullptr;
-	}
-
 	MonoObject* ScriptEngine::InstantiateClass(MonoClass* monoClass)
 	{
 		MonoObject* instance = mono_object_new(s_ScriptEngineData->AppDomain, monoClass);
@@ -492,11 +480,6 @@ namespace Engine
 			return {};
 
 		return s_ScriptEngineData->ScriptMethodMap.at(scriptName);
-	}
-
-	Scene* ScriptEngine::GetSceneContext()
-	{
-		return s_ScriptEngineData->SceneContext;
 	}
 
 	MonoAssembly* ScriptEngine::GetCoreAssembly()

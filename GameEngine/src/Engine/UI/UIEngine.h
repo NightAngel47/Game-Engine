@@ -38,7 +38,7 @@ namespace Engine
 	public:
 		UIEngine() = delete;
 
-		static void OnUIStart(Scene* scene);
+		static void OnUIStart();
 		static void OnUIUpdate(Timestep ts, float viewportWidth, float viewportHeight);
 		static void OnUIStop();
 
