@@ -127,18 +127,23 @@ namespace Engine
 
 	void EditorAssetManager::SaveAssetAs(const Ref<Asset>& asset, const std::filesystem::path& path)
 	{
-		AssetHandle handle = asset->Handle.IsValid() ? asset->Handle : AssetHandle();
-		if (IsAssetHandleValid(handle))
+		AssetHandle handle = asset->Handle;
+		if (IsAssetHandleValid(handle) && handle == GetAssetHandleFromFilePath(path))
 		{
+			// save as existing asset
 			SaveAsset(asset);
 			return;
 		}
+
+		// save as new asset
+		handle = AssetHandle(); // generate new handle
+		asset->Handle = handle;
 
 		AssetMetadata metadata = AssetMetadata();
 		metadata.Path = path;
 		metadata.Type = asset->GetAssetType();
 
-		m_AssetRegistry[handle] = metadata;
+		m_LoadedAssets[handle] = asset;
 
 		AssetImporter::SerializeAsset(metadata, asset);
 		SaveAssetToRegistry(handle, metadata);

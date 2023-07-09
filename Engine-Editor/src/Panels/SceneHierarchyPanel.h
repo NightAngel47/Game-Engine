@@ -10,8 +10,8 @@ namespace Engine
 			: m_SelectionContext(UUID::INVALID()) {};
 		SceneHierarchyPanel(const Ref<Scene>& context);
 
-		void SetContext(const Ref<Scene>& context);
 		const Ref<Scene> GetContext() const { return m_Context; }
+		void SetContext(const Ref<Scene>& context);
 
 		void OnImGuiRender();
 

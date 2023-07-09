@@ -55,6 +55,10 @@ namespace Engine
 
 		if (m_Context)
 		{
+			// TODO not sure if we want to change everytime
+			//if (m_Context != SceneManager::GetActiveScene())
+			//	SetContext(SceneManager::GetActiveScene());
+
 			m_Context->m_Registry.each([&](auto entityID)
 			{
 				Entity entity{ entityID, m_Context.get() };

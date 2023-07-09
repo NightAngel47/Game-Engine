@@ -13,9 +13,7 @@ namespace Engine
 
 		void OnImGuiRender();
 
-	private:
 		void RefreshAssetTree();
-
 	private:
 		std::filesystem::path m_BaseDirectory;
 		std::filesystem::path m_CurrentDirectory;

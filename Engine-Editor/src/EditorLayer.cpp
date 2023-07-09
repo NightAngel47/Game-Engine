@@ -930,15 +930,23 @@ namespace Engine
 		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) return;
 
 		std::filesystem::path fullPath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
+
+		if (fullPath.empty())
+			return;
+
+		if (fullPath.extension() != ".scene")
+			fullPath += ".scene";
+
 		std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetAssetDirectory());
 
-		SceneManager::GetActiveScene()->SetSceneName(relativePath.filename().string());
+		SceneManager::GetActiveScene()->SetSceneName(relativePath.filename().generic_string());
 
 		AssetMetadata metadata = AssetMetadata();
 		metadata.Path = fullPath;
 		metadata.Type = AssetType::Scene;
 
-		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, relativePath);
+		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, relativePath.generic_string());
+		m_ContentBrowserPanel->RefreshAssetTree();
 	}
 
 	void EditorLayer::SaveScene()

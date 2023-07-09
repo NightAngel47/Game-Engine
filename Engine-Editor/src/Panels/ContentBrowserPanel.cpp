@@ -8,7 +8,7 @@ namespace Engine
 	ContentBrowserPanel::ContentBrowserPanel()
 		:m_BaseDirectory(Project::GetAssetDirectory()), m_CurrentDirectory(m_BaseDirectory)
 	{
-		m_TreeNodes.push_back(TreeNode(".", AssetHandle::INVALID()));
+		m_TreeNodes.emplace_back(".", AssetHandle::INVALID());
 
 		m_DirectoryIcon = TextureImporter::LoadTexture2D("Resources/Icons/ContentBrowser/DirectoryIcon.png");
 		m_FileIcon = TextureImporter::LoadTexture2D("Resources/Icons/ContentBrowser/FileIcon.png");
@@ -93,9 +93,14 @@ namespace Engine
 				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 				{
 					if (isDirectory)
+					{
 						m_CurrentDirectory /= item.filename();
-					else if (Project::GetActive()->GetEditorAssetManager()->GetAssetType(indexHandle) == AssetType::Scene)
-						SceneManager::LoadScene(indexHandle);
+					}
+					// TODO fix scene hierarchy panel not updating as well when this is done
+					//else if (Project::GetActive()->GetEditorAssetManager()->GetAssetType(indexHandle) == AssetType::Scene)
+					//{
+					//	SceneManager::LoadScene(indexHandle);
+					//}
 				}
 
 				ImGui::TextWrapped(itemStr.c_str());
