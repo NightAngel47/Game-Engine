@@ -63,8 +63,8 @@ namespace Engine
 	{
 		m_FrameTime = ts.GetMilliseconds();
 
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto activeScene = editorSceneManager.GetActiveScene();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto activeScene = editorSceneManager->GetActiveScene();
 
 		activeScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 		
@@ -87,7 +87,7 @@ namespace Engine
 		m_Framebuffer->ClearAttachment(1, -1);
 
 		// Update Scene
-		switch (editorSceneManager.GetEditorSceneState())
+		switch (editorSceneManager->GetEditorSceneState())
 		{
 			case EditorSceneState::Edit:
 			{
@@ -95,6 +95,10 @@ namespace Engine
 				m_EditorCamera.OnUpdate(ts);
 
 				activeScene->OnUpdateEditor(ts, m_EditorCamera);
+
+				if (m_EditorScene != activeScene)
+					OpenScene(activeScene->Handle);
+
 				break;
 			}
 			case EditorSceneState::Play:
@@ -206,8 +210,6 @@ namespace Engine
 				if (ImGui::MenuItem("Reload Assembly", "Crtl+R"))
 				{
 					ScriptEngine::ReloadAssembly();
-					// TODO prompt user to save any changes before reloading scene
-					//OpenScene(m_EditorScene->Handle); // reload scene to match new assembly state
 					SceneManager::LoadScene(m_EditorScene->Handle); // reload scene to match new assembly state
 				}
 
@@ -456,8 +458,8 @@ namespace Engine
 					ImGui::SameLine();
 					std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(runtimeStartScene) ? editorAssetManager->GetAssetPath(runtimeStartScene) : "None";
 					ImGui::Text(scenePath.generic_string().c_str());
-					ImGui::SameLine();
-					if (ImGui::InputScalar("##RuntimeStartSceneHandle", ImGuiDataType_U64, &runtimeStartScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly));
+					ImGui::SameLine(); 
+					ImGui::InputScalar("##RuntimeStartSceneHandle", ImGuiDataType_U64, &runtimeStartScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
 					if (ImGui::BeginDragDropTarget())
 					{
 						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -493,7 +495,7 @@ namespace Engine
 					std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(editorStartScene) ? editorAssetManager->GetAssetPath(editorStartScene) : "None";
 					ImGui::Text(scenePath.generic_string().c_str());
 					ImGui::SameLine();
-					if (ImGui::InputScalar("##StartSceneHandle", ImGuiDataType_U64, &editorStartScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly));
+					ImGui::InputScalar("##StartSceneHandle", ImGuiDataType_U64, &editorStartScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
 					if (ImGui::BeginDragDropTarget())
 					{
 						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -606,9 +608,9 @@ namespace Engine
 		float size = ImGui::GetWindowHeight() - 8.0f;
 		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
 
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
-		auto activeScene = editorSceneManager.GetActiveScene();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
+		auto activeScene = editorSceneManager->GetActiveScene();
 
 		// play button
 		if (sceneState != EditorSceneState::Simulate)
@@ -804,9 +806,9 @@ namespace Engine
 
 	void EditorLayer::OnOverlayRender()
 	{
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
-		auto activeScene = editorSceneManager.GetActiveScene();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
+		auto activeScene = editorSceneManager->GetActiveScene();
 
 		if (sceneState == EditorSceneState::Play)
 		{
@@ -926,6 +928,8 @@ namespace Engine
 
 	void EditorLayer::NewScene()
 	{
+		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) OnSceneStop();
+
 		m_EditorScene = SceneManager::CreateNewScene();
         m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_EditorScene);
@@ -957,8 +961,6 @@ namespace Engine
 	void EditorLayer::OpenScene(const AssetHandle handle)
 	{
 		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) OnSceneStop();
-
-		NewScene();
 
 		m_EditorScene = SceneManager::LoadScene(handle);
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
@@ -1045,17 +1047,17 @@ namespace Engine
 
 	void EditorLayer::OnScenePlay()
 	{
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
 		if (sceneState == EditorSceneState::Simulate)
 			OnSceneStop();
 
 		SaveScene();
 
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
-		editorSceneManager.SetEditorSceneState(EditorSceneState::Play);
+		editorSceneManager->SetEditorSceneState(EditorSceneState::Play);
 
-		auto& scene = editorSceneManager.LoadSceneCopy(m_EditorScene);
+		auto& scene = editorSceneManager->LoadSceneCopy(m_EditorScene);
 		scene->OnRuntimeStart();
 
 		m_SceneHierarchyPanel.SetContext(scene);
@@ -1063,15 +1065,15 @@ namespace Engine
 
 	void EditorLayer::OnSceneSimulate()
 	{
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
 		if (sceneState == EditorSceneState::Play)
 			OnSceneStop();
 
 		ENGINE_CORE_TRACE("SceneState changed to Simulate.");
-		editorSceneManager.SetEditorSceneState(EditorSceneState::Simulate);
+		editorSceneManager->SetEditorSceneState(EditorSceneState::Simulate);
 
-		auto& scene = editorSceneManager.LoadSceneCopy(m_EditorScene);
+		auto& scene = editorSceneManager->LoadSceneCopy(m_EditorScene);
 		scene->OnSimulationStart();
 
 		m_SceneHierarchyPanel.SetContext(scene);
@@ -1079,11 +1081,11 @@ namespace Engine
 
 	void EditorLayer::OnSceneStop()
 	{
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
 		ENGINE_CORE_ASSERT(sceneState == EditorSceneState::Play || sceneState == EditorSceneState::Simulate);
 
-		auto& scene = editorSceneManager.GetActiveScene();
+		auto& scene = editorSceneManager->GetActiveScene();
 		if (sceneState == EditorSceneState::Play)
 			scene->OnRuntimeStop();
 		else if (sceneState == EditorSceneState::Simulate)
@@ -1091,9 +1093,9 @@ namespace Engine
 
 
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
-		editorSceneManager.SetEditorSceneState(EditorSceneState::Edit);
+		editorSceneManager->SetEditorSceneState(EditorSceneState::Edit);
 		scene->SetPaused(false);
-		m_EditorScene = editorSceneManager.LoadScene(m_EditorScene->Handle);
+		m_EditorScene = editorSceneManager->LoadScene(m_EditorScene->Handle);
 
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}

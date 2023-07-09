@@ -96,11 +96,11 @@ namespace Engine
 					{
 						m_CurrentDirectory /= item.filename();
 					}
-					// TODO fix scene hierarchy panel not updating as well when this is done
-					//else if (Project::GetActive()->GetEditorAssetManager()->GetAssetType(indexHandle) == AssetType::Scene)
-					//{
-					//	SceneManager::LoadScene(indexHandle);
-					//}
+					else if (Project::GetActive()->GetEditorAssetManager()->GetAssetType(indexHandle) == AssetType::Scene)
+					{
+						if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() == EditorSceneState::Edit)
+							SceneManager::LoadScene(indexHandle);
+					}
 				}
 
 				ImGui::TextWrapped(itemStr.c_str());
