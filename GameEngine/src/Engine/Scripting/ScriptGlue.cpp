@@ -88,6 +88,8 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Entity_CreateEntity);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetScriptInstance);
 		ENGINE_ADD_INTERNAL_CALL(Entity_DestroyEntity);
+		ENGINE_ADD_INTERNAL_CALL(Entity_GetWorldTransformPosition);
+		ENGINE_ADD_INTERNAL_CALL(Entity_GetUITransformPosition);
 
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetPosition);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetPosition);
@@ -429,6 +431,18 @@ namespace InternalCalls
 		Engine::Entity entity = scene->GetEntityWithUUID(entityID);
 		ENGINE_CORE_ASSERT(entity, "Entity with UUID: " + std::to_string(entityID) + " was not found in Scene!");
 		scene->DestroyEntity(entity);
+	}
+
+	void ScriptGlue::Entity_GetWorldTransformPosition(Engine::UUID entityID, glm::vec3* position)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*position = Engine::Math::PositionFromTransform(entity.GetWorldSpaceTransform());
+	}
+
+	void ScriptGlue::Entity_GetUITransformPosition(Engine::UUID entityID, glm::vec3* position)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*position = Engine::Math::PositionFromTransform(entity.GetUISpaceTransform());
 	}
 
 #pragma endregion Entity

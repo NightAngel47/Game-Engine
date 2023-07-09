@@ -157,6 +157,12 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Entity_DestroyEntity(ulong entityID);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_GetWorldTransformPosition(ulong entityID, out Vector3 position);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_GetUITransformPosition(ulong entityID, out Vector3 position);
+
 		#endregion Entity
 
 		#region TransformComponent

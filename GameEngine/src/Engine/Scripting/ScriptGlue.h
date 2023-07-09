@@ -113,6 +113,9 @@ namespace InternalCalls
 		static MonoObject* Entity_GetScriptInstance(Engine::UUID entityID);
 		static void Entity_DestroyEntity(Engine::UUID entityID);
 
+		static void Entity_GetWorldTransformPosition(Engine::UUID entityID, glm::vec3* position);
+		static void Entity_GetUITransformPosition(Engine::UUID entityID, glm::vec3* position);
+
 #pragma endregion Entity
 
 #pragma region TransformComponent

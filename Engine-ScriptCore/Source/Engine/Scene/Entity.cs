@@ -134,5 +134,18 @@ namespace Engine.Scene
 				InternalCalls.TransformComponent_SetPosition(ID, ref value);
 			}
 		}
+
+		public Vector3 GetWorldPosition()
+		{
+			InternalCalls.Entity_GetWorldTransformPosition(ID, out Vector3 result);
+			return result;
+		}
+
+		public Vector3 GetUIPosition()
+		{
+			InternalCalls.Entity_GetUITransformPosition(ID, out Vector3 result);
+			return result;
+		}
+
 	}
 }
