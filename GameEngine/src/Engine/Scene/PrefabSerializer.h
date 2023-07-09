@@ -10,6 +10,6 @@ namespace Engine
 
 		void Serialize(const std::filesystem::path& filepath, Entity entity, const Ref<Scene>& scene);
 
-		Entity Deserialize(const std::filesystem::path& filepath, Entity entity, Ref<Scene>& scene);
+		void Deserialize(const std::filesystem::path& filepath, Entity entity, Ref<Scene>& scene);
 	};
 }

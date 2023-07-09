@@ -72,7 +72,6 @@ namespace Engine
 		return it->second;
 	}
 
-
 	const AssetType EditorAssetManager::GetAssetType(AssetHandle handle) const
 	{
 		if (IsAssetHandleValid(handle))
@@ -81,13 +80,13 @@ namespace Engine
 		return AssetType::None;
 	}
 
-
 	const std::filesystem::path& EditorAssetManager::GetAssetPath(AssetHandle handle) const
 	{
-		if (IsAssetHandleValid(handle))
-			return GetAssetMetadata(handle).Path;
+		static std::filesystem::path s_NullPath;
+		if (!IsAssetHandleValid(handle))
+			return s_NullPath;
 
-		return "";
+		return GetAssetMetadata(handle).Path;
 	}
 
 	const AssetHandle EditorAssetManager::GetAssetHandleFromFilePath(const std::filesystem::path& path)
@@ -98,7 +97,6 @@ namespace Engine
 
 		return AssetHandle::INVALID();
 	}
-
 
 	void EditorAssetManager::ImportAsset(const std::filesystem::path& path)
 	{
@@ -183,5 +181,4 @@ namespace Engine
 
 		return s_AssetExtensionMap.at(extension);
 	}
-
 }

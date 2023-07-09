@@ -526,15 +526,15 @@ namespace Engine
 
 				ImGui::Text("Project Directory: ");
 				ImGui::SameLine();
-				ImGui::Text(project->GetProjectDirectory().generic_string().c_str());
+				ImGui::Text(Project::GetProjectDirectory().generic_string().c_str());
 
 				ImGui::Text("Asset Directory: ");
 				ImGui::SameLine();
-				ImGui::Text(project->GetAssetDirectory().generic_string().c_str());
+				ImGui::Text(Project::GetAssetDirectory().generic_string().c_str());
 
 				ImGui::Text("Asset Registry Path: ");
 				ImGui::SameLine();
-				ImGui::Text(project->GetAssetRegistryPath().generic_string().c_str());
+				ImGui::Text(Project::GetAssetRegistryPath().generic_string().c_str());
 
 				ImGui::Text("Script Module Path: ");
 				ImGui::SameLine();

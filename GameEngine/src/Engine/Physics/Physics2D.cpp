@@ -18,7 +18,7 @@ namespace Engine
 		const uint32_t PositionIteractions = 16;
 	};
 
-	static struct Physics2DEngineData
+	struct Physics2DEngineData
 	{
 		b2World* PhysicsWorld = nullptr;
 		float Accumulator = 0.0f;

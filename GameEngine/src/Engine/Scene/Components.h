@@ -99,7 +99,7 @@ namespace Engine
 
 		void AssignTexture(AssetHandle handle)
 		{
-			if (handle.IsValid())
+			if (AssetManager::IsAssetHandleValid(Texture))
 			{
 				Texture = handle;
 
@@ -122,8 +122,10 @@ namespace Engine
 
 		const Ref<Texture2D> GetTexture2D()
 		{
-			if (Texture.IsValid())
-				return AssetManager::GetAsset<Texture2D>(Texture);
+			if (!AssetManager::IsAssetHandleValid(Texture))
+				return nullptr;
+
+			return AssetManager::GetAsset<Texture2D>(Texture);
 		}
 	};
 

@@ -12,7 +12,6 @@ namespace Engine
 
 	void PrefabSerializer::Serialize(const std::filesystem::path& filepath, Entity entity, const Ref<Scene>& scene)
 	{
-
 		YAML::Emitter out;
 		out << YAML::BeginMap; // Prefab
 		out << YAML::Key << "Prefab" << YAML::Value << entity.GetName();
@@ -27,7 +26,7 @@ namespace Engine
 		fout << out.c_str();
 	}
 
-	Entity PrefabSerializer::Deserialize(const std::filesystem::path& filepath, Entity entity, Ref<Scene>& scene)
+	void PrefabSerializer::Deserialize(const std::filesystem::path& filepath, Entity entity, Ref<Scene>& scene)
 	{
 		YAML::Node data;
 		try
@@ -37,11 +36,11 @@ namespace Engine
 		catch (YAML::ParserException e)
 		{
 			ENGINE_CORE_ERROR("Failed to load .prefab file '{0}'\n {1}", filepath, e.what());
-			return {};
+			return;
 		}
 
 		if (!data["Prefab"])
-			return {};
+			return;
 
 		std::string name = data["Prefab"].as<std::string>();
 		ENGINE_CORE_TRACE("Deserializing prefab '{0}'", name);
