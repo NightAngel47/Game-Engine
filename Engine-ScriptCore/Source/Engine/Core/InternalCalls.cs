@@ -5,6 +5,13 @@ namespace Engine.Core
 {
 	internal class InternalCalls
 	{
+		#region Application
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Application_Quit();
+
+		#endregion Application
+
 		#region Log
 
 		[MethodImpl(MethodImplOptions.InternalCall)]

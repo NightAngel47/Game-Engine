@@ -61,7 +61,10 @@ namespace Engine
 
 	void Application::Close()
 	{
-		m_Running = false;
+		if (m_Specification.Runtime)
+			m_Running = false;
+		else
+			ENGINE_CORE_TRACE("\"Application Close\"");
 	}
 
 	void Application::SubmitToMainThread(const std::function<void()>& function)

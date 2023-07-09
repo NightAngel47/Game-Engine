@@ -40,13 +40,16 @@ namespace Engine
 		T& GetComponent()
 		{
 			ENGINE_CORE_ASSERT(HasComponent<T>(), "Entity does not have componenet!");
-			
+
 			return m_Scene->m_Registry.get<T>(m_EntityHandle);
 		}
 		
 		template<typename T>
 		bool HasComponent()
 		{
+			if (!m_Scene->IsEntityHandleValid(m_EntityHandle))
+				return false;
+
 			return m_Scene->m_Registry.has<T>(m_EntityHandle);
 		}
 

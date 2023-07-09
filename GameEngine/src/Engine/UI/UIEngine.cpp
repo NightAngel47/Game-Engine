@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/UI/UIEngine.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scene/SceneManager.h"
 
 #include <cstring>
 
@@ -8,8 +9,6 @@ namespace Engine
 {
 	struct UIEngineData
 	{
-		Scene* SceneContext = nullptr;
-
 		glm::vec2 ViewportMousePos{ 0.0f };
 	};
 
@@ -20,20 +19,19 @@ namespace Engine
 		ENGINE_PROFILE_FUNCTION();
 
 		s_UIEngineData = new UIEngineData();
-		s_UIEngineData->SceneContext = scene;
 	}
 
 	void UIEngine::OnUIUpdate(Timestep ts, float viewportWidth, float viewportHeight)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		auto view = s_UIEngineData->SceneContext->GetAllEntitiesWith<UILayoutComponent>();
+		auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<UILayoutComponent>();
 		for (auto e : view)
 		{
-			if (!s_UIEngineData->SceneContext->IsEntityHandleValid(e))
+			if (!SceneManager::GetActiveScene()->IsEntityHandleValid(e))
 				continue;
 			
-			Entity entity = { e, s_UIEngineData->SceneContext };
+			Entity entity = { e, SceneManager::GetActiveScene().get() };
 			bool isOver = UIEngine::IsOverElement(entity, viewportWidth, viewportHeight);
 
 			if (entity.HasComponent<UIButtonComponent>())
@@ -68,6 +66,9 @@ namespace Engine
 
 	bool UIEngine::IsOverElement(Entity entity, float viewportWidth, float viewportHeight)
 	{
+		if (!entity.HasComponent<UILayoutComponent>())
+			return false;
+
 		auto& layout = entity.GetComponent<UILayoutComponent>();
 
 		glm::mat4 transform = entity.GetUISpaceTransform();
@@ -142,7 +143,7 @@ namespace Engine
 		if (!InteractedEntityID.IsValid())
 			return;
 
-		Entity interactedEntity = s_UIEngineData->SceneContext->GetEntityWithUUID(InteractedEntityID);
+		Entity interactedEntity = SceneManager::GetActiveScene()->GetEntityWithUUID(InteractedEntityID);
 		ScriptComponent sc = interactedEntity.GetComponent<ScriptComponent>();
 		auto scriptMethod = ScriptEngine::GetScriptMethodMap(sc.ClassName).at(InteractedFunction);
 

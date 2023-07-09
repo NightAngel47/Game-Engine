@@ -21,6 +21,12 @@ namespace InternalCalls
 		static void RegisterComponentTypes();
 
 	private:
+#pragma region Application
+
+		static void Application_Quit();
+
+#pragma endregion Application
+
 #pragma region Log
 
 		static void Log_Trace(MonoString* message);

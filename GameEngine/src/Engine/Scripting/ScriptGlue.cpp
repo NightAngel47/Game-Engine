@@ -2,6 +2,7 @@
 #include "Engine/Scripting/ScriptGlue.h"
 #include "Engine/Scripting/ScriptEngine.h"
 
+#include "Engine/Core/Application.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Entity.h"
 #include "Engine/Math/Random.h"
@@ -40,6 +41,7 @@ namespace InternalCalls
 		ENGINE_PROFILE_FUNCTION();
 
 		// Add internal calls
+		ENGINE_ADD_INTERNAL_CALL(Application_Quit);
 
 		ENGINE_ADD_INTERNAL_CALL(Log_Trace);
 		ENGINE_ADD_INTERNAL_CALL(Log_Info);
@@ -156,6 +158,14 @@ namespace InternalCalls
 	{
 		RegisterComponent(Engine::AllComponents{});
 	}
+#pragma region Application
+
+	void ScriptGlue::Application_Quit()
+	{
+		Engine::Application::Get().Close();
+	}
+
+#pragma endregion Application
 
 #pragma region Log
 
