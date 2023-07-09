@@ -1,8 +1,9 @@
 #include "enginepch.h"
 #include "Engine/Project/Project.h"
 #include "Engine/Project/ProjectSerializer.h"
-#include "Engine/Scripting/ScriptEngine.h"
 #include "Engine/Core/Application.h"
+#include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Audio/AudioEngine.h"
 
 namespace Engine
 {
@@ -35,6 +36,8 @@ namespace Engine
 			AssetImporter::Init();
 
 			ScriptEngine::Init();
+
+			AudioEngine::Init();
 
 			return s_ActiveProject;
 		}

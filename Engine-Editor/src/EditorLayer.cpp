@@ -52,6 +52,8 @@ namespace Engine
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+
+		AudioEngine::SetMasterVolume(0.1f);
 	}
 
 	void EditorLayer::OnDetach()
@@ -732,6 +734,12 @@ namespace Engine
 					}
 				}
 
+				break;
+			}
+
+			case Key::B:
+			{
+				AudioEngine::PlaySound(Project::GetAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
 				break;
 			}
 		}
