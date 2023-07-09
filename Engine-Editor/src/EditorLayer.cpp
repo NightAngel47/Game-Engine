@@ -448,39 +448,78 @@ namespace Engine
 				ImGui::Text(config.Name.c_str());
 				ImGui::Separator();
 
-				AssetHandle startScene = config.StartScene;
-				ImGui::Text("Start Scene: ");
-				ImGui::SameLine();
 				Ref<EditorAssetManager> editorAssetManager = project->GetEditorAssetManager();
-				std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(startScene) ? editorAssetManager->GetAssetPath(startScene) : "None";
-				ImGui::Text(scenePath.generic_string().c_str());
-				ImGui::SameLine();
-				if (ImGui::InputScalar("##StartSceneHandle", ImGuiDataType_U64, &startScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly));
-				if (ImGui::BeginDragDropTarget())
+
 				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					AssetHandle runtimeStartScene = config.RuntimeStartScene;
+					ImGui::Text("Runtime Start Scene: ");
+					ImGui::SameLine();
+					std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(runtimeStartScene) ? editorAssetManager->GetAssetPath(runtimeStartScene) : "None";
+					ImGui::Text(scenePath.generic_string().c_str());
+					ImGui::SameLine();
+					if (ImGui::InputScalar("##RuntimeStartSceneHandle", ImGuiDataType_U64, &runtimeStartScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly));
+					if (ImGui::BeginDragDropTarget())
 					{
-						AssetHandle handle = *(AssetHandle*)payload->Data;
-						if (editorAssetManager->IsAssetHandleValid(handle))
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 						{
-							auto type = editorAssetManager->GetAssetType(handle);
-							if (type == AssetType::Scene)
+							AssetHandle handle = *(AssetHandle*)payload->Data;
+							if (editorAssetManager->IsAssetHandleValid(handle))
 							{
-								config.StartScene = handle;
-								project->Save();
+								auto type = editorAssetManager->GetAssetType(handle);
+								if (type == AssetType::Scene)
+								{
+									config.RuntimeStartScene = handle;
+									project->Save();
+								}
+								else
+								{
+									ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(type));
+								}
 							}
 							else
 							{
-								ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(type));
+								ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
 							}
 						}
-						else
-						{
-							ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
-						}
-					}
 
-					ImGui::EndDragDropTarget();
+						ImGui::EndDragDropTarget();
+					}
+				}
+
+				{
+					AssetHandle editorStartScene = config.EditorStartScene;
+					ImGui::Text("Editor Start Scene: ");
+					ImGui::SameLine();
+					std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(editorStartScene) ? editorAssetManager->GetAssetPath(editorStartScene) : "None";
+					ImGui::Text(scenePath.generic_string().c_str());
+					ImGui::SameLine();
+					if (ImGui::InputScalar("##StartSceneHandle", ImGuiDataType_U64, &editorStartScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly));
+					if (ImGui::BeginDragDropTarget())
+					{
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+						{
+							AssetHandle handle = *(AssetHandle*)payload->Data;
+							if (editorAssetManager->IsAssetHandleValid(handle))
+							{
+								auto type = editorAssetManager->GetAssetType(handle);
+								if (type == AssetType::Scene)
+								{
+									config.EditorStartScene = handle;
+									project->Save();
+								}
+								else
+								{
+									ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(type));
+								}
+							}
+							else
+							{
+								ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
+							}
+						}
+
+						ImGui::EndDragDropTarget();
+					}
 				}
 
 				ImGui::Text("Project Directory: ");
@@ -871,7 +910,7 @@ namespace Engine
 		{
 			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
 
-			AssetHandle startScene = Project::GetActive()->GetConfig().StartScene;
+			AssetHandle startScene = Project::GetActive()->GetConfig().EditorStartScene;
 			AssetManager::IsAssetHandleValid(startScene) ? OpenScene(startScene) : NewScene();
 		}
 		else

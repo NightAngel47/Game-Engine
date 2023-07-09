@@ -15,7 +15,8 @@ namespace Engine
 	{
 		std::string Name;
 
-		AssetHandle StartScene;
+		AssetHandle EditorStartScene;
+		AssetHandle RuntimeStartScene;
 
 		std::filesystem::path AssetDirectory;
 		std::filesystem::path AssetRegistryPath;
