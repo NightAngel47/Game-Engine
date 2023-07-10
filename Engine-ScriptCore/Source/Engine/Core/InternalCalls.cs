@@ -280,5 +280,15 @@ namespace Engine.Core
 		internal static extern void Rigidbody2DComponent_ApplyForceToCenter(ulong entityID, ref Vector2 force, bool wake);
 
 		#endregion Rigidbody2DComponent
+
+		#region CameraComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float CameraComponent_GetOrthographicSize(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void CameraComponent_SetOrthographicSize(ulong entityID, float size);
+
+		#endregion CameraComponent
 	}
 }

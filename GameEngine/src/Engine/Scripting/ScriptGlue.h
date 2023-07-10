@@ -185,6 +185,13 @@ namespace InternalCalls
 		static void Rigidbody2DComponent_ApplyForceToCenter(Engine::UUID entityID, glm::vec2& force, bool wake);
 
 #pragma endregion Rigidbody2DComponent
+
+#pragma region CameraComponent
+
+		static float CameraComponent_GetOrthographicSize(Engine::UUID entityID);
+		static void CameraComponent_SetOrthographicSize(Engine::UUID entityID, float size);
+
+#pragma endregion CameraComponent
 	};
 
 }

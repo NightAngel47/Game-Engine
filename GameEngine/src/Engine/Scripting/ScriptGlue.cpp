@@ -127,6 +127,9 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyForce);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyForceToCenter);
+
+		ENGINE_ADD_INTERNAL_CALL(CameraComponent_GetOrthographicSize);
+		ENGINE_ADD_INTERNAL_CALL(CameraComponent_SetOrthographicSize);
 	}
 
 	template<typename... Component>
@@ -683,5 +686,21 @@ namespace InternalCalls
 	}
 
 #pragma endregion Rigidbody2DComponent
+
+#pragma region CameraComponent
+
+	float ScriptGlue::CameraComponent_GetOrthographicSize(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		return entity.GetComponent<Engine::CameraComponent>().Camera.GetOrthographicSize();
+	}
+
+	void ScriptGlue::CameraComponent_SetOrthographicSize(Engine::UUID entityID, float size)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::CameraComponent>().Camera.SetOrthographicSize(size);
+	}
+
+#pragma endregion CameraComponent
 
 }

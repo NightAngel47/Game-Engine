@@ -177,4 +177,13 @@ namespace Engine.Scene
 	{
 
 	}
+
+	public class CameraComponent : Component
+	{
+		public float OrthographicSize
+		{
+			get => InternalCalls.CameraComponent_GetOrthographicSize(Entity.ID);
+			set => InternalCalls.CameraComponent_SetOrthographicSize(Entity.ID, value);
+		}
+	}
 }
