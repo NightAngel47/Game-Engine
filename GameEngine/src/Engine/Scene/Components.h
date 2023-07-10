@@ -99,7 +99,7 @@ namespace Engine
 
 		void AssignTexture(AssetHandle handle)
 		{
-			if (AssetManager::IsAssetHandleValid(Texture))
+			if (AssetManager::IsAssetHandleValid(handle))
 			{
 				Texture = handle;
 
