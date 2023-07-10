@@ -316,7 +316,14 @@ namespace Engine
 				continue;
 
 			Entity entity = scene->GetEntityWithUUID(entityID);
-			auto& fields = ScriptEngine::GetEntityClasses().at(entity.GetComponent<ScriptComponent>().ClassName)->GetScriptFields();
+			const auto& className = entity.GetComponent<ScriptComponent>().ClassName;
+			
+			const auto& entityClasses = ScriptEngine::GetEntityClasses();
+			if (entityClasses.find(className) == entityClasses.end())
+				continue;
+
+
+			auto& fields = entityClasses.at(className)->GetScriptFields();
 			auto& entityFields = s_ScriptEngineData->EntityScriptFields[entityID];
 
 			for (auto& [fieldName, field] : fields)
