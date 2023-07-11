@@ -69,6 +69,7 @@ namespace InternalCalls
 		static float Vector2_Magnitude(glm::vec2& vector2);
 		static float Vector2_SqrMagnitude(glm::vec2& vector2);
 		static void Vector2_Normalize(glm::vec2* vector2);
+		static void Vector2_RotateAroundAxis(glm::vec2* vector2, float angle);
 
 #pragma endregion Vector2
 
@@ -77,6 +78,7 @@ namespace InternalCalls
 		static float Vector3_Magnitude(glm::vec3& vector3);
 		static float Vector3_SqrMagnitude(glm::vec3& vector3);
 		static void Vector3_Normalize(glm::vec3* vector3);
+		static void Vector3_RotateAroundAxis(glm::vec3* vector3, float angle, glm::vec3& axis);
 
 #pragma endregion Vector3
 
@@ -85,6 +87,7 @@ namespace InternalCalls
 		static float Vector4_Magnitude(glm::vec4& vector4);
 		static float Vector4_SqrMagnitude(glm::vec4& vector4);
 		static void Vector4_Normalize(glm::vec4* vector4);
+		static void Vector4_RotateAroundAxis(glm::vec4* vector4, float angle, glm::vec3& axis);
 
 #pragma endregion Vector4
 

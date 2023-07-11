@@ -10,6 +10,7 @@
 #include "Engine/Scene/SceneManager.h"
 
 #include <box2d/b2_body.h>
+#include <glm/gtx/rotate_vector.hpp>
 
 namespace InternalCalls
 {
@@ -67,14 +68,17 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector2_Magnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector2_SqrMagnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector2_Normalize);
+		ENGINE_ADD_INTERNAL_CALL(Vector2_RotateAroundAxis);
 
 		ENGINE_ADD_INTERNAL_CALL(Vector3_Magnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector3_SqrMagnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector3_Normalize);
+		ENGINE_ADD_INTERNAL_CALL(Vector3_RotateAroundAxis);
 
 		ENGINE_ADD_INTERNAL_CALL(Vector4_Magnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector4_SqrMagnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector3_Normalize);
+		ENGINE_ADD_INTERNAL_CALL(Vector4_RotateAroundAxis);
 
 		ENGINE_ADD_INTERNAL_CALL(Physics2DContact_GetEntityByID);
 
@@ -291,6 +295,11 @@ namespace InternalCalls
 		*vector2 = glm::normalize(*vector2);
 	}
 
+	void ScriptGlue::Vector2_RotateAroundAxis(glm::vec2* vector2, float angle)
+	{
+		*vector2 = glm::rotate(*vector2, angle);
+	}
+
 #pragma endregion Vector2
 	
 #pragma region Vector3
@@ -310,6 +319,11 @@ namespace InternalCalls
 		*vector3 = glm::normalize(*vector3);
 	}
 
+	void ScriptGlue::Vector3_RotateAroundAxis(glm::vec3* vector3, float angle, glm::vec3& axis)
+	{
+		*vector3 = glm::rotate(*vector3, angle, axis);
+	}
+
 #pragma endregion Vector3
 
 #pragma region Vector4
@@ -327,6 +341,11 @@ namespace InternalCalls
 	void ScriptGlue::Vector4_Normalize(glm::vec4* vector4)
 	{
 		*vector4 = glm::normalize(*vector4);
+	}
+
+	void ScriptGlue::Vector4_RotateAroundAxis(glm::vec4* vector4, float angle, glm::vec3& axis)
+	{
+		*vector4 = glm::rotate(*vector4, angle, axis);
 	}
 
 #pragma endregion Vector4

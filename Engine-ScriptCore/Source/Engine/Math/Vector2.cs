@@ -31,6 +31,17 @@ namespace Engine.Math
 			return this;
 		}
 
+		public Vector2 Rotate(float angle)
+		{
+			InternalCalls.Vector2_RotateAroundAxis(out this, angle);
+			return this;
+		}
+
+		public Vector2 Lerp(Vector2 a, Vector2 b, float t)
+		{
+			return new Vector2(Mathf.Lerp(a.X, b.X, t), Mathf.Lerp(a.Y, b.Y, t));
+		}
+
 		public static Vector2 operator +(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X + rhs.X, lhs.Y + rhs.Y);
 		public static Vector2 operator -(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X - rhs.X, lhs.Y - rhs.Y);
 		public static Vector2 operator *(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X * rhs.X, lhs.Y * rhs.Y);

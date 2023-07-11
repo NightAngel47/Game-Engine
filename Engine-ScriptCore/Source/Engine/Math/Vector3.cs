@@ -38,6 +38,12 @@ namespace Engine.Math
 			return this;
 		}
 
+		public Vector3 RotateAroundAxis(float angle, Vector3 axis)
+		{
+			InternalCalls.Vector3_RotateAroundAxis(out this, angle, ref axis);
+			return this;
+		}
+
 		public Vector3 Lerp(Vector3 a, Vector3 b, float t)
 		{
 			return new Vector3(Mathf.Lerp(a.X, b.X, t), Mathf.Lerp(a.Y, b.Y, t), Mathf.Lerp(a.Z, b.Z, t));

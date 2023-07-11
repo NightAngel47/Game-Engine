@@ -89,6 +89,9 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Vector2_Normalize(out Vector2 vector2);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Vector2_RotateAroundAxis(out Vector2 vector2, float angle);
+
 		#endregion Vector2
 
 		#region Vector3
@@ -102,6 +105,9 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Vector3_Normalize(out Vector3 vector3);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Vector3_RotateAroundAxis(out Vector3 vector3, float angle, ref Vector3 axis);
+
 		#endregion Vector3
 
 		#region Vector4
@@ -114,6 +120,9 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Vector4_Normalize(out Vector4 vector4);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Vector4_RotateAroundAxis(out Vector4 vector4, float angle, ref Vector3 axis);
 
 		#endregion Vector4
 
@@ -252,7 +261,7 @@ namespace Engine.Core
 		internal static extern void TextRendererComponent_SetLineSpacing(ulong entityID, float lineSpacing);
 
 		#endregion TextRendererComponent
-		
+
 		#region Rigidbody2DComponent
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
