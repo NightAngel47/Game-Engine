@@ -8,14 +8,37 @@ namespace Engine.Math
 	{
 		public float X, Y;
 
-		public Vector2(float x = 0.0f, float y = 0.0f)
+		public Vector2()
 		{
-			X = x;
-			Y = y;
+			X = Y = 0.0f;
 		}
 
-		public static implicit operator Vector2(Vector3 vec3) => new Vector2(vec3.X, vec3.Y);
-		public static implicit operator Vector2(Vector4 vec4) => new Vector2(vec4.X, vec4.Y);
+		public Vector2(float x, float y)
+		{
+			X = x; Y = y;
+		}
+
+		public Vector2(Vector2 xy)
+		{
+			X = xy.X; Y = xy.Y;
+		}
+
+		public Vector2(float scalar = 0.0f)
+		{
+			X = Y = scalar;
+		}
+
+		public static Vector2 One => new Vector2(1.0f);
+		public static Vector2 Zero => new Vector2(0.0f);
+		public static Vector2 PositiveInfinity => new Vector2(float.PositiveInfinity);
+		public static Vector2 NegativeInfinity => new Vector2(float.NegativeInfinity);
+		public static Vector2 Right => new Vector2(1.0f, 0.0f);
+		public static Vector2 Left => new Vector2(-1.0f, 0.0f);
+		public static Vector2 Up => new Vector2(0.0f, 1.0f);
+		public static Vector2 Down => new Vector2(0.0f, -1.0f);
+
+		public static implicit operator Vector2(Vector3 vec3) => new Vector2(vec3);
+		public static implicit operator Vector2(Vector4 vec4) => new Vector2(vec4);
 
 		public override string ToString()
 		{

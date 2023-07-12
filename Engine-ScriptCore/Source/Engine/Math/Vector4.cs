@@ -8,32 +8,43 @@ namespace Engine.Math
 	{
 		public float X, Y, Z, W;
 
-		public Vector4(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 0.0f)
+		public Vector4()
 		{
-			X = x;
-			Y = y;
-			Z = z;
-			W = w;
+			X = Y = Z = W = 0.0f;
+		}
+
+		public Vector4(float x, float y, float z, float w)
+		{
+			X = x; Y = y; Z = z; W = w;
 		}
 
 		public Vector4(Vector2 xy, float z = 0.0f, float w = 0.0f)
 		{
-			X = xy.X;
-			Y = xy.Y;
-			Z = z;
-			W = w;
+			X = xy.X; Y = xy.Y; Z = z; W = w;
 		}
 
 		public Vector4(Vector3 xyz, float w = 0.0f)
 		{
-			X = xyz.X;
-			Y = xyz.Y;
-			Z = xyz.Z;
-			W = w;
+			X = xyz.X; Y = xyz.Y; Z = xyz.Z; W = w;
 		}
 
-		public static implicit operator Vector4(Vector2 vec2) => new Vector4(vec2.X, vec2.Y);
-		public static implicit operator Vector4(Vector3 vec3) => new Vector4(vec3.X, vec3.Y, vec3.Z);
+		public Vector4(Vector4 xyzw)
+		{
+			X = xyzw.X; Y = xyzw.Y; Z = xyzw.Z; W = xyzw.W;
+		}
+
+		public Vector4(float scalar = 0.0f)
+		{
+			X = Y = Z = W = scalar;
+		}
+
+		public static Vector4 One => new Vector4(1.0f);
+		public static Vector4 Zero => new Vector4(0.0f);
+		public static Vector4 PositiveInfinity => new Vector4(float.PositiveInfinity);
+		public static Vector4 NegativeInfinity => new Vector4(float.NegativeInfinity);
+
+		public static implicit operator Vector4(Vector2 vec2) => new Vector4(vec2);
+		public static implicit operator Vector4(Vector3 vec3) => new Vector4(vec3);
 
 		public override string ToString()
 		{

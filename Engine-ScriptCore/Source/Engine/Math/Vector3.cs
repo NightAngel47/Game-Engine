@@ -8,21 +8,44 @@ namespace Engine.Math
 	{
 		public float X, Y, Z;
 
-		public Vector3(float x = 0.0f, float y = 0.0f, float z = 0.0f)
+		public Vector3()
 		{
-			X = x;
-			Y = y;
-			Z = z;
-		}
-		public Vector3(Vector2 xy, float z = 0.0f)
-		{
-			X = xy.X;
-			Y = xy.Y;
-			Z = z;
+			X = Y = Z = 0.0f;
 		}
 
-		public static implicit operator Vector3(Vector2 vec2) => new Vector3(vec2.X, vec2.Y);
-		public static implicit operator Vector3(Vector4 vec4) => new Vector3(vec4.X, vec4.Y, vec4.Z);
+		public Vector3(float x, float y, float z)
+		{
+			X = x; Y = y; Z = z;
+		}
+
+		public Vector3(Vector2 xy, float z = 0.0f)
+		{
+			X = xy.X; Y = xy.Y; Z = z;
+		}
+
+		public Vector3(Vector3 xyz)
+		{
+			X = xyz.X; Y = xyz.Y; Z = xyz.Z;
+		}
+
+		public Vector3(float scalar = 0.0f)
+		{
+			X = Y = Z = scalar;
+		}
+
+		public static Vector3 One => new Vector3(1.0f);
+		public static Vector3 Zero => new Vector3(0.0f);
+		public static Vector3 PositiveInfinity => new Vector3(float.PositiveInfinity);
+		public static Vector3 NegativeInfinity => new Vector3(float.NegativeInfinity);
+		public static Vector3 Right => new Vector3(1.0f, 0.0f, 0.0f);
+		public static Vector3 Left => new Vector3(-1.0f, 0.0f, 0.0f);
+		public static Vector3 Up => new Vector3(0.0f, 1.0f, 0.0f);
+		public static Vector3 Down => new Vector3(0.0f, -1.0f, 0.0f);
+		public static Vector3 Forward => new Vector3(0.0f, 0.0f, 1.0f);
+		public static Vector3 Backward => new Vector3(0.0f, 0.0f, -1.0f);
+
+		public static implicit operator Vector3(Vector2 vec2) => new Vector3(vec2);
+		public static implicit operator Vector3(Vector4 vec4) => new Vector3(vec4);
 
 		public override string ToString()
 		{
