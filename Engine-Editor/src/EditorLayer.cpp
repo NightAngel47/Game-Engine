@@ -751,6 +751,7 @@ namespace Engine
 			case Key::T:
 			{
 				m_IsGizmoWorld = !m_IsGizmoWorld;
+				break;
 			}
 
 			// Other
