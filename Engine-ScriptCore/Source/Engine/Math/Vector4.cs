@@ -1,10 +1,11 @@
 ﻿using Engine.Core;
+using System;
 using System.Runtime.InteropServices;
 
 namespace Engine.Math
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct Vector4
+	public struct Vector4 : IEquatable<Vector4>, IComparable<Vector4>
 	{
 		public float X, Y, Z, W;
 
@@ -51,6 +52,26 @@ namespace Engine.Math
 			return $"({X}, {Y}, {Z}, {W})";
 		}
 
+		public bool Equals(Vector4 other)
+		{
+			return X == other.X && Y == other.Y && Z == other.Z && W == other.W;
+		}
+
+		public int CompareTo(Vector4 other)
+		{
+			if (SqrMagnitude < other.SqrMagnitude)
+			{
+				return -1;
+			}
+			else if (SqrMagnitude == other.SqrMagnitude)
+			{
+				return 0;
+			}
+
+			// other is greater than
+			return 1;
+		}
+
 		public float Magnitude => InternalCalls.Vector4_Magnitude(ref this);
 		public float SqrMagnitude => InternalCalls.Vector4_SqrMagnitude(ref this);
 
@@ -70,6 +91,9 @@ namespace Engine.Math
 		{
 			return new Vector4(Mathf.Lerp(a.X, b.X, t), Mathf.Lerp(a.Y, b.Y, t), Mathf.Lerp(a.Z, b.Z, t), Mathf.Lerp(a.W, b.W, t));
 		}
+
+		public static bool operator ==(Vector4 lhs, Vector4 rhs) => lhs.Equals(rhs);
+		public static bool operator !=(Vector4 lhs, Vector4 rhs) => !lhs.Equals(rhs);
 
 		public static Vector4 operator +(Vector4 lhs, Vector4 rhs) => new Vector4(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z, lhs.W + rhs.W);
 		public static Vector4 operator -(Vector4 lhs, Vector4 rhs) => new Vector4(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z, lhs.W - rhs.W);

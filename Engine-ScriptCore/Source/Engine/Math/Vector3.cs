@@ -1,10 +1,11 @@
 ﻿using Engine.Core;
+using System;
 using System.Runtime.InteropServices;
 
 namespace Engine.Math
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct Vector3
+	public struct Vector3 : IEquatable<Vector3>, IComparable<Vector3>
 	{
 		public float X, Y, Z;
 
@@ -52,6 +53,26 @@ namespace Engine.Math
 			return $"({X}, {Y}, {Z})";
 		}
 
+		public bool Equals(Vector3 other)
+		{
+			return X == other.X && Y == other.Y && Z == other.Z;
+		}
+
+		public int CompareTo(Vector3 other)
+		{
+			if (SqrMagnitude < other.SqrMagnitude)
+			{
+				return -1;
+			}
+			else if (SqrMagnitude == other.SqrMagnitude)
+			{
+				return 0;
+			}
+
+			// other is greater than
+			return 1;
+		}
+
 		public float Magnitude => InternalCalls.Vector3_Magnitude(ref this);
 		public float SqrMagnitude => InternalCalls.Vector3_SqrMagnitude(ref this);
 
@@ -71,6 +92,9 @@ namespace Engine.Math
 		{
 			return new Vector3(Mathf.Lerp(a.X, b.X, t), Mathf.Lerp(a.Y, b.Y, t), Mathf.Lerp(a.Z, b.Z, t));
 		}
+
+		public static bool operator ==(Vector3 lhs, Vector3 rhs) => lhs.Equals(rhs);
+		public static bool operator !=(Vector3 lhs, Vector3 rhs) => !lhs.Equals(rhs);
 
 		public static Vector3 operator +(Vector3 lhs, Vector3 rhs) => new Vector3(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z);
 		public static Vector3 operator +(Vector3 lhs, Vector2 rhs) => new Vector3(lhs.X + rhs.X, lhs.Y + rhs.Y, 0.0f);

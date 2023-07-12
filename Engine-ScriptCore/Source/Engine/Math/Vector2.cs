@@ -1,10 +1,11 @@
 ﻿using Engine.Core;
+using System;
 using System.Runtime.InteropServices;
 
 namespace Engine.Math
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct Vector2
+	public struct Vector2 : IEquatable<Vector2>, IComparable<Vector2>
 	{
 		public float X, Y;
 
@@ -45,6 +46,26 @@ namespace Engine.Math
 			return $"({X}, {Y})";
 		}
 
+		public bool Equals(Vector2 other)
+		{
+			return X == other.X && Y == other.Y;
+		}
+
+		public int CompareTo(Vector2 other)
+		{
+			if (SqrMagnitude < other.SqrMagnitude)
+			{
+				return -1;
+			}
+			else if (SqrMagnitude == other.SqrMagnitude)
+			{
+				return 0;
+			}
+
+			// other is greater than
+			return 1;
+		}
+
 		public float Magnitude => InternalCalls.Vector2_Magnitude(ref this);
 		public float SqrMagnitude => InternalCalls.Vector2_SqrMagnitude(ref this);
 
@@ -64,6 +85,9 @@ namespace Engine.Math
 		{
 			return new Vector2(Mathf.Lerp(a.X, b.X, t), Mathf.Lerp(a.Y, b.Y, t));
 		}
+
+		public static bool operator ==(Vector2 lhs, Vector2 rhs) => lhs.Equals(rhs);
+		public static bool operator !=(Vector2 lhs, Vector2 rhs) => !lhs.Equals(rhs);
 
 		public static Vector2 operator +(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X + rhs.X, lhs.Y + rhs.Y);
 		public static Vector2 operator -(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X - rhs.X, lhs.Y - rhs.Y);
