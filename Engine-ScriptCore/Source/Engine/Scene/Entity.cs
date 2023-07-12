@@ -80,20 +80,12 @@ namespace Engine.Scene
 		/// <returns>The Entity for the given name.</returns>
 		public Entity FindEntityByName(string name)
 		{
-			ulong entityID = InternalCalls.Entity_FindEntityByName(name);
-			if (entityID == 0)
-				return null;
-
-			return new Entity(entityID);
+			return CreateEntityFromID(InternalCalls.Entity_FindEntityByName(name));
 		}
 
 		public Entity CreateEntity(string name = "Entity")
 		{
-			ulong entityID = InternalCalls.Entity_CreateEntity(name);
-			if (entityID == 0)
-				return null;
-
-			return new Entity(entityID);
+			return CreateEntityFromID(InternalCalls.Entity_CreateEntity(name));
 		}
 
 		public Entity CreateEntity(string name, Vector3 position, Vector3 rotation, Vector3 scale)
@@ -113,13 +105,18 @@ namespace Engine.Scene
 
 		public T As<T>() where T : Entity, new()
 		{
-			object instance = InternalCalls.Entity_GetScriptInstance(ID);
-			return instance as T;
+			return InternalCalls.Entity_GetScriptInstance(ID) as T;
 		}
 
 		public void DestroyEntity()
 		{
 			InternalCalls.Entity_DestroyEntity(ID);
+		}
+
+		public Entity Parent
+		{
+			get => CreateEntityFromID(InternalCalls.Entity_GetParent(ID));
+			set => InternalCalls.Entity_SetParent(ID, value.ID);
 		}
 
 		public Vector3 Position
@@ -129,10 +126,8 @@ namespace Engine.Scene
 				InternalCalls.TransformComponent_GetPosition(ID, out Vector3 result);
 				return result;
 			}
-			set
-			{
-				InternalCalls.TransformComponent_SetPosition(ID, ref value);
-			}
+
+			set => InternalCalls.TransformComponent_SetPosition(ID, ref value);
 		}
 
 		public Vector3 GetWorldPosition()
@@ -147,5 +142,12 @@ namespace Engine.Scene
 			return result;
 		}
 
+		private Entity CreateEntityFromID(ulong entityID)
+		{
+			if (entityID == 0)
+				return null;
+
+			return new Entity(entityID);
+		}
 	}
 }

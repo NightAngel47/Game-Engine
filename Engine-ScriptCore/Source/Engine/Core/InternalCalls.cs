@@ -167,6 +167,12 @@ namespace Engine.Core
 		internal static extern void Entity_DestroyEntity(ulong entityID);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern ulong Entity_GetParent(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_SetParent(ulong entityID, ulong parentID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Entity_GetWorldTransformPosition(ulong entityID, out Vector3 position);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]

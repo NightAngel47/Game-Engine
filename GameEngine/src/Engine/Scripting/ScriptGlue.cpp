@@ -92,6 +92,8 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Entity_CreateEntity);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetScriptInstance);
 		ENGINE_ADD_INTERNAL_CALL(Entity_DestroyEntity);
+		ENGINE_ADD_INTERNAL_CALL(Entity_GetParent);
+		ENGINE_ADD_INTERNAL_CALL(Entity_SetParent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetWorldTransformPosition);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetUITransformPosition);
 
@@ -453,6 +455,18 @@ namespace InternalCalls
 		Engine::Entity entity = scene->GetEntityWithUUID(entityID);
 		ENGINE_CORE_ASSERT(entity, "Entity with UUID: " + std::to_string(entityID) + " was not found in Scene!");
 		scene->DestroyEntity(entity);
+	}
+
+	uint64_t ScriptGlue::Entity_GetParent(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		return entity.GetComponent<Engine::RelationshipComponent>().Parent;
+	}
+
+	void ScriptGlue::Entity_SetParent(Engine::UUID entityID, Engine::UUID parentID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		entity.GetComponent<Engine::RelationshipComponent>().Parent = parentID;
 	}
 
 	void ScriptGlue::Entity_GetWorldTransformPosition(Engine::UUID entityID, glm::vec3* position)
