@@ -761,6 +761,15 @@ namespace Engine
 
 				break;
 			}
+			case Key::F:
+			{
+				if (m_SceneHierarchyPanel.IsSelectedEntityValid())
+				{
+					Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+					m_EditorCamera.SetFocusTarget(Math::PositionFromTransform(selectedEntity.GetWorldSpaceTransform()), 10.0f);
+				}
+				break;
+			}
 			case Key::Delete:
 			{
 				if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)

@@ -138,4 +138,11 @@ namespace Engine
 	{
 		return glm::quat(glm::vec3(-m_Pitch, -m_Yaw, 0.0f));
 	}
+
+	void EditorCamera::SetFocusTarget(const glm::vec3& targetPos, const float distance)
+	{
+		m_FocalPoint = targetPos;
+		m_Distance = distance;
+	}
+
 }
