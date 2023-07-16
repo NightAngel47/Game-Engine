@@ -119,6 +119,22 @@ namespace Engine.Scene
 			set => InternalCalls.Entity_SetParent(ID, value.ID);
 		}
 
+		public Entity[] Children
+		{
+			get
+			{
+				ulong[] childrenIDs = InternalCalls.Entity_GetChildren(ID);
+				if (childrenIDs == null)
+					return null;
+
+				Entity[] children = new Entity[childrenIDs.Length];
+				for (int i = 0; i < children.Length; i++)
+					children[i] = CreateEntityFromID(childrenIDs[i]);
+
+				return children;
+			}
+		}
+
 		public Vector3 Position
 		{
 			get

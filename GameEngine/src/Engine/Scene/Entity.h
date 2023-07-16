@@ -223,12 +223,11 @@ namespace Engine
 				return {};
 
 			auto& relationship = GetComponent<RelationshipComponent>();
-			std::vector<Entity> childEntities = std::vector<Entity>();
-
 			if (!relationship.HasChildren())
-				return childEntities;
+				return {};
 
 			UUID childIterator = relationship.FirstChild;
+			std::vector<Entity> childEntities = std::vector<Entity>();
 			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
 			{
 				if (!childIterator.IsValid())

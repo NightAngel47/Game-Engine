@@ -10,6 +10,7 @@ extern "C"
 	typedef struct _MonoAssembly MonoAssembly;
 	typedef struct _MonoClass MonoClass;
 	typedef struct _MonoObject MonoObject;
+	typedef struct _MonoArray MonoArray;
 	typedef struct _MonoMethod MonoMethod;
 	typedef struct _MonoClassField MonoClassField;
 	typedef struct _MonoType MonoType;
@@ -202,6 +203,19 @@ namespace Engine
 		static MonoString* CharToMonoString(char* charString);
 		static MonoString* StringToMonoString(const std::string& string);
 		static std::string MonoStringToUTF8(MonoString* monoString);
+
+		static MonoArray* CreateMonoArray(ScriptFieldType type, uint64_t count);
+
+		template<typename T>
+		static MonoArray* ArrayToMonoArray(const T* array, ScriptFieldType type, uint64_t count)
+		{
+			MonoArray* monoArray = CreateMonoArray(type, count);
+
+			for (int i = 0; i < count; i++)
+				mono_array_set(monoArray, T, i, array[i]);
+
+			return monoArray;
+		}
 	
 	private:
 		static void InitMono();
@@ -313,26 +327,27 @@ namespace Engine
 		{
 			switch (fieldType)
 			{
-			case ScriptFieldType::None:		return "None";
-			case ScriptFieldType::Void:		return "Void";
-			case ScriptFieldType::Float:	return "Float";
-			case ScriptFieldType::Double:	return "Double";
-			case ScriptFieldType::Bool:		return "Bool";
-			case ScriptFieldType::Char:		return "Char";
-			case ScriptFieldType::String:	return "String";
-			case ScriptFieldType::SByte:	return "SByte";
-			case ScriptFieldType::Short:	return "Short";
-			case ScriptFieldType::Int:		return "Int";
-			case ScriptFieldType::Long:		return "Long";
-			case ScriptFieldType::Byte:		return "Byte";
-			case ScriptFieldType::UShort:	return "UShort";
-			case ScriptFieldType::UInt:		return "UInt";
-			case ScriptFieldType::ULong:	return "ULong";
-			case ScriptFieldType::Vector2:	return "Vector2";
-			case ScriptFieldType::Vector3:	return "Vector3";
-			case ScriptFieldType::Vector4:	return "Vector4";
-			case ScriptFieldType::Entity:	return "Entity";
+				case ScriptFieldType::None:		return "None";
+				case ScriptFieldType::Void:		return "Void";
+				case ScriptFieldType::Float:	return "Float";
+				case ScriptFieldType::Double:	return "Double";
+				case ScriptFieldType::Bool:		return "Bool";
+				case ScriptFieldType::Char:		return "Char";
+				case ScriptFieldType::String:	return "String";
+				case ScriptFieldType::SByte:	return "SByte";
+				case ScriptFieldType::Short:	return "Short";
+				case ScriptFieldType::Int:		return "Int";
+				case ScriptFieldType::Long:		return "Long";
+				case ScriptFieldType::Byte:		return "Byte";
+				case ScriptFieldType::UShort:	return "UShort";
+				case ScriptFieldType::UInt:		return "UInt";
+				case ScriptFieldType::ULong:	return "ULong";
+				case ScriptFieldType::Vector2:	return "Vector2";
+				case ScriptFieldType::Vector3:	return "Vector3";
+				case ScriptFieldType::Vector4:	return "Vector4";
+				case ScriptFieldType::Entity:	return "Entity";
 			}
+
 			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
 			return "None";
 		}

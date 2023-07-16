@@ -94,6 +94,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Entity_DestroyEntity);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetParent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_SetParent);
+		ENGINE_ADD_INTERNAL_CALL(Entity_GetChildren);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetWorldTransformPosition);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetUITransformPosition);
 
@@ -467,6 +468,20 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		entity.GetComponent<Engine::RelationshipComponent>().Parent = parentID;
+	}
+
+	MonoArray* ScriptGlue::Entity_GetChildren(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		auto children = entity.Children();
+		if (children.empty())
+			return nullptr;
+
+		Engine::UUID* childrenIDs = new Engine::UUID[children.size()];
+		for (int i = 0; i < children.size(); i++)
+			childrenIDs[i] = children[i].GetUUID();
+
+		return Engine::ScriptEngine::ArrayToMonoArray(childrenIDs, Engine::ScriptFieldType::ULong, children.size());
 	}
 
 	void ScriptGlue::Entity_GetWorldTransformPosition(Engine::UUID entityID, glm::vec3* position)

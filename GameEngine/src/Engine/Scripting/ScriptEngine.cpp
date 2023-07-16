@@ -60,6 +60,36 @@ namespace Engine
 
 			return it->second;
 		}
+
+		static MonoClass* ScriptFieldTypeToMonoClass(ScriptFieldType fieldType)
+		{
+			switch (fieldType)
+			{
+			case ScriptFieldType::None:		return nullptr;
+			case ScriptFieldType::Void:		return mono_get_void_class();
+			case ScriptFieldType::Float:	return mono_get_single_class();
+			case ScriptFieldType::Double:	return mono_get_double_class();
+			case ScriptFieldType::Bool:		return mono_get_boolean_class();
+			case ScriptFieldType::Char:		return mono_get_char_class();
+			case ScriptFieldType::String:	return mono_get_string_class();
+			case ScriptFieldType::SByte:	return mono_get_sbyte_class();
+			case ScriptFieldType::Short:	return mono_get_int16_class();
+			case ScriptFieldType::Int:		return mono_get_int32_class();
+			case ScriptFieldType::Long:		return mono_get_int64_class();
+			case ScriptFieldType::Byte:		return mono_get_byte_class();
+			case ScriptFieldType::UShort:	return mono_get_uint16_class();
+			case ScriptFieldType::UInt:		return mono_get_uint32_class();
+			case ScriptFieldType::ULong:	return mono_get_uint64_class();
+
+			case ScriptFieldType::Vector2:	return nullptr;
+			case ScriptFieldType::Vector3:	return nullptr;
+			case ScriptFieldType::Vector4:	return nullptr;
+			case ScriptFieldType::Entity:	return nullptr;
+			}
+
+			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
+			return nullptr;
+		}
 	}
 
 	struct ScriptEngineData
@@ -710,7 +740,7 @@ namespace Engine
 		if (klass == nullptr)
 		{
 			// Log error here
-			ENGINE_CORE_ERROR("Could not find: " + std::string(namespaceName) + "." + std::string(className) + " in mono assembly image!");
+			ENGINE_CORE_ERROR("Could not find: {}.{} in mono assembly image!", std::string(namespaceName), std::string(className));
 			return nullptr;
 		}
 
@@ -1083,5 +1113,11 @@ namespace Engine
 		mono_free(utf8);
 
 		return result;
+	}
+
+	MonoArray* ScriptEngine::CreateMonoArray(ScriptFieldType type, uint64_t count)
+	{
+		MonoClass* typeClass = Utils::ScriptFieldTypeToMonoClass(type);
+		return mono_array_new(s_ScriptEngineData->AppDomain, typeClass, count);
 	}
 }
