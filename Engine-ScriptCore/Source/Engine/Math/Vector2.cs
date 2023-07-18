@@ -24,6 +24,16 @@ namespace Engine.Math
 			X = xy.X; Y = xy.Y;
 		}
 
+		public Vector2(Vector3 xyz)
+		{
+			X = xyz.X; Y = xyz.Y;
+		}
+
+		public Vector2(Vector4 xyzw)
+		{
+			X = xyzw.X; Y = xyzw.Y;
+		}
+
 		public Vector2(float scalar = 0.0f)
 		{
 			X = Y = scalar;

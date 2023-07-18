@@ -510,13 +510,7 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		entity.GetComponent<Engine::TransformComponent>().Position = position;
-
-		// updated attached Rigidbody2D
-		if (entity.HasComponent<Engine::Rigidbody2DComponent>())
-		{
-			b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
-			body->SetTransform({ position.x, position.y }, body->GetAngle());
-		}
+		Engine::Physics2DEngine::SetRigidbodyPosition(entity, position);
 	}
 
 	void ScriptGlue::TransformComponent_GetRotation(Engine::UUID entityID, glm::vec3* rotation)
@@ -529,13 +523,7 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		entity.GetComponent<Engine::TransformComponent>().Rotation = rotation;
-
-		// updated attached Rigidbody2D
-		if (entity.HasComponent<Engine::Rigidbody2DComponent>())
-		{
-			b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
-			body->SetTransform(body->GetPosition(), rotation.z);
-		}
+		Engine::Physics2DEngine::SetRigidbodyRotation(entity, rotation.z);
 	}
 
 	void ScriptGlue::TransformComponent_GetScale(Engine::UUID entityID, glm::vec3* scale)

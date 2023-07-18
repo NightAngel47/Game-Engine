@@ -29,6 +29,11 @@ namespace Engine.Math
 			X = xyz.X; Y = xyz.Y; Z = xyz.Z;
 		}
 
+		public Vector3(Vector4 xyzw)
+		{
+			X = xyzw.X; Y = xyzw.Y; Z = xyzw.Z;
+		}
+
 		public Vector3(float scalar = 0.0f)
 		{
 			X = Y = Z = scalar;

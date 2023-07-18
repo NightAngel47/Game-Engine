@@ -2,6 +2,8 @@
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/Entity.h"
 
+#include <glm/glm.hpp>
+
 #include <box2d/b2_body.h>
 #include <box2d/b2_world.h>
 #include <box2d/b2_contact.h>
@@ -92,11 +94,11 @@ namespace Engine
 
 		static b2Body* CreateRigidbody(Entity entity);
 		static void DestroyBody(Entity entity);
+		static void SetRigidbodyPosition(Entity entity, glm::vec2 position);
+		static void SetRigidbodyRotation(Entity entity, float angle);
 
 		static b2Fixture* CreateCollider(const TransformComponent& transform, const Rigidbody2DComponent& rb2d, const BoxCollider2DComponent& bc2d);
 		static b2Fixture* CreateCollider(const TransformComponent& transform, const Rigidbody2DComponent& rb2d, const CircleCollider2DComponent& cc2d);
-
-	private:
 	};
 
 	class Physics2DContactListener : public b2ContactListener

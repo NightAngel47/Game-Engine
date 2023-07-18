@@ -26,6 +26,8 @@ namespace Engine
 		PhysicsWorldSettings Settings;
 
 		std::vector<b2Body*> QueuedBodiesToDestroy = std::vector<b2Body*>();
+		std::unordered_map<b2Body*, glm::vec2> QueuedBodiesToPosition = std::unordered_map<b2Body*, glm::vec2>();
+		std::unordered_map<b2Body*, float> QueuedBodiesToRotate = std::unordered_map<b2Body*, float>();
 	};
 
 	static Physics2DEngineData* s_physics2DEngineData = nullptr;
@@ -46,10 +48,33 @@ namespace Engine
 	{
 		for (b2Body* body : s_physics2DEngineData->QueuedBodiesToDestroy)
 		{
-			s_physics2DEngineData->PhysicsWorld->DestroyBody(body);
+			if (body)
+				s_physics2DEngineData->PhysicsWorld->DestroyBody(body);
 		}
 
 		s_physics2DEngineData->QueuedBodiesToDestroy.clear();
+	}
+
+	static void SetPositionQueuedBodiesToPosition()
+	{
+		for (const auto& [body, position] : s_physics2DEngineData->QueuedBodiesToPosition)
+		{
+			if (body)
+				body->SetTransform({ position.x, position.y }, body->GetAngle());
+		}
+
+		s_physics2DEngineData->QueuedBodiesToPosition.clear();
+	}
+
+	static void SetRotationQueuedBodiesToRotate()
+	{
+		for (const auto& [body, angle] : s_physics2DEngineData->QueuedBodiesToRotate)
+		{
+			if (body)
+				body->SetTransform(body->GetPosition(), angle);
+		}
+
+		s_physics2DEngineData->QueuedBodiesToRotate.clear();
 	}
 
 	void Physics2DEngine::OnPhysicsStart()
@@ -142,6 +167,8 @@ namespace Engine
 
 			s_physics2DEngineData->PhysicsWorld->Step(s_physics2DEngineData->Settings.PhysicsTimestep, s_physics2DEngineData->Settings.VelocityIteractions, s_physics2DEngineData->Settings.PositionIteractions);
 			DestroyQueuedBodiesToDestroy();
+			SetPositionQueuedBodiesToPosition();
+			SetRotationQueuedBodiesToRotate();
 		}
 
 		s_physics2DEngineData->PhysicsWorld->ClearForces();
@@ -157,35 +184,33 @@ namespace Engine
 			b2Body* body = (b2Body*)rb2d.RuntimeBody;
 			ENGINE_CORE_ASSERT(body, "Entiy has Rigidbody2DComponent, but no b2Body!");
 			if (body->GetType() == b2_staticBody)
-			{
 				continue;
-			}
 
 			auto& transform = entity.GetComponent<TransformComponent>();
 			switch (rb2d.Smoothing)
 			{
-			case Rigidbody2DComponent::SmoothingType::Interpolation:
-			{
-				auto& position = s_physics2DEngineData->AccumulatorRatio * body->GetPosition() + oneMinusRatio * b2Vec2(rb2d.previousPosition.x, rb2d.previousPosition.y);
-				transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-				transform.Rotation.z = s_physics2DEngineData->AccumulatorRatio * body->GetAngle() + oneMinusRatio * rb2d.previousAngle;
-				break;
-			}
-			case Rigidbody2DComponent::SmoothingType::Extrapolation:
-			{
-				auto& position = body->GetPosition() + ts * body->GetLinearVelocity();
-				transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-				transform.Rotation.z = body->GetAngle() + ts * body->GetAngularVelocity();
-				break;
-			}
-			case Rigidbody2DComponent::SmoothingType::None:
-			default:
-			{
-				auto& position = body->GetPosition();
-				transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-				transform.Rotation.z = body->GetAngle();
-				break;
-			}
+				case Rigidbody2DComponent::SmoothingType::Interpolation:
+				{
+					auto& position = s_physics2DEngineData->AccumulatorRatio * body->GetPosition() + oneMinusRatio * b2Vec2(rb2d.previousPosition.x, rb2d.previousPosition.y);
+					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+					transform.Rotation.z = s_physics2DEngineData->AccumulatorRatio * body->GetAngle() + oneMinusRatio * rb2d.previousAngle;
+					break;
+				}
+				case Rigidbody2DComponent::SmoothingType::Extrapolation:
+				{
+					auto& position = body->GetPosition() + ts * body->GetLinearVelocity();
+					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+					transform.Rotation.z = body->GetAngle() + ts * body->GetAngularVelocity();
+					break;
+				}
+				case Rigidbody2DComponent::SmoothingType::None:
+				default:
+				{
+					auto& position = body->GetPosition();
+					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+					transform.Rotation.z = body->GetAngle();
+					break;
+				}
 			}
 		}
 	}
@@ -227,17 +252,43 @@ namespace Engine
 			return;
 
 		b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
-		if (body)
-		{
-			if (s_physics2DEngineData->PhysicsWorld->IsLocked())
-			{
-				s_physics2DEngineData->QueuedBodiesToDestroy.emplace_back(body);
-			}
-			else
-			{
-				s_physics2DEngineData->PhysicsWorld->DestroyBody(body);
-			}
-		}
+		if (!body)
+			return;
+
+		if (s_physics2DEngineData->PhysicsWorld->IsLocked())
+			s_physics2DEngineData->QueuedBodiesToDestroy.emplace_back(body);
+		else
+			s_physics2DEngineData->PhysicsWorld->DestroyBody(body);
+	}
+
+	void Physics2DEngine::SetRigidbodyPosition(Entity entity, glm::vec2 position)
+	{
+		if (!entity.HasComponent<Rigidbody2DComponent>())
+			return;
+
+		b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+		if (!body)
+			return;
+
+		if (s_physics2DEngineData->PhysicsWorld->IsLocked())
+			s_physics2DEngineData->QueuedBodiesToPosition[body] = position;
+		else
+			body->SetTransform({ position.x, position.y }, body->GetAngle());
+	}
+
+	void Physics2DEngine::SetRigidbodyRotation(Entity entity, float angle)
+	{
+		if (!entity.HasComponent<Rigidbody2DComponent>())
+			return;
+
+		b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+		if (!body)
+			return;
+
+		if (s_physics2DEngineData->PhysicsWorld->IsLocked())
+			s_physics2DEngineData->QueuedBodiesToRotate[body] = angle;
+		else
+			body->SetTransform(body->GetPosition(), angle);
 	}
 
 	b2Fixture* Physics2DEngine::CreateCollider(const TransformComponent& transform, const Rigidbody2DComponent& rb2d, const BoxCollider2DComponent& bc2d)
