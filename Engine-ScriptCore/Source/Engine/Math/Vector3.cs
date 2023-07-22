@@ -102,8 +102,9 @@ namespace Engine.Math
 		public static bool operator !=(Vector3 lhs, Vector3 rhs) => !lhs.Equals(rhs);
 
 		public static Vector3 operator +(Vector3 lhs, Vector3 rhs) => new Vector3(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z);
-		public static Vector3 operator +(Vector3 lhs, Vector2 rhs) => new Vector3(lhs.X + rhs.X, lhs.Y + rhs.Y, 0.0f);
+		public static Vector3 operator +(Vector3 lhs, Vector2 rhs) => new Vector3(lhs + new Vector3(rhs));
 		public static Vector3 operator -(Vector3 lhs, Vector3 rhs) => new Vector3(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z);
+		public static Vector3 operator -(Vector3 lhs, Vector2 rhs) => new Vector3(lhs - new Vector3(rhs));
 		public static Vector3 operator *(Vector3 lhs, Vector3 rhs) => new Vector3(lhs.X * rhs.X, lhs.Y * rhs.Y, lhs.Z * rhs.Z);
 		public static Vector3 operator *(Vector3 lhs, float rhs) => new Vector3(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs);
 	}
