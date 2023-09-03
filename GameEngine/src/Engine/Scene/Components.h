@@ -210,8 +210,11 @@ namespace Engine
 			None = 0, Interpolation, Extrapolation
 		};
 		SmoothingType Smoothing = SmoothingType::Interpolation;
-		glm::vec2 previousPosition;
-		float previousAngle;
+
+		float GravityScale = 1.0f;
+
+		glm::vec2 PreviousPosition;
+		float PreviousAngle;
 
 		// Storage for runtime
 		void* RuntimeBody = nullptr;

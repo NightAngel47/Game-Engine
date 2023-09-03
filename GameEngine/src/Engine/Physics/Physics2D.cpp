@@ -149,8 +149,8 @@ namespace Engine
 				{
 					auto& position = body->GetPosition();
 					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-					rb2d.previousPosition = glm::vec2(position.x, position.y);
-					transform.Rotation.z = rb2d.previousAngle = body->GetAngle();
+					rb2d.PreviousPosition = glm::vec2(position.x, position.y);
+					transform.Rotation.z = rb2d.PreviousAngle = body->GetAngle();
 					break;
 				}
 				case Rigidbody2DComponent::SmoothingType::Extrapolation:
@@ -191,9 +191,9 @@ namespace Engine
 			{
 				case Rigidbody2DComponent::SmoothingType::Interpolation:
 				{
-					auto& position = s_physics2DEngineData->AccumulatorRatio * body->GetPosition() + oneMinusRatio * b2Vec2(rb2d.previousPosition.x, rb2d.previousPosition.y);
+					auto& position = s_physics2DEngineData->AccumulatorRatio * body->GetPosition() + oneMinusRatio * b2Vec2(rb2d.PreviousPosition.x, rb2d.PreviousPosition.y);
 					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-					transform.Rotation.z = s_physics2DEngineData->AccumulatorRatio * body->GetAngle() + oneMinusRatio * rb2d.previousAngle;
+					transform.Rotation.z = s_physics2DEngineData->AccumulatorRatio * body->GetAngle() + oneMinusRatio * rb2d.PreviousAngle;
 					break;
 				}
 				case Rigidbody2DComponent::SmoothingType::Extrapolation:
@@ -232,12 +232,13 @@ namespace Engine
 		bodyDef.type = Utils::Rigidbody2DTypeToBox2DBodyType(rb2d.Type);
 		bodyDef.position.Set(transform.Position.x, transform.Position.y);
 		bodyDef.angle = transform.Rotation.z;
+		bodyDef.gravityScale = rb2d.GravityScale;
 		
 		UUID entityID = entity.GetUUID();
 		bodyDef.userData.pointer = entityID; // check if this needs to be cleared if not a pointer
 
-		rb2d.previousPosition = transform.Position;
-		rb2d.previousAngle = transform.Rotation.z;
+		rb2d.PreviousPosition = transform.Position;
+		rb2d.PreviousAngle = transform.Rotation.z;
 
 		b2Body* body = s_physics2DEngineData->PhysicsWorld->CreateBody(&bodyDef);
 

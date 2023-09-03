@@ -794,6 +794,8 @@ namespace Engine
 
 				ImGui::EndCombo();
 			}
+
+			ImGui::DragFloat("Gravity Scale", &component.GravityScale);
 		});
 		
 		DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)

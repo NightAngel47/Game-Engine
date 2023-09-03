@@ -444,6 +444,7 @@ namespace Engine
 			out << YAML::Key << "Type" << YAML::Value << Utils::Rigidbody2DBodyTypeToString(rigidbody2DComponent.Type);
 			out << YAML::Key << "FixedRotation" << YAML::Value << rigidbody2DComponent.FixedRotation;
 			out << YAML::Key << "Smoothing" << YAML::Value << Utils::Rigidbody2DSmoothingTypeToString(rigidbody2DComponent.Smoothing);
+			out << YAML::Key << "GravityScale" << YAML::Value << rigidbody2DComponent.GravityScale;
 
 			out << YAML::EndMap; // Rigidbody2DComponent
 		}
@@ -695,6 +696,7 @@ namespace Engine
 			rigidbody2D.Type = Utils::Rigidbody2DBodyTypeFromString(rigidbody2DComponent["Type"].as<std::string>());
 			rigidbody2D.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
 			rigidbody2D.Smoothing = Utils::Rigidbody2DSmoothingTypeFromString(rigidbody2DComponent["Smoothing"].as<std::string>());
+			rigidbody2D.GravityScale = rigidbody2DComponent["GravityScale"].as<float>();
 		}
 
 		auto boxCollider2DComponent = entityOut["BoxCollider2DComponent"];
