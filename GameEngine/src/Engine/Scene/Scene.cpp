@@ -105,34 +105,8 @@ namespace Engine
 	Entity Scene::CreateEntityFromPrefab(AssetHandle prefabHandle)
 	{
 		Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabHandle);
-		Entity prefabEntity = prefab->m_PrefabEntity;
 
-		Entity newEntity = DuplicateEntity(prefabEntity);
-
-		/*
-		std::string name = prefabEntity.GetName();
-		Entity newEntity = CreateEntity(name);
-		CopyComponentIfExists(AllComponents{}, newEntity, prefabEntity);
-
-		auto& relationship = prefabEntity.GetComponent<RelationshipComponent>();
-
-		if (relationship.HasChildren())
-		{
-			UUID childIterator = relationship.FirstChild;
-			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
-			{
-				Entity childEntity = GetEntityWithUUID(childIterator);
-				Entity newChildEntity = DuplicateEntity(childEntity);
-				newEntity.AddChild(newChildEntity);
-
-				childIterator = childEntity.GetComponent<RelationshipComponent>().NextChild;
-				if (!childIterator.IsValid())
-					break;
-			}
-		}
-		*/
-
-		return newEntity;
+		return CopyEntityFromOtherScene(prefab->m_PrefabEntity, prefab->m_PrefabScene);
 	}
 
 	void Scene::DestroyEntity(Entity entity)
@@ -250,6 +224,32 @@ namespace Engine
 		}
 
 		return {};
+	}
+
+	Entity Scene::CopyEntityFromOtherScene(Entity otherEntity, Ref<Scene> otherScene)
+	{
+		std::string name = otherEntity.GetName();
+		Entity newEntity = CreateEntity(name);
+		CopyComponentIfExists(AllComponents{}, newEntity, otherEntity);
+
+		auto& relationship = otherEntity.GetComponent<RelationshipComponent>();
+
+		if (relationship.HasChildren())
+		{
+			UUID childIterator = relationship.FirstChild;
+			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
+			{
+				Entity childEntity = otherScene->GetEntityWithUUID(childIterator);
+				Entity newChildEntity = CopyEntityFromOtherScene(childEntity, otherScene);
+				newEntity.AddChild(newChildEntity);
+
+				childIterator = childEntity.GetComponent<RelationshipComponent>().NextChild;
+				if (!childIterator.IsValid())
+					break;
+			}
+		}
+
+		return newEntity;
 	}
 
 	void Scene::OnRuntimeStart()

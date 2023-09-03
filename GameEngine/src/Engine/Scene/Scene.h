@@ -41,6 +41,7 @@ namespace Engine
 		bool IsEntityHandleValid(entt::entity handle);
 		Entity GetEntityWithUUID(UUID uuid);
 		Entity FindEntityByName(const std::string_view& entityName);
+		Entity CopyEntityFromOtherScene(Entity otherEntity, Ref<Scene> otherScene);
 		
 		// Start Play/Sim Whole
 		void OnRuntimeStart();
@@ -69,6 +70,7 @@ namespace Engine
 		static AssetType GetStaticType() { return AssetType::Scene; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 	private:
+
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
 
