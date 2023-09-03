@@ -34,6 +34,7 @@
 #include "Engine/Scene/SceneManager.h"
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Scene/PrefabSerializer.h"
+#include "Engine/Scene/Prefab.h"
 
 #include "Engine/Scripting/ScriptEngine.h"
 

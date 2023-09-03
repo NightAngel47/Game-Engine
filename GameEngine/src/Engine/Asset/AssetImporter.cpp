@@ -4,9 +4,11 @@
 
 #include "Engine/Asset/SceneImporter.h"
 #include "Engine/Asset/TextureImporter.h"
+#include "Engine/Asset/PrefabImporter.h"
 
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Renderer/TextureSerializer.h"
+#include "Engine/Scene/PrefabSerializer.h"
 
 namespace Engine
 {
@@ -16,13 +18,15 @@ namespace Engine
 	static std::unordered_map<AssetType, AssetImportFunction> s_AssetImportFunctions = 
 	{
 		{ AssetType::Scene,		SceneImporter::ImportScene},
-		{ AssetType::Texture2D,	TextureImporter::ImportTexture2D}
+		{ AssetType::Texture2D,	TextureImporter::ImportTexture2D},
+		{ AssetType::Prefab,	PrefabImporter::ImportPrefab}
 	};
 
 	void AssetImporter::Init()
 	{
 		s_Serializers[AssetType::Scene]		= CreateScope<SceneSerializer>();
 		s_Serializers[AssetType::Texture2D]	= CreateScope<TextureSerializer>();
+		s_Serializers[AssetType::Prefab]	= CreateScope<PrefabSerializer>();
 	}
 
 	void AssetImporter::Shutdown()
@@ -45,5 +49,4 @@ namespace Engine
 	{
 		s_Serializers.at(metadata.Type)->Serialize(metadata, asset);
 	}
-
 }

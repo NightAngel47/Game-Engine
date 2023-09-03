@@ -33,8 +33,6 @@ namespace Engine
 		void DrawComponents(Entity entity);
 
 		void SavePrefabAs();
-		void CreateFromPrefab();
-		void CreateFromPrefab(const std::filesystem::path& filepath);
 		void CreateChildEntity();
 	private:
 		Ref<Scene> m_Context;

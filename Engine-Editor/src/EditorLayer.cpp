@@ -992,10 +992,6 @@ namespace Engine
 
 		SceneManager::GetActiveScene()->SetSceneName(relativePath.filename().generic_string());
 
-		AssetMetadata metadata = AssetMetadata();
-		metadata.Path = fullPath;
-		metadata.Type = AssetType::Scene;
-
 		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, relativePath.generic_string());
 		m_ContentBrowserPanel->RefreshAssetTree();
 	}

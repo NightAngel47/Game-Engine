@@ -5,6 +5,7 @@
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/ScriptableEntity.h"
+#include "Engine/Scene/Prefab.h"
 #include "Engine/Renderer/Renderer2D.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scripting/ScriptEngine.h"
@@ -99,6 +100,39 @@ namespace Engine
 		m_EntityMap[uuid] = entity;
 
 		return entity;
+	}
+
+	Entity Scene::CreateEntityFromPrefab(AssetHandle prefabHandle)
+	{
+		Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabHandle);
+		Entity prefabEntity = prefab->m_PrefabEntity;
+
+		Entity newEntity = DuplicateEntity(prefabEntity);
+
+		/*
+		std::string name = prefabEntity.GetName();
+		Entity newEntity = CreateEntity(name);
+		CopyComponentIfExists(AllComponents{}, newEntity, prefabEntity);
+
+		auto& relationship = prefabEntity.GetComponent<RelationshipComponent>();
+
+		if (relationship.HasChildren())
+		{
+			UUID childIterator = relationship.FirstChild;
+			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
+			{
+				Entity childEntity = GetEntityWithUUID(childIterator);
+				Entity newChildEntity = DuplicateEntity(childEntity);
+				newEntity.AddChild(newChildEntity);
+
+				childIterator = childEntity.GetComponent<RelationshipComponent>().NextChild;
+				if (!childIterator.IsValid())
+					break;
+			}
+		}
+		*/
+
+		return newEntity;
 	}
 
 	void Scene::DestroyEntity(Entity entity)
