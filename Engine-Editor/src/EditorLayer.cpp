@@ -200,6 +200,8 @@ namespace Engine
 			{
 				if (ImGui::MenuItem("Project Settings"))
 					m_ShowProjectSettingsWindow = true;
+				if (ImGui::MenuItem("Asset Manager Stats"))
+					m_ShowAssetManagerWindow = true;
 
 				ImGui::EndMenu();
 			}
@@ -258,70 +260,11 @@ namespace Engine
 		ImGui::Checkbox("Toggle Gizmo Mode (World/Local)", &m_IsGizmoWorld);
 
 		ImGui::Separator();
-		ImGui::Text("UI Settings");
+		ImGui::Text("UI Stats");
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
 
 		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
-
-		ImGui::Separator();
-		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
-
-		{
-			ImGui::BeginTable("Asset Registry", 3, ImGuiTableFlags_Resizable);
-
-			ImGui::TableSetupColumn("Handle");
-			ImGui::TableSetupColumn("Type");
-			ImGui::TableSetupColumn("Path");
-			ImGui::TableHeadersRow();
-
-			int row = 0;
-			for (const auto& [handle, metadata] : editorAssetManager->GetAssetRegistry())
-			{
-				ImGui::TableNextRow();
-
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text(std::to_string((uint64_t)handle).c_str());
-
-				ImGui::TableSetColumnIndex(1);
-				std::string assetTypeStr = Utils::AssetTypeToString(metadata.Type);
-				ImGui::Text(assetTypeStr.c_str());
-
-				ImGui::TableSetColumnIndex(2);
-				ImGui::Text(metadata.Path.string().c_str());
-
-				++row;
-			}
-			ImGui::EndTable();
-		}
-
-		{
-			ImGui::BeginTable("Assets Loaded", 3, ImGuiTableFlags_Resizable);
-
-			ImGui::TableSetupColumn("Handle");
-			ImGui::TableSetupColumn("Type");
-			ImGui::TableSetupColumn("Uses");
-			ImGui::TableHeadersRow();
-
-			int row = 0;
-			for (const auto& [handle, asset] : editorAssetManager->GetLoadedAssets())
-			{
-				ImGui::TableNextRow();
-
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text(std::to_string((uint64_t)handle).c_str());
-
-				ImGui::TableSetColumnIndex(1);
-				std::string assetTypeStr = Utils::AssetTypeToString(asset->GetAssetType());
-				ImGui::Text(assetTypeStr.c_str());
-
-				ImGui::TableSetColumnIndex(2);
-				ImGui::Text(std::to_string((long)asset.use_count()).c_str());
-
-				++row;
-			}
-			ImGui::EndTable();
-		}
 
 		ImGui::End();
 
@@ -435,10 +378,79 @@ namespace Engine
 		
 		ImGui::End();
 
+		if (m_ShowAssetManagerWindow)
+		{
+			ImGui::Begin("Asset Manager Stats", &m_ShowAssetManagerWindow);
+			Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+
+			if (editorAssetManager)
+			{
+				{
+					ImGui::Text("Asset Registry Table");
+					ImGui::BeginTable("Asset Registry", 3, ImGuiTableFlags_Resizable);
+
+					ImGui::TableSetupColumn("Handle");
+					ImGui::TableSetupColumn("Type");
+					ImGui::TableSetupColumn("Path");
+					ImGui::TableHeadersRow();
+
+					int row = 0;
+					for (const auto& [handle, metadata] : editorAssetManager->GetAssetRegistry())
+					{
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text(std::to_string((uint64_t)handle).c_str());
+
+						ImGui::TableSetColumnIndex(1);
+						std::string assetTypeStr = Utils::AssetTypeToString(metadata.Type);
+						ImGui::Text(assetTypeStr.c_str());
+
+						ImGui::TableSetColumnIndex(2);
+						ImGui::Text(metadata.Path.string().c_str());
+
+						++row;
+					}
+					ImGui::EndTable();
+				}
+
+				ImGui::Separator();
+				{
+					ImGui::Text("Assets Loaded Table");
+					ImGui::BeginTable("Assets Loaded", 3, ImGuiTableFlags_Resizable);
+
+					ImGui::TableSetupColumn("Handle");
+					ImGui::TableSetupColumn("Type");
+					ImGui::TableSetupColumn("Uses");
+					ImGui::TableHeadersRow();
+
+					int row = 0;
+					for (const auto& [handle, asset] : editorAssetManager->GetLoadedAssets())
+					{
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text(std::to_string((uint64_t)handle).c_str());
+
+						ImGui::TableSetColumnIndex(1);
+						std::string assetTypeStr = Utils::AssetTypeToString(asset->GetAssetType());
+						ImGui::Text(assetTypeStr.c_str());
+
+						ImGui::TableSetColumnIndex(2);
+						ImGui::Text(std::to_string((long)asset.use_count()).c_str());
+
+						++row;
+					}
+					ImGui::EndTable();
+				}
+			}
+
+			ImGui::End();
+		}
+
 		if (m_ShowProjectSettingsWindow)
 		{
 			ImGui::Begin("Project Settings", &m_ShowProjectSettingsWindow);
-
 			Ref<Project> project = Project::GetActive();
 
 			if (project)
