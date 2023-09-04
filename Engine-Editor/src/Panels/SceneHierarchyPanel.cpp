@@ -357,24 +357,21 @@ namespace Engine
 			{
 			case ScriptFieldType::Float:
 			{
-				float data = 0.0f;
-				data = param.GetValue<float>();
+				float data = param.GetValue<float>();
 				if (ImGui::DragFloat(("##" + label + "Param" + std::to_string(i)).c_str(), &data, 0.1f))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Double:
 			{
-				double data = 0.0;
-				data = param.GetValue<double>();
+				double data = param.GetValue<double>();
 				if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_Double, &data, 0.1))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Bool:
 			{
-				bool data = false;
-				data = param.GetValue<bool>();
+				bool data = param.GetValue<bool>();
 				if (ImGui::Checkbox(("##" + label + "Param" + std::to_string(i)).c_str(), &data))
 					param.SetValue(data);
 				break;
@@ -397,99 +394,100 @@ namespace Engine
 			}
 			case ScriptFieldType::SByte:
 			{
-				int8_t data = 0;
-				data = param.GetValue<int8_t>();
+				int8_t data = param.GetValue<int8_t>();
 				if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S8, &data))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Short:
 			{
-				int16_t data = 0;
-				data = param.GetValue<int16_t>();
+				int16_t data = param.GetValue<int16_t>();
 				if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S16, &data))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Int:
 			{
-				int32_t data = 0;
-				data = param.GetValue<int32_t>();
+				int32_t data = param.GetValue<int32_t>();
 				if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S32, &data))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Long:
 			{
-				int64_t data = 0;
-				data = param.GetValue<int64_t>();
+				int64_t data = param.GetValue<int64_t>();
 				if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_S64, &data))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Byte:
 			{
-				uint8_t data = 0;
-				data = param.GetValue<uint8_t>();
+				uint8_t data = param.GetValue<uint8_t>();
 				if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U8, &data))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::UShort:
 			{
-				uint16_t data = 0;
-				data = param.GetValue<uint16_t>();
+				uint16_t data = param.GetValue<uint16_t>();
 				if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U16, &data))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::UInt:
 			{
-				uint32_t data = 0;
-				data = param.GetValue<uint32_t>();
+				uint32_t data = param.GetValue<uint32_t>();
 				if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U32, &data))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::ULong:
 			{
-				uint64_t data = 0;
-				data = param.GetValue<uint64_t>();
+				uint64_t data = param.GetValue<uint64_t>();
 				if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Vector2:
 			{
-				glm::vec2 data = {};
-				data = param.GetValue<glm::vec2>();
+				glm::vec2 data = param.GetValue<glm::vec2>();
 				if (ImGui::DragFloat2(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Vector3:
 			{
-				glm::vec3 data = {};
-				data = param.GetValue<glm::vec3>();
+				glm::vec3 data = param.GetValue<glm::vec3>();
 				if (ImGui::DragFloat3(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Vector4:
 			{
-				glm::vec4 data = {};
-				data = param.GetValue<glm::vec4>();
+				glm::vec4 data = param.GetValue<glm::vec4>();
 				if (ImGui::DragFloat4(("##" + label + "Param" + std::to_string(i)).c_str(), glm::value_ptr(data), 0.1f))
 					param.SetValue(data);
 				break;
 			}
 			case ScriptFieldType::Entity:
+			{
+				uint64_t data = param.GetValue<uint64_t>();
+				ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data, 0, 0, 0, 0, ImGuiSliderFlags_ReadOnly);
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
+					{
+						const UUID* entityItemID = (const UUID*)payload->Data;
+						data = *entityItemID;
+						param.SetValue(data);
+					}
+
+					ImGui::EndDragDropTarget();
+				}
+				break;
+			}
 			default:
-				FieldTypeUnsupported(ScriptFieldType::Entity);
-				//uint64_t data = 0;
-				//data = param.GetValue<uint64_t>();
-				//if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data, 0, 0, 0, 0, ImGuiSliderFlags_ReadOnly))
-				//	param.SetValue(data);
+				FieldTypeUnsupported(paramType);
 				break;
 			}
 
@@ -1033,13 +1031,11 @@ namespace Engine
 							{
 								const UUID* entityItemID = (const UUID*)payload->Data;
 								data = *entityItemID;
-								ENGINE_CORE_TRACE("ID: {}", data);
 								sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
 							}
 
 							ImGui::EndDragDropTarget();
 						}
-
 						break;
 					}
 					default:
