@@ -103,7 +103,7 @@ namespace Engine
 		std::filesystem::path CoreAssemblyPath;
 		std::filesystem::path AppAssemblyPath;
 
-		MonoClass* EntityClass = nullptr;
+		Ref<ScriptClass> EntityClass = nullptr;
 		MonoClass* Physics2DContactStruct = nullptr;
 
 		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
@@ -283,7 +283,8 @@ namespace Engine
 		}
 
 		MonoImage* image = mono_assembly_get_image(s_ScriptEngineData->CoreAssembly);
-		s_ScriptEngineData->EntityClass = mono_class_from_name(image, "Engine.Scene", "Entity");
+
+		s_ScriptEngineData->EntityClass = CreateRef<ScriptClass>("Engine.Scene", "Entity", true);
 		s_ScriptEngineData->Physics2DContactStruct = mono_class_from_name(image, "Engine.Physics", "Physics2DContact");
 
 		return true;
@@ -387,6 +388,8 @@ namespace Engine
 		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
 		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
 
+		auto entityMonoClass = s_ScriptEngineData->EntityClass->GetMonoClass();
+
 		for (int32_t i = 0; i < numTypes; i++)
 		{
 			uint32_t cols[MONO_TYPEDEF_SIZE];
@@ -399,9 +402,9 @@ namespace Engine
 
 			MonoClass* monoClass = mono_class_from_name(image, nameSpace, className);
 
-			if (monoClass == nullptr || monoClass == s_ScriptEngineData->EntityClass) continue; // skip when mono class is base entity class
+			if (monoClass == nullptr || monoClass == entityMonoClass) continue; // skip when mono class is base entity class
 
-			if (!mono_class_is_subclass_of(monoClass, s_ScriptEngineData->EntityClass, false))
+			if (!mono_class_is_subclass_of(monoClass, entityMonoClass, false))
 				continue;
 
 			Ref<ScriptClass> scriptClass = CreateRef<ScriptClass>(nameSpace, className);
@@ -571,72 +574,86 @@ namespace Engine
 		}
 	}
 
+	void ScriptEngine::InstantiateEntity(Entity entity)
+	{
+		UUID entityID = entity.GetUUID();
+		Ref<ScriptInstance> instance = nullptr;
+
+		Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClass;
+		if (entity.HasComponent<ScriptComponent>())
+		{
+			const auto& sc = entity.GetComponent<ScriptComponent>();
+			if (EntityClassExists(sc.ClassName))
+				scriptClass = s_ScriptEngineData->EntityClasses.at(sc.ClassName);
+		}
+
+		instance = CreateRef<ScriptInstance>(scriptClass, entity);
+		ENGINE_CORE_ASSERT(instance, "Script Instance failed to be created for entityID: " + std::to_string(entityID) + ", with class: " + scriptClass->m_ClassName);
+		
+		s_ScriptEngineData->EntityInstances[entityID] = instance;
+	}
+
 	void ScriptEngine::OnCreateEntity(Entity entity)
 	{
+		if (!entity.HasComponent<ScriptComponent>())
+			return;
+
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
-		if (EntityClassExists(sc.ClassName))
+		if (!EntityClassExists(sc.ClassName) || !EntityInstanceExists(entity))
+			return;
+
+		UUID entityID = entity.GetUUID();
+		Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances.at(entityID);
+
+		// Copy field values
+		if (s_ScriptEngineData->EntityScriptFields.find(entityID) != s_ScriptEngineData->EntityScriptFields.end())
 		{
-			UUID entityID = entity.GetUUID();
-			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(s_ScriptEngineData->EntityClasses.at(sc.ClassName), entity);
-			ENGINE_CORE_ASSERT(instance, "Script Instance failed to be created for entityID: " + std::to_string(entityID) + ", with class: " + sc.ClassName);
-			s_ScriptEngineData->EntityInstances[entityID] = instance;
-
-			// Copy field values
-			if (s_ScriptEngineData->EntityScriptFields.find(entityID) != s_ScriptEngineData->EntityScriptFields.end())
+			ScriptFieldMap& fieldMap = s_ScriptEngineData->EntityScriptFields.at(entityID);
+			for (auto& [name, fieldInstance] : fieldMap)
 			{
-				ScriptFieldMap& fieldMap = s_ScriptEngineData->EntityScriptFields.at(entityID);
-				for (auto& [name, fieldInstance] : fieldMap)
+				switch (fieldInstance.Field.Type)
 				{
-					if (fieldInstance.Field.Type == ScriptFieldType::String)
-					{
-						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(fieldInstance.m_StringBuffer));
-					}
-					else if (fieldInstance.Field.Type == ScriptFieldType::Entity)
-					{
-						uint64_t fieldEntityID = fieldInstance.GetValue<uint64_t>();
-						Entity fieldEntity = SceneManager::GetActiveScene()->GetEntityWithUUID(fieldEntityID);
+				case ScriptFieldType::String:
+					instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(fieldInstance.m_StringBuffer));
+					break;
+				case ScriptFieldType::Entity:
+				{
+					uint64_t fieldEntityID = fieldInstance.GetValue<uint64_t>();
+					Entity fieldEntity = SceneManager::GetActiveScene()->GetEntityWithUUID(fieldEntityID);
 
-						auto& fieldEntityInstance = ScriptEngine::GetEntityInstance(fieldEntity);
-						instance->SetFieldValueInternal(name, fieldEntityInstance->GetMonoObject());
-					}
-					else
-					{
-						instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);
-					}
+					auto& fieldEntityInstance = ScriptEngine::GetEntityInstance(fieldEntity);
+					instance->SetFieldValueInternal(name, fieldEntityInstance->GetMonoObject());
+					break;
+				}
+				default:
+					instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);
+					break;
 				}
 			}
-
-			instance->InvokeOnCreate();
 		}
+
+		instance->InvokeOnCreate();
 	}
 
 	void ScriptEngine::OnStartEntity(Entity entity)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
-		if (EntityClassExists(sc.ClassName))
-		{
-			if (EntityInstanceExists(entity))
-			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnStart();
-			}
-		}
+		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
+			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnStart();
 	}
 
 	void ScriptEngine::OnDestroyEntity(Entity entity)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
-		if (EntityClassExists(sc.ClassName))
+		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
 		{
-			if (EntityInstanceExists(entity))
-			{
-				Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances.at(entity.GetUUID());
-				instance->InvokeOnDestroy();
+			Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances.at(entity.GetUUID());
+			instance->InvokeOnDestroy();
 
-				DeleteEntityInstance(instance, entity);
-			}
+			DeleteEntityInstance(instance, entity);
 		}
 	}
 
@@ -644,98 +661,64 @@ namespace Engine
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
-		if (EntityClassExists(sc.ClassName))
-		{
-			if (EntityInstanceExists(entity))
-			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnUpdate((float)ts);
-			}
-		}
+		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
+			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnUpdate((float)ts);
 	}
 
 	void ScriptEngine::OnLateUpdateEntity(Entity entity, Timestep ts)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
-		if (EntityClassExists(sc.ClassName))
-		{
-			if (EntityInstanceExists(entity))
-			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnLateUpdate((float)ts);
-			}
-		}
+		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
+			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnLateUpdate((float)ts);
 	}
 
 	void ScriptEngine::OnTriggerEnter2D(Entity entity, Physics2DContact contact2D)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
-		if (EntityClassExists(sc.ClassName))
-		{
-			if (EntityInstanceExists(entity))
-			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerEnter2D(contact2D);
-			}
-		}
+		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
+			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerEnter2D(contact2D);
 	}
 
 	void ScriptEngine::OnTriggerExit2D(Entity entity, Physics2DContact contact2D)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
-		if (EntityClassExists(sc.ClassName))
-		{
-			if (EntityInstanceExists(entity))
-			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerExit2D(contact2D);
-			}
-		}
+		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
+			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnTriggerExit2D(contact2D);
 	}
 
 	void ScriptEngine::OnCollisionEnter2D(Entity entity, Physics2DContact contact2D)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
-		if (EntityClassExists(sc.ClassName))
-		{
-			if (EntityInstanceExists(entity))
-			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnCollisionEnter2D(contact2D);
-			}
-		}
+		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
+			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnCollisionEnter2D(contact2D);
 	}
 
 	void ScriptEngine::OnCollisionExit2D(Entity entity, Physics2DContact contact2D)
 	{
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 
-		if (EntityClassExists(sc.ClassName))
-		{
-			if (EntityInstanceExists(entity))
-			{
-				s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnCollisionExit2D(contact2D);
-			}
-		}
+		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
+			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnCollisionExit2D(contact2D);
 	}
 
 	bool ScriptEngine::EntityInstanceExists(Entity& entity)
 	{
 		const auto& entityInstances = s_ScriptEngineData->EntityInstances;
 		if (entityInstances.find(entity.GetUUID()) != entityInstances.end())
-		{
 			return true;
-		}
 
 		ENGINE_CORE_ERROR("Entity Instance for {}, does not exists!", entity.GetUUID());
 		return false;
 	}
 
-	Engine::Ref<Engine::ScriptInstance> ScriptEngine::GetEntityInstance(Entity entity)
+	Ref<ScriptInstance> ScriptEngine::GetEntityInstance(Entity entity)
 	{
 		if (EntityInstanceExists(entity))
-		{
 			return s_ScriptEngineData->EntityInstances.at(entity.GetUUID());
-		}
 
 		return nullptr;
 	}
@@ -758,7 +741,7 @@ namespace Engine
 	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
 		: m_ScriptClass(scriptClass), m_Instance(m_ScriptClass->Instantiate())
 	{
-		MonoMethod* constructor = mono_class_get_method_from_name(s_ScriptEngineData->EntityClass, ".ctor", 1);
+		MonoMethod* constructor = mono_class_get_method_from_name(s_ScriptEngineData->EntityClass->GetMonoClass(), ".ctor", 1);
 		{
 			UUID id = entity.GetUUID();
 			void* param = &id;
@@ -935,10 +918,11 @@ namespace Engine
 		return true;
 	}
 
-	ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className)
+	ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className, bool isCore)
 		: m_ClassNamespace(classNamespace), m_ClassName(className)
 	{
-		m_MonoClass = ScriptEngine::GetClassInAssembly(s_ScriptEngineData->AppAssembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
+		MonoAssembly* assembly = isCore ? s_ScriptEngineData->CoreAssembly : s_ScriptEngineData->AppAssembly;
+		m_MonoClass = ScriptEngine::GetClassInAssembly(assembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
 	}
 
 	MonoObject* ScriptClass::Instantiate()

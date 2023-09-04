@@ -133,7 +133,7 @@ namespace Engine
 	{
 	public:
 		ScriptClass() = default;
-		ScriptClass(const std::string& classNamespace, const std::string& className);
+		ScriptClass(const std::string& classNamespace, const std::string& className, bool isCore = false);
 		~ScriptClass() = default;
 
 		MonoObject* Instantiate();
@@ -179,6 +179,7 @@ namespace Engine
 		static Ref<ScriptInstance> CreateEntityInstance(Entity entity, const std::string& scriptName);
 		static void DeleteEntityInstance(Ref<ScriptInstance> instance, Entity entity);
 
+		static void InstantiateEntity(Entity entity);
 		static void OnCreateEntity(Entity entity);
 		static void OnStartEntity(Entity entity);
 		static void OnDestroyEntity(Entity entity);

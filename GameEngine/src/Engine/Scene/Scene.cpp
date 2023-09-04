@@ -99,6 +99,9 @@ namespace Engine
 
 		m_EntityMap[uuid] = entity;
 
+		if (m_IsRunning)
+			ScriptEngine::InstantiateEntity(entity);
+
 		return entity;
 	}
 
@@ -391,12 +394,24 @@ namespace Engine
 
 	void Scene::OnScriptsCreate()
 	{
-		// Instantiate Script Entities
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		// Instantiate Entities in Script Engine
 		{
-			Entity entity = { e, this };
-			ScriptEngine::OnCreateEntity(entity);
+			auto view = m_Registry.view<TransformComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				ScriptEngine::InstantiateEntity(entity);
+			}
+		}
+
+		// Script OnCreate
+		{
+			auto view = m_Registry.view<ScriptComponent>();
+			for (auto e : view)
+			{
+				Entity entity = { e, this };
+				ScriptEngine::OnCreateEntity(entity);
+			}
 		}
 	}
 
@@ -597,9 +612,7 @@ namespace Engine
 	void Scene::OnComponentAdded<Rigidbody2DComponent>(Entity entity, Rigidbody2DComponent& component)
 	{
 		if (m_IsRunning)
-		{
 			component.RuntimeBody = Physics2DEngine::CreateRigidbody(entity);
-		}
 	}
 
 	template<>
@@ -632,6 +645,8 @@ namespace Engine
 	template<>
 	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
 	{
+		if (m_IsRunning)
+			ScriptEngine::OnCreateEntity(entity);
 	}
 
 	template<>
