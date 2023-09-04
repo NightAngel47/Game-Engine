@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System;
 using Engine.Math;
 
 namespace Engine.Core
@@ -295,6 +296,12 @@ namespace Engine.Core
 		internal static extern void Rigidbody2DComponent_SetLinearVelocity(ulong entityID, ref Vector2 velocity);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Rigidbody2DComponent_GetGravityScale(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_SetGravityScale(ulong entityID, float gravityScale);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_ApplyLinearImpulse(ulong entityID, ref Vector2 impulse, ref Vector2 worldPosition, bool wake);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -317,5 +324,12 @@ namespace Engine.Core
 		internal static extern void CameraComponent_SetOrthographicSize(ulong entityID, float size);
 
 		#endregion CameraComponent
+
+		#region ScriptComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void ScriptComponent_InstantiateClass(ulong entityID, string className);
+
+		#endregion ScriptComponent
 	}
 }

@@ -189,6 +189,9 @@ namespace InternalCalls
 		static void Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity);
 		static void Rigidbody2DComponent_SetLinearVelocity(Engine::UUID entityID, glm::vec2& velocity);
 
+		static float Rigidbody2DComponent_GetGravityScale(Engine::UUID entityID);
+		static void Rigidbody2DComponent_SetGravityScale(Engine::UUID entityID, float gravityScale);
+
 		static void Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake);
 		static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(Engine::UUID entityID, glm::vec2& impulse, bool wake);
 
@@ -203,6 +206,12 @@ namespace InternalCalls
 		static void CameraComponent_SetOrthographicSize(Engine::UUID entityID, float size);
 
 #pragma endregion CameraComponent
+
+#pragma region ScriptComponent
+
+		static void ScriptComponent_InstantiateClass(Engine::UUID entityID, MonoString* className);
+
+#pragma endregion ScriptComponent
 	};
 
 }

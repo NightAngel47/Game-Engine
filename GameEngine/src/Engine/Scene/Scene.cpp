@@ -645,8 +645,6 @@ namespace Engine
 	template<>
 	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
 	{
-		if (m_IsRunning)
-			ScriptEngine::OnCreateEntity(entity);
 	}
 
 	template<>

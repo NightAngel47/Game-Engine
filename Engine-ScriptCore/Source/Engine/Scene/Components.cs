@@ -152,17 +152,6 @@ namespace Engine.Scene
 
 	public class Rigidbody2DComponent : Component
 	{
-		public Vector2 LinearVelocity
-		{
-			get
-			{
-				InternalCalls.Rigidbody2DComponent_GetLinearVelocity(Entity.ID, out Vector2 velocity);
-				return velocity;
-			}
-
-			set => InternalCalls.Rigidbody2DComponent_SetLinearVelocity(Entity.ID, ref value);
-		}
-
 		public BodyType Type
 		{
 			get
@@ -174,22 +163,39 @@ namespace Engine.Scene
 			set => InternalCalls.Rigidbody2DComponent_SetType(Entity.ID, (int)value);
 		}
 
-		public void ApplyLinearImpulse(Vector2 impulse, Vector2 worldPosition, bool wake)
+		public Vector2 LinearVelocity
+		{
+			get
+			{
+				InternalCalls.Rigidbody2DComponent_GetLinearVelocity(Entity.ID, out Vector2 velocity);
+				return velocity;
+			}
+
+			set => InternalCalls.Rigidbody2DComponent_SetLinearVelocity(Entity.ID, ref value);
+		}
+
+		public float GravityScale
+		{
+			get => InternalCalls.Rigidbody2DComponent_GetGravityScale(Entity.ID);
+			set => InternalCalls.Rigidbody2DComponent_SetGravityScale(Entity.ID, value);
+		}
+
+		public void ApplyLinearImpulse(Vector2 impulse, Vector2 worldPosition, bool wake = true)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulse(Entity.ID, ref impulse, ref worldPosition, wake);
 		}
 
-		public void ApplyLinearImpulse(Vector2 impulse, bool wake)
+		public void ApplyLinearImpulse(Vector2 impulse, bool wake = true)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
 		}
 
-		public void ApplyForce(Vector2 force, Vector2 worldPosition, bool wake)
+		public void ApplyForce(Vector2 force, Vector2 worldPosition, bool wake = true)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyForce(Entity.ID, ref force, ref worldPosition, wake);
 		}
 
-		public void ApplyForce(Vector2 force, bool wake)
+		public void ApplyForce(Vector2 force, bool wake = true)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyForceToCenter(Entity.ID, ref force, wake);
 		}
@@ -211,6 +217,14 @@ namespace Engine.Scene
 		{
 			get => InternalCalls.CameraComponent_GetOrthographicSize(Entity.ID);
 			set => InternalCalls.CameraComponent_SetOrthographicSize(Entity.ID, value);
+		}
+	}
+
+	public class ScriptComponent : Component
+	{
+		public void InstantiateClass(string className)
+		{
+			InternalCalls.ScriptComponent_InstantiateClass(Entity.ID, className);
 		}
 	}
 }

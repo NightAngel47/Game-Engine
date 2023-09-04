@@ -133,6 +133,8 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetLinearVelocity);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetGravityScale);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetGravityScale);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulse);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyForce);
@@ -140,6 +142,8 @@ namespace InternalCalls
 
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_GetOrthographicSize);
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_SetOrthographicSize);
+
+		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_InstantiateClass);
 	}
 
 	template<typename... Component>
@@ -714,6 +718,20 @@ namespace InternalCalls
 		body->SetLinearVelocity(b2Vec2(velocity.x, velocity.y));
 	}
 
+	float ScriptGlue::Rigidbody2DComponent_GetGravityScale(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		return body->GetGravityScale();
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_SetGravityScale(Engine::UUID entityID, float gravityScale)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		body->SetGravityScale(gravityScale);
+	}
+
 	void ScriptGlue::Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
@@ -759,5 +777,19 @@ namespace InternalCalls
 	}
 
 #pragma endregion CameraComponent
+
+#pragma region ScriptComponent
+
+	void ScriptGlue::ScriptComponent_InstantiateClass(Engine::UUID entityID, MonoString* className)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		std::string classNameString = Engine::ScriptEngine::MonoStringToUTF8(className);
+		entity.GetComponent<Engine::ScriptComponent>().ClassName = classNameString;
+		Engine::ScriptEngine::InstantiateEntity(entity);
+		Engine::ScriptEngine::OnCreateEntity(entity);
+		Engine::ScriptEngine::OnStartEntity(entity);
+	}
+
+#pragma endregion ScriptComponent
 
 }

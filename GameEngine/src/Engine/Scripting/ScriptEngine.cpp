@@ -753,56 +753,56 @@ namespace Engine
 		// setup onCreate method
 		MonoMethod* OnCreateMethodPtr = mono_class_get_method_from_name(monoClass, "OnCreate", 0);
 		OnCreateThunk = OnCreateMethodPtr ? (OnCreate)mono_method_get_unmanaged_thunk(OnCreateMethodPtr) : nullptr;
-		if (!OnCreateThunk)
-			ENGINE_CORE_WARN("Could not find create method desc in class!");
+		//if (!OnCreateThunk)
+		//	ENGINE_CORE_WARN("Could not find create method desc in class!");
 
 		// setup onStart method
 		MonoMethod* OnStartMethodPtr = mono_class_get_method_from_name(monoClass, "OnStart", 0);
 		OnStartThunk = OnStartMethodPtr ? (OnCreate)mono_method_get_unmanaged_thunk(OnStartMethodPtr) : nullptr;
-		if (!OnStartThunk)
-			ENGINE_CORE_WARN("Could not find start method desc in class!");
+		//if (!OnStartThunk)
+		//	ENGINE_CORE_WARN("Could not find start method desc in class!");
 
 		// setup onDestroy method
 		MonoMethod* OnDestroyMethodPtr = mono_class_get_method_from_name(monoClass, "OnDestroy", 0);
 		OnDestroyThunk = OnDestroyMethodPtr ? (OnDestroy)mono_method_get_unmanaged_thunk(OnDestroyMethodPtr) : nullptr;
-		if (!OnDestroyThunk)
-			ENGINE_CORE_WARN("Could not find destroy method desc in class!");
+		//if (!OnDestroyThunk)
+		//	ENGINE_CORE_WARN("Could not find destroy method desc in class!");
 
 		// setup onUpdate method
 		MonoMethod* OnUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnUpdate", 1);
 		OnUpdateThunk = OnUpdateMethodPtr ? (OnUpdate)mono_method_get_unmanaged_thunk(OnUpdateMethodPtr) : nullptr;
-		if (!OnUpdateThunk)
-			ENGINE_CORE_WARN("Could not find update method desc in class!");
+		//if (!OnUpdateThunk)
+		//	ENGINE_CORE_WARN("Could not find update method desc in class!");
 
 		// setup onLateUpdate method
 		MonoMethod* OnLateUpdateMethodPtr = mono_class_get_method_from_name(monoClass, "OnLateUpdate", 1);
 		OnLateUpdateThunk = OnLateUpdateMethodPtr ? (OnLateUpdate)mono_method_get_unmanaged_thunk(OnLateUpdateMethodPtr) : nullptr;
-		if (!OnLateUpdateThunk)
-			ENGINE_CORE_WARN("Could not find late update method desc in class!");
+		//if (!OnLateUpdateThunk)
+		//	ENGINE_CORE_WARN("Could not find late update method desc in class!");
 
 		// setup onTriggerEnter2D method
 		MonoMethod* OnTriggerEnter2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnTriggerEnter2D", 1);
 		OnTriggerEnter2DThunk = OnTriggerEnter2DMethodPtr ? (OnTriggerEnter2D)mono_method_get_unmanaged_thunk(OnTriggerEnter2DMethodPtr) : nullptr;
-		if (!OnTriggerEnter2DThunk)
-			ENGINE_CORE_WARN("Could not find trigger enter 2d method desc in class!");
+		//if (!OnTriggerEnter2DThunk)
+		//	ENGINE_CORE_WARN("Could not find trigger enter 2d method desc in class!");
 
 		// setup onTriggerExit2D method
 		MonoMethod* OnTriggerExit2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnTriggerExit2D", 1);
 		OnTriggerExit2DThunk = OnTriggerExit2DMethodPtr ? (OnTriggerExit2D)mono_method_get_unmanaged_thunk(OnTriggerExit2DMethodPtr) : nullptr;
-		if (!OnTriggerExit2DThunk)
-			ENGINE_CORE_WARN("Could not find trigger exit 2d method desc in class!");
+		//if (!OnTriggerExit2DThunk)
+		//	ENGINE_CORE_WARN("Could not find trigger exit 2d method desc in class!");
 
 		// setup onCollisionEnter2D method
 		MonoMethod* OnCollisionEnter2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnCollisionEnter2D", 1);
 		OnCollisionEnter2DThunk = OnCollisionEnter2DMethodPtr ? (OnCollisionEnter2D)mono_method_get_unmanaged_thunk(OnCollisionEnter2DMethodPtr) : nullptr;
-		if (!OnCollisionEnter2DThunk)
-			ENGINE_CORE_WARN("Could not find collision enter 2d method desc in class!");
+		//if (!OnCollisionEnter2DThunk)
+		//	ENGINE_CORE_WARN("Could not find collision enter 2d method desc in class!");
 
 		// setup onCollisionExit2D method
 		MonoMethod* OnCollisionExit2DMethodPtr = mono_class_get_method_from_name(monoClass, "OnCollisionExit2D", 1);
 		OnCollisionExit2DThunk = OnCollisionExit2DMethodPtr ? (OnCollisionExit2D)mono_method_get_unmanaged_thunk(OnCollisionExit2DMethodPtr) : nullptr;
-		if (!OnCollisionExit2DThunk)
-			ENGINE_CORE_WARN("Could not find collision exit 2d method desc in class!");
+		//if (!OnCollisionExit2DThunk)
+		//	ENGINE_CORE_WARN("Could not find collision exit 2d method desc in class!");
 	}
 
 	void ScriptInstance::InvokeOnCreate()
