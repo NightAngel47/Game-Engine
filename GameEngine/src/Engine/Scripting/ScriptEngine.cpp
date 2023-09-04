@@ -585,12 +585,20 @@ namespace Engine
 			// Copy field values
 			if (s_ScriptEngineData->EntityScriptFields.find(entityID) != s_ScriptEngineData->EntityScriptFields.end())
 			{
-				const ScriptFieldMap& fieldMap = s_ScriptEngineData->EntityScriptFields.at(entityID);
-				for (const auto& [name, fieldInstance] : fieldMap)
+				ScriptFieldMap& fieldMap = s_ScriptEngineData->EntityScriptFields.at(entityID);
+				for (auto& [name, fieldInstance] : fieldMap)
 				{
 					if (fieldInstance.Field.Type == ScriptFieldType::String)
 					{
 						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(fieldInstance.m_StringBuffer));
+					}
+					else if (fieldInstance.Field.Type == ScriptFieldType::Entity)
+					{
+						uint64_t fieldEntityID = fieldInstance.GetValue<uint64_t>();
+						Entity fieldEntity = SceneManager::GetActiveScene()->GetEntityWithUUID(fieldEntityID);
+
+						auto& fieldEntityInstance = ScriptEngine::GetEntityInstance(fieldEntity);
+						instance->SetFieldValueInternal(name, fieldEntityInstance->GetMonoObject());
 					}
 					else
 					{

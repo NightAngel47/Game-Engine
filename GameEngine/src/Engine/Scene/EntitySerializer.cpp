@@ -676,7 +676,7 @@ namespace Engine
 							READ_SCRIPT_FIELD(Vector2, glm::vec2);
 							READ_SCRIPT_FIELD(Vector3, glm::vec3);
 							READ_SCRIPT_FIELD(Vector4, glm::vec4);
-							READ_SCRIPT_FIELD(Entity, UUID);
+							READ_SCRIPT_FIELD(Entity, uint64_t);
 						default:
 							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", Utils::ScriptFieldTypeToString(type));
 						}

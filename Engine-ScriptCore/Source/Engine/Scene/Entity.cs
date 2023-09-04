@@ -80,12 +80,14 @@ namespace Engine.Scene
 		/// <returns>The Entity for the given name.</returns>
 		public Entity FindEntityByName(string name)
 		{
-			return CreateEntityFromID(InternalCalls.Entity_FindEntityByName(name));
+			var entityID = InternalCalls.Entity_FindEntityByName(name);
+			return InternalCalls.Entity_GetScriptInstance(entityID) as Entity;
 		}
 
 		public Entity CreateEntity(string name = "Entity")
 		{
-			return CreateEntityFromID(InternalCalls.Entity_CreateEntity(name));
+			var entityID = InternalCalls.Entity_CreateEntity(name);
+			return InternalCalls.Entity_GetScriptInstance(entityID) as Entity;
 		}
 
 		public Entity CreateEntity(string name, Vector3 position, Vector3 rotation, Vector3 scale)
@@ -115,7 +117,7 @@ namespace Engine.Scene
 
 		public Entity Parent
 		{
-			get => CreateEntityFromID(InternalCalls.Entity_GetParent(ID));
+			get => InternalCalls.Entity_GetScriptInstance(InternalCalls.Entity_GetParent(ID)) as Entity;
 			set => InternalCalls.Entity_SetParent(ID, value.ID);
 		}
 
@@ -129,7 +131,7 @@ namespace Engine.Scene
 
 				Entity[] children = new Entity[childrenIDs.Length];
 				for (int i = 0; i < children.Length; i++)
-					children[i] = CreateEntityFromID(childrenIDs[i]);
+					children[i] = InternalCalls.Entity_GetScriptInstance(childrenIDs[i]) as Entity;
 
 				return children;
 			}
@@ -156,14 +158,6 @@ namespace Engine.Scene
 		{
 			InternalCalls.Entity_GetUITransformPosition(ID, out Vector3 result);
 			return result;
-		}
-
-		private Entity CreateEntityFromID(ulong entityID)
-		{
-			if (entityID == 0)
-				return null;
-
-			return new Entity(entityID);
 		}
 	}
 }

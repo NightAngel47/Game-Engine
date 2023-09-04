@@ -485,7 +485,11 @@ namespace Engine
 			}
 			case ScriptFieldType::Entity:
 			default:
-				FieldTypeUnsupported(paramType);
+				FieldTypeUnsupported(ScriptFieldType::Entity);
+				//uint64_t data = 0;
+				//data = param.GetValue<uint64_t>();
+				//if (ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data, 0, 0, 0, 0, ImGuiSliderFlags_ReadOnly))
+				//	param.SetValue(data);
 				break;
 			}
 
@@ -1019,8 +1023,26 @@ namespace Engine
 						break;
 					}
 					case ScriptFieldType::Entity:
+					{
+						uint64_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint64_t);
+						ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U64, &data, 0, 0, 0, 0, ImGuiSliderFlags_ReadOnly);
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
+							{
+								const UUID* entityItemID = (const UUID*)payload->Data;
+								data = *entityItemID;
+								ENGINE_CORE_TRACE("ID: {}", data);
+								sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+							}
+
+							ImGui::EndDragDropTarget();
+						}
+
+						break;
+					}
 					default:
-						FieldTypeUnsupported(field.Type);
 						break;
 				}
 			}
