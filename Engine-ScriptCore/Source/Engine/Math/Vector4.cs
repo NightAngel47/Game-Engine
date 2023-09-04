@@ -87,7 +87,7 @@ namespace Engine.Math
 			return this;
 		}
 
-		public Vector4 Lerp(Vector4 a, Vector4 b, float t)
+		public static Vector4 Lerp(Vector4 a, Vector4 b, float t)
 		{
 			return new Vector4(Mathf.Lerp(a.X, b.X, t), Mathf.Lerp(a.Y, b.Y, t), Mathf.Lerp(a.Z, b.Z, t), Mathf.Lerp(a.W, b.W, t));
 		}
