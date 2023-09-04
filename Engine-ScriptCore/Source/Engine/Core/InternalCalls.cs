@@ -203,6 +203,15 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void TransformComponent_SetScale(ulong entityID, ref Vector3 scale);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetUp(ulong entityID, out Vector3 up);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetRight(ulong entityID, out Vector3 right);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetForward(ulong entityID, out Vector3 forward);
+
 		#endregion TransformComponent
 
 		#region SpriteRendererComponent

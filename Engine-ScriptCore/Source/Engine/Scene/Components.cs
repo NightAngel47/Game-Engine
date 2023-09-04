@@ -43,8 +43,35 @@ namespace Engine.Scene
 
 			set => InternalCalls.TransformComponent_SetScale(Entity.ID, ref value);
 		}
-	}
 
+		public Vector3 Up
+		{
+			get
+			{
+				InternalCalls.TransformComponent_GetUp(Entity.ID, out Vector3 up);
+				return up;
+			}
+		}
+
+		public Vector3 Right
+		{
+			get
+			{
+				InternalCalls.TransformComponent_GetRight(Entity.ID, out Vector3 right);
+				return right;
+			}
+		}
+
+		public Vector3 Forward
+		{
+			get
+			{
+				InternalCalls.TransformComponent_GetForward(Entity.ID, out Vector3 forward);
+				return forward;
+			}
+		}
+	}
+	
 	public class SpriteRendererComponent : Component
 	{
 		public Vector4 Color

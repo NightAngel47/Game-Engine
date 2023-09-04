@@ -136,6 +136,10 @@ namespace InternalCalls
 		static void TransformComponent_GetScale(Engine::UUID entityID, glm::vec3* scale);
 		static void TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale);
 
+		static void TransformComponent_GetUp(Engine::UUID entityID, glm::vec3* up);
+		static void TransformComponent_GetRight(Engine::UUID entityID, glm::vec3* right);
+		static void TransformComponent_GetForward(Engine::UUID entityID, glm::vec3* forward);
+
 #pragma endregion TransformComponent
 
 #pragma region SpriteRendererComponent

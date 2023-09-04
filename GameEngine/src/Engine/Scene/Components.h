@@ -72,6 +72,24 @@ namespace Engine
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
+
+		glm::vec3 Up() const
+		{
+			glm::mat4 transform = GetTransform();
+			return glm::vec3(transform[1][0], transform[1][1], transform[1][2]);
+		}
+
+		glm::vec3 Right() const
+		{
+			glm::mat4 transform = GetTransform();
+			return glm::vec3(transform[0][0], transform[0][1], transform[0][2]);
+		}
+
+		glm::vec3 Forward() const
+		{
+			glm::mat4 transform = GetTransform();
+			return glm::vec3(transform[2][0], transform[2][0], transform[2][2]);
+		}
 	};
 
 #pragma endregion Entity Components

@@ -104,6 +104,9 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetRotation);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetScale);
 		ENGINE_ADD_INTERNAL_CALL(TransformComponent_SetScale);
+		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetUp);
+		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetRight);
+		ENGINE_ADD_INTERNAL_CALL(TransformComponent_GetForward);
 
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_GetColor);
 		ENGINE_ADD_INTERNAL_CALL(SpriteRendererComponent_SetColor);
@@ -536,6 +539,24 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		entity.GetComponent<Engine::TransformComponent>().Scale = scale;
+	}
+
+	void ScriptGlue::TransformComponent_GetUp(Engine::UUID entityID, glm::vec3* up)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*up = entity.GetComponent<Engine::TransformComponent>().Up();
+	}
+
+	void ScriptGlue::TransformComponent_GetRight(Engine::UUID entityID, glm::vec3* right)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*right = entity.GetComponent<Engine::TransformComponent>().Right();
+	}
+
+	void ScriptGlue::TransformComponent_GetForward(Engine::UUID entityID, glm::vec3* forward)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*forward = entity.GetComponent<Engine::TransformComponent>().Forward();
 	}
 
 #pragma endregion TransformComponent
