@@ -5,8 +5,8 @@
 
 namespace Engine
 {
-	ContentBrowserPanel::ContentBrowserPanel()
-		:m_BaseDirectory(Project::GetAssetDirectory()), m_CurrentDirectory(m_BaseDirectory)
+	ContentBrowserPanel::ContentBrowserPanel(Ref<Project> project)
+		:m_Project(project), m_ThumbnailCache(CreateRef<ThumbnailCache>(project)), m_BaseDirectory(m_Project->GetAssetDirectory()), m_CurrentDirectory(m_BaseDirectory)
 	{
 		m_TreeNodes.emplace_back(".", AssetHandle::INVALID());
 
@@ -49,7 +49,7 @@ namespace Engine
 		{
 			TreeNode* node = &m_TreeNodes[0];
 
-			auto currentDir = std::filesystem::relative(m_CurrentDirectory, Project::GetAssetDirectory());
+			auto currentDir = std::filesystem::relative(m_CurrentDirectory, m_Project->GetAssetDirectory());
 			for (const auto& path : currentDir)
 			{
 				// if only one level
@@ -71,17 +71,30 @@ namespace Engine
 			for (const auto& [item, treeNodeIndex] : node->Children)
 			{
 				std::string itemStr = item.generic_string();
-				bool isDirectory = std::filesystem::is_directory(Project::GetAssetDirectory() / item);
+				bool isDirectory = std::filesystem::is_directory(m_Project->GetAssetDirectory() / item);
+				AssetHandle indexHandle = m_TreeNodes[treeNodeIndex].Handle;
 
 				ImGui::PushID(itemStr.c_str());
-
 				ImGui::TableNextColumn();
 
-				Ref<Texture2D> icon = isDirectory ? m_DirectoryIcon : m_FileIcon;
+
+				//Ref<Texture2D> icon = isDirectory ? m_DirectoryIcon : m_FileIcon;
+				Ref<Texture2D> icon;
+				if (isDirectory)
+				{
+					icon = m_DirectoryIcon;
+				}
+				else
+				{
+					icon = m_ThumbnailCache->GetThumbnail(indexHandle);
+					if (icon == nullptr)
+					{
+						icon = m_FileIcon;
+					}
+				}
+				
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
-
-				AssetHandle indexHandle = m_TreeNodes[treeNodeIndex].Handle;
 
 				if (ImGui::BeginDragDropSource())
 				{
@@ -117,21 +130,35 @@ namespace Engine
 				const auto& path = directoryEntry.path();
 				std::string filenameString = path.filename().string();
 				bool isDirectory = directoryEntry.is_directory();
+				const auto& relativePath = std::filesystem::relative(path, Project::GetActiveAssetDirectory());
+				
 
 				ImGui::PushID(filenameString.c_str());
-
 				ImGui::TableNextColumn();
 
-				Ref<Texture2D> icon = isDirectory ? m_DirectoryIcon : m_FileIcon;
+				Ref<Texture2D> icon;
+				if (isDirectory)
+				{
+					icon = m_DirectoryIcon;
+				}
+				else
+				{
+					icon = m_ThumbnailCache->GetThumbnail(relativePath);
+					if (icon == nullptr)
+					{
+						icon = m_FileIcon;
+					}
+				}
+
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
 
-				const auto& assetType = editorAssetManager->GetAssetTypeFromFileExtension(path.extension());
+				const auto& assetType = editorAssetManager->GetAssetTypeFromFileExtension(relativePath.extension());
 				if (assetType != AssetType::None && ImGui::BeginPopupContextItem())
 				{
 					if (ImGui::MenuItem("Import Asset"))
 					{
-						editorAssetManager->ImportAsset(path);
+						editorAssetManager->ImportAsset(relativePath);
 						RefreshAssetTree();
 					}
 
@@ -142,7 +169,7 @@ namespace Engine
 				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 				{
 					if (isDirectory)
-						m_CurrentDirectory /= path.filename();
+						m_CurrentDirectory /= relativePath.filename();
 				}
 
 				ImGui::TextWrapped(filenameString.c_str());

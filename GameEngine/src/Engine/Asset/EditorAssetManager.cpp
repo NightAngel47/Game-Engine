@@ -100,9 +100,9 @@ namespace Engine
 
 	void EditorAssetManager::ImportAsset(const std::filesystem::path& path)
 	{
-		std::filesystem::path relativePath = std::filesystem::relative(path, Project::GetAssetDirectory());
+		//std::filesystem::path relativePath = std::filesystem::relative(path, Project::GetActiveAssetDirectory());
 
-		AssetHandle handle = GetAssetHandleFromFilePath(relativePath);
+		AssetHandle handle = GetAssetHandleFromFilePath(path);
 
 		if (handle.IsValid())
 		{
@@ -113,8 +113,8 @@ namespace Engine
 		handle = AssetHandle(); // generate new handle for asset
 
 		AssetMetadata metadata = AssetMetadata();
-		metadata.Path = relativePath;
-		metadata.Type = GetAssetTypeFromFileExtension(relativePath.extension());
+		metadata.Path = path;
+		metadata.Type = GetAssetTypeFromFileExtension(path.extension());
 		ENGINE_CORE_ASSERT(metadata.Type != AssetType::None, "Asset type was None when importing!");
 
 		Ref<Asset> asset = AssetImporter::ImportAsset(handle, metadata);
@@ -171,11 +171,11 @@ namespace Engine
 	}
 
 
-	AssetType EditorAssetManager::GetAssetTypeFromFileExtension(const std::filesystem::path& extension)
+	const AssetType EditorAssetManager::GetAssetTypeFromFileExtension(const std::filesystem::path& extension)
 	{
 		if (s_AssetExtensionMap.find(extension) == s_AssetExtensionMap.end())
 		{
-			ENGINE_CORE_WARN("Could not find asset type based on extension: {}", extension);
+			//ENGINE_CORE_WARN("Could not find asset type based on extension: {}", extension);
 			return AssetType::None;
 		}
 

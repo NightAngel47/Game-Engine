@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <Engine.h>
+#include "ThumbnailCache.h"
 
 #include <map>
 #include <set>
@@ -9,12 +10,15 @@ namespace Engine
 	class ContentBrowserPanel
 	{
 	public:
-		ContentBrowserPanel();
+		ContentBrowserPanel(Ref<Project> project);
 
 		void OnImGuiRender();
 
 		void RefreshAssetTree();
 	private:
+		Ref<Project> m_Project;
+		Ref<ThumbnailCache> m_ThumbnailCache;
+
 		std::filesystem::path m_BaseDirectory;
 		std::filesystem::path m_CurrentDirectory;
 

@@ -207,11 +207,11 @@ namespace Engine
 		InitMono();
 
 #if ENGINE_DIST
-		if (!LoadCoreAssembly(Project::GetAssetFileSystemPath("Scripts/Binaries/Engine-ScriptCore.dll"))) return;
+		if (!LoadCoreAssembly(Project::GetActiveAssetFileSystemPath("Scripts/Binaries/Engine-ScriptCore.dll"))) return;
 #else
 		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
 #endif
-		if (!LoadAppAssembly(Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().ScriptModulePath))) return;
+		if (!LoadAppAssembly(Project::GetActiveAssetFileSystemPath(Project::GetActive()->GetConfig().ScriptModulePath))) return;
 		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 		
 		InternalCalls::ScriptGlue::RegisterComponentTypes();
@@ -334,7 +334,7 @@ namespace Engine
 
 		// reload assemblies
 		if (!LoadCoreAssembly("Resources/Scripts/Binaries/Engine-ScriptCore.dll")) return;
-		if (!LoadAppAssembly(Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().ScriptModulePath))) return;
+		if (!LoadAppAssembly(Project::GetActiveAssetFileSystemPath(Project::GetActive()->GetConfig().ScriptModulePath))) return;
 		LoadEntityClasses(s_ScriptEngineData->AppAssembly);
 
 		InternalCalls::ScriptGlue::RegisterComponentTypes();

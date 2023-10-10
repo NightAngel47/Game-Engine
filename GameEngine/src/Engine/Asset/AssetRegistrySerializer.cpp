@@ -25,13 +25,13 @@ namespace Engine
 
 		out << YAML::EndSeq;
 
-		std::ofstream fout(Project::GetAssetRegistryPath().string());
+		std::ofstream fout(Project::GetActiveAssetRegistryPath().string());
 		fout << out.c_str();
 	}
 
 	bool AssetRegistrySerializer::TryLoadData(AssetRegistry& assetRegistry)
 	{
-		std::filesystem::path assetRegistryPath = Project::GetAssetRegistryPath();
+		std::filesystem::path assetRegistryPath = Project::GetActiveAssetRegistryPath();
 
 		if (!std::filesystem::exists(assetRegistryPath))
 			return false;

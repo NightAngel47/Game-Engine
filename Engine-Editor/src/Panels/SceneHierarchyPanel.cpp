@@ -1069,7 +1069,7 @@ namespace Engine
 		if (filepath.extension() != ".prefab")
 			filepath += ".prefab";
 
-		std::filesystem::path relativePath = std::filesystem::relative(filepath, Project::GetAssetDirectory());
+		std::filesystem::path relativePath = std::filesystem::relative(filepath, Project::GetActiveAssetDirectory());
 
 		auto prefab = CreateRef<Prefab>(GetSelectedEntity(), m_Context);
 		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(prefab, relativePath.generic_string());

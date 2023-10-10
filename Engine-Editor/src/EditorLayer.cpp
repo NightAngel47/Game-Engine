@@ -538,19 +538,19 @@ namespace Engine
 
 				ImGui::Text("Project Directory: ");
 				ImGui::SameLine();
-				ImGui::Text(Project::GetProjectDirectory().generic_string().c_str());
+				ImGui::Text(Project::GetActiveProjectDirectory().generic_string().c_str());
 
 				ImGui::Text("Asset Directory: ");
 				ImGui::SameLine();
-				ImGui::Text(Project::GetAssetDirectory().generic_string().c_str());
+				ImGui::Text(Project::GetActiveAssetDirectory().generic_string().c_str());
 
 				ImGui::Text("Asset Registry Path: ");
 				ImGui::SameLine();
-				ImGui::Text(Project::GetAssetRegistryPath().generic_string().c_str());
+				ImGui::Text(Project::GetActiveAssetRegistryPath().generic_string().c_str());
 
 				ImGui::Text("Script Module Path: ");
 				ImGui::SameLine();
-				ImGui::Text(Project::GetAssetFileSystemPath(config.ScriptModulePath).generic_string().c_str());
+				ImGui::Text(Project::GetActiveAssetFileSystemPath(config.ScriptModulePath).generic_string().c_str());
 			}
 
 			ImGui::End();
@@ -932,7 +932,7 @@ namespace Engine
 	{
 		if (Project::Load(path))
 		{
-			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
+			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>(Project::GetActive());
 
 			AssetHandle startScene = Project::GetActive()->GetConfig().EditorStartScene;
 			AssetManager::IsAssetHandleValid(startScene) ? OpenScene(startScene) : NewScene();
@@ -962,7 +962,7 @@ namespace Engine
 		std::string filepath = FileDialogs::OpenFile("Game Scene (*.scene)\0*.scene\0");
 		if (!filepath.empty())
 		{
-			auto relativePath = std::filesystem::relative(filepath, Project::GetAssetDirectory());
+			auto relativePath = std::filesystem::relative(filepath, Project::GetActiveAssetDirectory());
 			OpenScene(relativePath);
 		}
 	}
@@ -1000,7 +1000,7 @@ namespace Engine
 		if (fullPath.extension() != ".scene")
 			fullPath += ".scene";
 
-		std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetAssetDirectory());
+		std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetActiveAssetDirectory());
 
 		SceneManager::GetActiveScene()->SetSceneName(relativePath.filename().generic_string());
 

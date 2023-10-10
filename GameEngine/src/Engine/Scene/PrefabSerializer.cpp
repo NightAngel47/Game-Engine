@@ -26,7 +26,7 @@ namespace Engine
 		out << YAML::EndSeq;
 		out << YAML::EndMap; // Prefab
 
-		std::ofstream fout(Project::GetAssetFileSystemPath(metadata.Path).string());
+		std::ofstream fout(Project::GetActiveAssetFileSystemPath(metadata.Path).string());
 		fout << out.c_str();
 	}
 
@@ -38,7 +38,7 @@ namespace Engine
 		YAML::Node data;
 		try
 		{
-			data = YAML::LoadFile(Project::GetAssetFileSystemPath(metadata.Path).string());
+			data = YAML::LoadFile(Project::GetActiveAssetFileSystemPath(metadata.Path).string());
 		}
 		catch (YAML::ParserException e)
 		{

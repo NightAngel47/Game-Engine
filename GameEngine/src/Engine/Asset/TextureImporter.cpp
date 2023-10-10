@@ -10,7 +10,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		Ref<Texture2D> texture = LoadTexture2D(Project::GetAssetFileSystemPath(metadata.Path).string());
+		Ref<Texture2D> texture = LoadTexture2D(Project::GetActiveAssetFileSystemPath(metadata.Path).string());
 		texture->Handle = handle;
 		return texture;
 	}

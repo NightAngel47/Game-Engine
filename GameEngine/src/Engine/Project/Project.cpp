@@ -55,7 +55,7 @@ namespace Engine
 		auto project = Project::GetActive();
 
 		std::filesystem::path projectFile{project->GetConfig().Name + ".gameproj"};
-		std::filesystem::path path{project->GetProjectDirectory() / projectFile};
+		std::filesystem::path path{project->GetActiveProjectDirectory() / projectFile};
 		serializer.Serialize(path);
 	}
 
