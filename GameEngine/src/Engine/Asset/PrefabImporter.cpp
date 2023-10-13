@@ -17,4 +17,10 @@ namespace Engine
 		return nullptr;
 	}
 
+	void PrefabImporter::SavePrefab(const AssetMetadata& metadata, const Ref<Asset>& asset)
+	{
+		PrefabSerializer serializer = PrefabSerializer();
+		serializer.Serialize(metadata, asset);
+	}
+
 }

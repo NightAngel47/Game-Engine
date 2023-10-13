@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Asset/TextureImporter.h"
 #include "Engine/Project/Project.h"
+#include "Engine/Renderer/TextureSerializer.h"
 
 #include <stb_image.h>
 
@@ -54,6 +55,12 @@ namespace Engine
 		texture->Handle = AssetHandle();
 		data.Release();
 		return texture;
+	}
+
+	void TextureImporter::SaveTexture2D(const AssetMetadata& metadata, const Ref<Asset>& asset)
+	{
+		TextureSerializer serializer = TextureSerializer();
+		serializer.Serialize(metadata, asset);
 	}
 
 }

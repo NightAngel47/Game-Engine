@@ -143,7 +143,7 @@ namespace Engine
 
 		m_LoadedAssets[handle] = asset;
 
-		AssetImporter::SerializeAsset(metadata, asset);
+		AssetImporter::SaveAsset(metadata, asset);
 		SaveAssetToRegistry(handle, metadata);
 	}
 
@@ -157,7 +157,7 @@ namespace Engine
 			m_LoadedAssets[handle] = asset;
 
 		const AssetMetadata& metadata = GetAssetMetadata(handle);
-		AssetImporter::SerializeAsset(metadata, asset);
+		AssetImporter::SaveAsset(metadata, asset);
 		SaveAssetToRegistry(handle, metadata);
 	}
 

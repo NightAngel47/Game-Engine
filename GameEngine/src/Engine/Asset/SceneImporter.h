@@ -8,5 +8,6 @@ namespace Engine
 	{
 	public:
 		static Ref<Scene> ImportScene(AssetHandle handle, const AssetMetadata& metadata);
+		static void SaveScene(const AssetMetadata& metadata, const Ref<Asset>& asset);
 	};
 }

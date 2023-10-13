@@ -32,8 +32,6 @@ namespace Engine
 				project->m_SceneManager = CreateRef<EditorSceneManager>();
 			}
 			
-			AssetImporter::Init();
-
 			ScriptEngine::Init();
 
 			return s_ActiveProject;
