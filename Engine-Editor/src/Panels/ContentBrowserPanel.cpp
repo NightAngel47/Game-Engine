@@ -185,6 +185,8 @@ namespace Engine
 		// TODO: Status bar
 		
 		ImGui::End();
+
+		m_ThumbnailCache->OnUpdate();
 	}
 
 	void ContentBrowserPanel::RefreshAssetTree()
