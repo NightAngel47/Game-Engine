@@ -39,6 +39,7 @@ namespace Engine
 		static float thumbnailSize = 64;
 		float cellSize = thumbnailSize + padding;
 
+		
 		float panelWidth = ImGui::GetContentRegionAvail().x;
 		int columCount = (int)(panelWidth / cellSize);
 		if (columCount < 1) columCount = 1;
@@ -77,6 +78,7 @@ namespace Engine
 				ImGui::TableNextColumn();
 
 
+				//Ref<Texture2D> icon = isDirectory ? m_DirectoryIcon : m_FileIcon;
 				Ref<Texture2D> icon;
 				if (isDirectory)
 				{
@@ -123,93 +125,56 @@ namespace Engine
 		{
 			Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 
-			uint32_t count = 0;
 			for (const auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
 			{
-				count++;
-			}
+				const auto& path = directoryEntry.path();
+				std::string filenameString = path.filename().string();
+				bool isDirectory = directoryEntry.is_directory();
+				const auto& relativePath = std::filesystem::relative(path, Project::GetActiveAssetDirectory());
+				
 
-			ImGuiListClipper clipper(glm::ceil((float)count / (float)columCount));
-			bool first = true;
-			while (clipper.Step())
-			{
-				auto it = std::filesystem::directory_iterator(m_CurrentDirectory);
-				if (!first)
+				ImGui::PushID(filenameString.c_str());
+				ImGui::TableNextColumn();
+
+				Ref<Texture2D> icon;
+				if (isDirectory)
 				{
-					for (int i  = 0; i < clipper.DisplayStart; i++)
+					icon = m_DirectoryIcon;
+				}
+				else
+				{
+					icon = m_ThumbnailCache->GetThumbnail(relativePath);
+					if (icon == nullptr)
 					{
-						for (int c = 0; c < columCount && it != std::filesystem::directory_iterator(); c++)
-						{
-							it++;
-						}
+						icon = m_FileIcon;
 					}
 				}
 
-				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
+
+				const auto& assetType = editorAssetManager->GetAssetTypeFromFileExtension(relativePath.extension());
+				if (assetType != AssetType::None && ImGui::BeginPopupContextItem())
 				{
-					int c;
-					for (c = 0; c < columCount && it != std::filesystem::directory_iterator(); c++, it++)
+					if (ImGui::MenuItem("Import Asset"))
 					{
-						const auto& directoryEntry = *it;
-
-						const auto& path = directoryEntry.path();
-						std::string filenameString = path.filename().string();
-						bool isDirectory = directoryEntry.is_directory();
-						const auto& relativePath = std::filesystem::relative(path, Project::GetActiveAssetDirectory());
-
-						ImGui::PushID(filenameString.c_str());
-						ImGui::TableNextColumn();
-
-						Ref<Texture2D> icon;
-						if (isDirectory)
-						{
-							icon = m_DirectoryIcon;
-						}
-						else
-						{
-							icon = m_ThumbnailCache->GetThumbnail(relativePath);
-							if (icon == nullptr)
-							{
-								icon = m_FileIcon;
-							}
-						}
-
-						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-						ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
-
-						const auto& assetType = editorAssetManager->GetAssetTypeFromFileExtension(relativePath.extension());
-						if (assetType != AssetType::None && ImGui::BeginPopupContextItem())
-						{
-							if (ImGui::MenuItem("Import Asset"))
-							{
-								editorAssetManager->ImportAsset(relativePath);
-								RefreshAssetTree();
-							}
-
-							ImGui::EndPopup();
-						}
-
-						ImGui::PopStyleColor();
-						if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-						{
-							if (isDirectory)
-								m_CurrentDirectory /= relativePath.filename();
-						}
-
-						ImGui::TextWrapped(filenameString.c_str());
-
-						ImGui::PopID();
-
+						editorAssetManager->ImportAsset(relativePath);
+						RefreshAssetTree();
 					}
 
-					if (first && c < columCount)
-					{
-						for (int extra = 0; extra < columCount - c; extra++)
-						{
-							ImGui::TableNextColumn();
-						}
-					}
+					ImGui::EndPopup();
 				}
+
+				ImGui::PopStyleColor();
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+				{
+					if (isDirectory)
+						m_CurrentDirectory /= relativePath.filename();
+				}
+
+				ImGui::TextWrapped(filenameString.c_str());
+
+				ImGui::PopID();
 			}
 		}
 		
@@ -220,8 +185,6 @@ namespace Engine
 		// TODO: Status bar
 		
 		ImGui::End();
-
-		m_ThumbnailCache->OnUpdate();
 	}
 
 	void ContentBrowserPanel::RefreshAssetTree()
