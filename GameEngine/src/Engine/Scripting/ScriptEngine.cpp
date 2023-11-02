@@ -6,7 +6,9 @@
 
 #include "Engine/Core/Application.h"
 #include "Engine/Core/UUID.h"
+#include "Engine/Asset/AssetManager.h"
 #include "Engine/Scene/Entity.h"
+#include "Engine/Scene/Prefab.h"
 #include "Engine/Scene/SceneManager.h"
 
 #include <mono/jit/jit.h>
@@ -42,7 +44,8 @@ namespace Engine
 		{ "Engine.Math.Vector3",	ScriptFieldType::Vector3 },
 		{ "Engine.Math.Vector4",	ScriptFieldType::Vector4 },
 
-		{ "Engine.Scene.Entity",	ScriptFieldType::Entity }
+		{ "Engine.Scene.Entity",	ScriptFieldType::Entity },
+		{ "Engine.Scene.Prefab",	ScriptFieldType::Prefab }
 	};
 
 	namespace Utils
@@ -85,6 +88,7 @@ namespace Engine
 			case ScriptFieldType::Vector3:	return nullptr;
 			case ScriptFieldType::Vector4:	return nullptr;
 			case ScriptFieldType::Entity:	return nullptr;
+			case ScriptFieldType::Prefab:	return nullptr;
 			}
 
 			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
@@ -620,10 +624,27 @@ namespace Engine
 				case ScriptFieldType::Entity:
 				{
 					uint64_t fieldEntityID = fieldInstance.GetValue<uint64_t>();
+					if (!SceneManager::GetActiveScene()->DoesEntityExist(fieldEntityID))
+						continue;
+
 					Entity fieldEntity = SceneManager::GetActiveScene()->GetEntityWithUUID(fieldEntityID);
 
 					auto& fieldEntityInstance = ScriptEngine::GetEntityInstance(fieldEntity);
 					instance->SetFieldValueInternal(name, fieldEntityInstance->GetMonoObject());
+					break;
+				}
+				case ScriptFieldType::Prefab:
+				{
+					uint64_t fieldPrefabID = fieldInstance.GetValue<uint64_t>();
+					if (fieldPrefabID == 0)
+						continue;
+
+					auto fieldPrefab = AssetManager::GetAsset<Prefab>(fieldPrefabID);
+					if (!fieldPrefab.get())
+						continue;
+
+					//auto& fieldEntityInstance = ScriptEngine::GetEntityInstance(fieldPrefab);
+					instance->SetFieldValueInternal(name, &fieldPrefab->Handle);
 					break;
 				}
 				default:

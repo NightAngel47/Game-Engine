@@ -105,6 +105,12 @@ namespace Engine.Scene
 			return entity;
 		}
 
+		public Entity InstantiatePrefab(Prefab prefab)
+		{
+			var entityID = InternalCalls.Entity_InstantiatePrefab(prefab.ID);
+			return InternalCalls.Entity_GetScriptInstance(entityID) as Entity;
+		}
+
 		public T As<T>() where T : Entity, new()
 		{
 			return InternalCalls.Entity_GetScriptInstance(ID) as T;

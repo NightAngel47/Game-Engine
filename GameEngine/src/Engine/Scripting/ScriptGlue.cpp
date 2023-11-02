@@ -5,6 +5,7 @@
 #include "Engine/Core/Application.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Entity.h"
+#include "Engine/Scene/Prefab.h"
 #include "Engine/Math/Random.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scene/SceneManager.h"
@@ -90,6 +91,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Entity_AddComponent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_FindEntityByName);
 		ENGINE_ADD_INTERNAL_CALL(Entity_CreateEntity);
+		ENGINE_ADD_INTERNAL_CALL(Entity_InstantiatePrefab);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetScriptInstance);
 		ENGINE_ADD_INTERNAL_CALL(Entity_DestroyEntity);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetParent);
@@ -441,11 +443,34 @@ namespace InternalCalls
 		Engine::Scene* scene = Engine::SceneManager::GetActiveScene().get();
 		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
 		Engine::Entity entity = scene->CreateEntity(entityName);
-
 		if (!entity)
 		{
 			return 0;
 		}
+		return entity.GetUUID();
+	}
+
+	uint64_t ScriptGlue::Entity_InstantiatePrefab(Engine::AssetHandle prefabID)
+	{
+		if (!prefabID.IsValid())
+		{
+			return 0;
+		}
+
+		auto prefab = Engine::AssetManager::GetAsset<Engine::Prefab>(prefabID);
+		if (!prefab->Handle.IsValid())
+		{
+			return 0;
+		}
+
+		Engine::Scene* scene = Engine::SceneManager::GetActiveScene().get();
+		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
+		Engine::Entity entity = scene->CreateEntityFromPrefab(prefabID);
+		if (!entity)
+		{
+			return 0;
+		}
+
 		return entity.GetUUID();
 	}
 

@@ -41,7 +41,7 @@ namespace Engine
 		SByte, Short, Int, Long,
 		Byte, UShort, UInt, ULong,
 		Vector2, Vector3, Vector4,
-		Entity
+		Entity, Prefab
 	};
 
 	enum class Accessibility : uint8_t
@@ -347,6 +347,7 @@ namespace Engine
 				case ScriptFieldType::Vector3:	return "Vector3";
 				case ScriptFieldType::Vector4:	return "Vector4";
 				case ScriptFieldType::Entity:	return "Entity";
+				case ScriptFieldType::Prefab:	return "Prefab";
 			}
 
 			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
@@ -374,6 +375,7 @@ namespace Engine
 			if (fieldType == "Vector3")		return ScriptFieldType::Vector3;
 			if (fieldType == "Vector4")		return ScriptFieldType::Vector4;
 			if (fieldType == "Entity")		return ScriptFieldType::Entity;
+			if (fieldType == "Prefab")		return ScriptFieldType::Prefab;
 
 			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
 			return ScriptFieldType::None;

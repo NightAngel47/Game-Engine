@@ -1082,6 +1082,29 @@ namespace Engine
 						}
 						break;
 					}
+					case ScriptFieldType::Prefab:
+					{
+						uint64_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint64_t);
+						std::string dataEntityName = "None";
+						if (data != 0)
+						{
+							dataEntityName = Project::GetActive()->GetEditorAssetManager()->GetAssetPath(data).filename().string();
+						}
+						ImGui::InputText(("##" + name).c_str(), &dataEntityName, ImGuiInputTextFlags_ReadOnly);
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+							{
+								const UUID* prefabItemID = (const UUID*)payload->Data;
+								data = *prefabItemID;
+								sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+							}
+
+							ImGui::EndDragDropTarget();
+						}
+						break;
+					}
 					default:
 						break;
 				}

@@ -113,6 +113,7 @@ namespace InternalCalls
 
 		static uint64_t Entity_FindEntityByName(MonoString* name);
 		static uint64_t Entity_CreateEntity(MonoString* name);
+		static uint64_t Entity_InstantiatePrefab(Engine::AssetHandle prefabID);
 		static MonoObject* Entity_GetScriptInstance(Engine::UUID entityID);
 		static void Entity_DestroyEntity(Engine::UUID entityID);
 
