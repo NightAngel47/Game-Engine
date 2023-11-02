@@ -484,7 +484,12 @@ namespace Engine
 			case ScriptFieldType::Entity:
 			{
 				uint64_t data = param.GetValue<uint64_t>();
-				ImGui::DragScalar(("##" + label + "Param" + std::to_string(i)).c_str(), ImGuiDataType_U64, &data, 0, 0, 0, 0, ImGuiSliderFlags_ReadOnly);
+				std::string dataEntityName = "None";
+				if (context->DoesEntityExist(data))
+				{
+					dataEntityName = context->GetEntityWithUUID(data).GetName();
+				}
+				ImGui::InputText(("##" + label + "Param" + std::to_string(i)).c_str(), &dataEntityName, ImGuiInputTextFlags_ReadOnly);
 				if (ImGui::BeginDragDropTarget())
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
@@ -1058,7 +1063,7 @@ namespace Engine
 					{
 						uint64_t data = 0;
 						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint64_t);
-						std::string dataEntityName = "Unknown";
+						std::string dataEntityName = "None";
 						if (m_Context->DoesEntityExist(data))
 						{
 							dataEntityName = m_Context->GetEntityWithUUID(data).GetName();
