@@ -286,6 +286,17 @@ namespace Engine
 			out << YAML::EndMap; // TransformComponent
 		}
 
+		if (entity.HasComponent<PrefabComponent>())
+		{
+			out << YAML::Key << "PrefabComponent";
+			out << YAML::BeginMap; // PrefabComponent
+
+			AssetHandle handle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+			out << YAML::Key << "PrefabHandle" << YAML::Value << handle;
+
+			out << YAML::EndMap; // PrefabComponent
+		}
+
 		if (entity.HasComponent<UILayoutComponent>())
 		{
 			out << YAML::Key << "UILayoutComponent";
@@ -555,6 +566,13 @@ namespace Engine
 			relationship.NextChild = relationshipComponent["NextChild"].as<uint64_t>();
 			relationship.PrevChild = relationshipComponent["PrevChild"].as<uint64_t>();
 			relationship.Parent = relationshipComponent["Parent"].as<uint64_t>();
+		}
+
+		auto prefabComponent = entityOut["PrefabComponent"];
+		if (prefabComponent)
+		{
+			auto& pc = entity.AddComponent<PrefabComponent>();
+			pc.PrefabHandle = prefabComponent["PrefabHandle"].as<uint64_t>();
 		}
 
 		auto uiLayoutComponent = entityOut["UILayoutComponent"];

@@ -8,13 +8,12 @@ namespace Engine
 	{
 	public:
 		Prefab() = default;
-		Prefab(Entity entity, Ref<Scene> scene)
+		Prefab(Entity entity, Ref<Scene> scene = CreateRef<Scene>())
 			:m_PrefabEntity(entity), m_PrefabScene(scene) {}
 		~Prefab() = default;
 
 		static AssetType GetStaticType() { return AssetType::Prefab; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
-
 	private:
 		Entity m_PrefabEntity;
 		Ref<Scene> m_PrefabScene;

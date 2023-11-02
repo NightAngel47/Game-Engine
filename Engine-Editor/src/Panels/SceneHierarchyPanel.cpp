@@ -144,10 +144,21 @@ namespace Engine
 	{
 		auto& tag = entity.GetName();
 
+		bool isPrefab = entity.HasComponent<PrefabComponent>() && entity.GetComponent<PrefabComponent>().PrefabHandle.IsValid();
+		if (isPrefab)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, {0.0f, 0.0f, 1.0f, 1.0f});
+		}
+
 		ImGuiTreeNodeFlags flags = (IsSelectedEntityValid() && (GetSelectedEntity() == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		flags |= (entity.GetComponent<RelationshipComponent>().HasChildren()) ? 0 : ImGuiTreeNodeFlags_Leaf;
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+
+		if (isPrefab)
+		{
+			ImGui::PopStyleColor();
+		}
 
 		if (ImGui::BeginDragDropSource())
 		{
@@ -180,6 +191,7 @@ namespace Engine
 				entityDeleted = true;
 			else if (ImGui::MenuItem("Create Child Entity"))
 				CreateChildEntity();
+			//else if (!isPrefab && ImGui::MenuItem("Save Entity as Prefab"))
 			else if (ImGui::MenuItem("Save Entity as Prefab"))
 				SavePrefabAs();
 
@@ -565,6 +577,28 @@ namespace Engine
 			ImGui::EndPopup();
 		}
 		ImGui::PopItemWidth();
+
+		DrawComponent<PrefabComponent>("Prefab", entity, [](auto& component)
+		{
+			ImGui::Text("Prefab");
+			ImGui::SameLine();
+
+			std::string prefabName = "None";
+			if (component.PrefabHandle.IsValid())
+			{
+				if (AssetManager::IsAssetHandleValid(component.PrefabHandle))
+				{
+					prefabName = Project::GetActive()->GetEditorAssetManager()->GetAssetPath(component.PrefabHandle).filename().string();
+				}
+				else
+				{
+					prefabName = "Invalid";
+					ENGINE_CORE_WARN("Assigned PrefabHandle Handle as invalid: {}", component.PrefabHandle);
+				}
+			}
+
+			ImGui::InputText("##PrefabName", &prefabName, ImGuiInputTextFlags_ReadOnly);
+		});
 
 		DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
 		{
@@ -1024,7 +1058,12 @@ namespace Engine
 					{
 						uint64_t data = 0;
 						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint64_t);
-						ImGui::DragScalar(("##" + name).c_str(), ImGuiDataType_U64, &data, 0, 0, 0, 0, ImGuiSliderFlags_ReadOnly);
+						std::string dataEntityName = "Unknown";
+						if (m_Context->DoesEntityExist(data))
+						{
+							dataEntityName = m_Context->GetEntityWithUUID(data).GetName();
+						}
+						ImGui::InputText(("##" + name).c_str(), &dataEntityName, ImGuiInputTextFlags_ReadOnly);
 						if (ImGui::BeginDragDropTarget())
 						{
 							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY_ITEM"))
@@ -1071,8 +1110,31 @@ namespace Engine
 
 		std::filesystem::path relativePath = std::filesystem::relative(filepath, Project::GetActiveAssetDirectory());
 
-		auto prefab = CreateRef<Prefab>(GetSelectedEntity(), m_Context);
-		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(prefab, relativePath.generic_string());
+		// check if prefab already exists before creating new one
+		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+		
+		AssetHandle handle = editorAssetManager->GetAssetHandleFromFilePath(relativePath);
+		Ref<Prefab> prefab;
+		if (handle.IsValid())
+		{
+			prefab = CreateRef<Prefab>(GetSelectedEntity());
+			prefab->Handle = handle;
+
+			// add component to legacy/broken prefab entities (aka it's a prefab but missing prefab component)
+			if (!GetSelectedEntity().HasComponent<PrefabComponent>())
+			{
+				GetSelectedEntity().AddComponent<PrefabComponent>().PrefabHandle = prefab->Handle;
+			}
+		}
+		else
+		{
+			prefab = CreateRef<Prefab>(GetSelectedEntity());
+			editorAssetManager->SaveAssetAs(prefab, relativePath.generic_string());
+			GetSelectedEntity().AddComponent<PrefabComponent>().PrefabHandle = prefab->Handle;
+		}
+
+		editorAssetManager->SaveAssetAs(prefab, relativePath.generic_string());
+
 		//m_ContentBrowserPanel->RefreshAssetTree(); // TODO create a way to update content browser panel when asset registry is updated from anywhere
 	}
 

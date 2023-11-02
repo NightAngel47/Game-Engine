@@ -76,20 +76,28 @@ namespace Engine
 		glm::vec3 Up() const
 		{
 			glm::mat4 transform = GetTransform();
-			return glm::vec3(transform[1][0], transform[1][1], transform[1][2]);
+			return {transform[1][0], transform[1][1], transform[1][2]};
 		}
 
 		glm::vec3 Right() const
 		{
 			glm::mat4 transform = GetTransform();
-			return glm::vec3(transform[0][0], transform[0][1], transform[0][2]);
+			return {transform[0][0], transform[0][1], transform[0][2]};
 		}
 
 		glm::vec3 Forward() const
 		{
 			glm::mat4 transform = GetTransform();
-			return glm::vec3(transform[2][0], transform[2][0], transform[2][2]);
+			return {transform[2][0], transform[2][0], transform[2][2]};
 		}
+	};
+
+	struct PrefabComponent
+	{
+		AssetHandle PrefabHandle = AssetHandle::INVALID();
+
+		PrefabComponent() = default;
+		PrefabComponent(const PrefabComponent&) = default;
 	};
 
 #pragma endregion Entity Components
@@ -350,7 +358,7 @@ namespace Engine
 	};
 
 	using AllComponents = ComponentGroup<
-		TransformComponent, 
+		TransformComponent, PrefabComponent, 
 		SpriteRendererComponent, CircleRendererComponent, TextRendererComponent,
 		CameraComponent, 
 		NativeScriptComponent, ScriptComponent, 

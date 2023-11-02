@@ -582,6 +582,11 @@ namespace Engine
 	}
 
 	template<>
+	void Scene::OnComponentAdded<PrefabComponent>(Entity entity, PrefabComponent& component)
+	{
+	}
+
+	template<>
 	void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
 	{
 	}
