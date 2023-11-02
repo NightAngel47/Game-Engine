@@ -149,6 +149,7 @@ namespace Engine
 	private:
 		std::string m_ClassNamespace;
 		std::string m_ClassName;
+		bool m_IsCore;
 
 		MonoClass* m_MonoClass = nullptr;
 
@@ -179,6 +180,7 @@ namespace Engine
 		static Ref<ScriptInstance> CreateEntityInstance(Entity entity, const std::string& scriptName);
 		static void DeleteEntityInstance(Ref<ScriptInstance> instance, Entity entity);
 
+		static void InstantiateAsset(AssetHandle handle);
 		static void InstantiateEntity(Entity entity);
 		static void OnCreateEntity(Entity entity);
 		static void OnStartEntity(Entity entity);
@@ -193,6 +195,9 @@ namespace Engine
 
 		static bool EntityInstanceExists(Entity& entity);
 		static Ref<ScriptInstance> GetEntityInstance(Entity entity);
+
+		static bool AssetInstanceExists(AssetHandle handle);
+		static Ref<ScriptInstance> GetAssetInstance(AssetHandle handle);
 
 		static MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className);
 		
@@ -226,7 +231,7 @@ namespace Engine
 		static bool LoadAppAssembly(const std::filesystem::path& assemblyPath);
 
 		static void LoadEntityClasses(MonoAssembly* assembly);
-		static MonoObject* InstantiateClass(MonoClass* monoClass);
+		static MonoObject* InstantiateClass(MonoClass* monoClass, bool isCore = false);
 
 		friend class ScriptClass;
 		friend class ScriptGlue;
@@ -237,6 +242,7 @@ namespace Engine
 	public:
 		ScriptInstance() = default;
 		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
+		ScriptInstance(Ref<ScriptClass> scriptClass, AssetHandle handle);
 		~ScriptInstance() = default;
 
 		Ref<ScriptClass> GetScriptClass() { return m_ScriptClass; }

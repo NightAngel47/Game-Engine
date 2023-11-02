@@ -7,7 +7,7 @@ namespace Engine
 
 	RuntimeSceneManager::RuntimeSceneManager()
 	{
-		const auto& pack = Project::GetActive()->GetRuntimeAssetManager()->GetAssetPack();
+		const auto& pack = Project::GetActive()->GetRuntimeAssetManager()->GetAssets();
 		for (const auto& [handle, metadata] : pack)
 		{
 			if (metadata.Type == AssetType::Scene)

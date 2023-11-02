@@ -13,5 +13,7 @@ namespace Engine
 
 		virtual bool IsAssetHandleValid(AssetHandle handle) const = 0;
 		virtual bool IsAssetLoaded(AssetHandle handle) const = 0;
+
+		virtual const std::unordered_map<AssetHandle, AssetMetadata>& GetAssets() const = 0;
 	};
 }

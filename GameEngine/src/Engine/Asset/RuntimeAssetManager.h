@@ -1,11 +1,9 @@
 #pragma once
 #include "Engine/Asset/AssetManagerBase.h"
 
-#include <map>
-
 namespace Engine
 {
-	using AssetPack = std::map<AssetHandle, AssetMetadata>; // TODO make proper asset pack (using asset registry atm)
+	using AssetPack = std::unordered_map<AssetHandle, AssetMetadata>; // TODO make proper asset pack (using asset registry atm)
 
 	class RuntimeAssetManager : public AssetManagerBase
 	{
@@ -20,7 +18,7 @@ namespace Engine
 		// TODO Remove once asset pack properly implemented
 		const AssetMetadata& GetAssetMetadata(AssetHandle handle) const;
 
-		const AssetPack& GetAssetPack() const { return m_AssetPack; }
+		const AssetPack& GetAssets() const { return m_AssetPack; }
 
 	private:
 		AssetMap m_LoadedAssets;

@@ -108,10 +108,12 @@ namespace Engine
 		std::filesystem::path AppAssemblyPath;
 
 		Ref<ScriptClass> EntityClass = nullptr;
+		Ref<ScriptClass> PrefabClass = nullptr;
 		MonoClass* Physics2DContactStruct = nullptr;
 
 		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
+		std::unordered_map<UUID, Ref<ScriptInstance>> AssetInstances;
 		std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
 		std::unordered_map<std::string, ScriptFieldMap> ScriptFieldsDefaults;
 		std::unordered_map<std::string, ScriptMethodMap> ScriptMethodMap;
@@ -289,6 +291,7 @@ namespace Engine
 		MonoImage* image = mono_assembly_get_image(s_ScriptEngineData->CoreAssembly);
 
 		s_ScriptEngineData->EntityClass = CreateRef<ScriptClass>("Engine.Scene", "Entity", true);
+		s_ScriptEngineData->PrefabClass = CreateRef<ScriptClass>("Engine.Scene", "Prefab", true);
 		s_ScriptEngineData->Physics2DContactStruct = mono_class_from_name(image, "Engine.Physics", "Physics2DContact");
 
 		return true;
@@ -490,9 +493,9 @@ namespace Engine
 		}
 	}
 
-	MonoObject* ScriptEngine::InstantiateClass(MonoClass* monoClass)
+	MonoObject* ScriptEngine::InstantiateClass(MonoClass* monoClass, bool isCore)
 	{
-		MonoObject* instance = mono_object_new(s_ScriptEngineData->AppDomain, monoClass);
+		MonoObject* instance = mono_object_new(s_ScriptEngineData->AppDomain, monoClass); // check if app domain works
 		mono_runtime_object_init(instance);
 
 		return instance;
@@ -578,10 +581,16 @@ namespace Engine
 		}
 	}
 
+	void ScriptEngine::InstantiateAsset(AssetHandle handle)
+	{
+		Ref<ScriptClass> scriptClass = s_ScriptEngineData->PrefabClass; // TODO change once all asset types work
+		Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, handle);
+		s_ScriptEngineData->AssetInstances[handle] = instance;
+	}
+
 	void ScriptEngine::InstantiateEntity(Entity entity)
 	{
 		UUID entityID = entity.GetUUID();
-		Ref<ScriptInstance> instance = nullptr;
 
 		Ref<ScriptClass> scriptClass = s_ScriptEngineData->EntityClass;
 		if (entity.HasComponent<ScriptComponent>())
@@ -591,7 +600,7 @@ namespace Engine
 				scriptClass = s_ScriptEngineData->EntityClasses.at(sc.ClassName);
 		}
 
-		instance = CreateRef<ScriptInstance>(scriptClass, entity);
+		Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(scriptClass, entity);
 		ENGINE_CORE_ASSERT(instance, "Script Instance failed to be created for entityID: " + std::to_string(entityID) + ", with class: " + scriptClass->m_ClassName);
 		
 		s_ScriptEngineData->EntityInstances[entityID] = instance;
@@ -639,12 +648,8 @@ namespace Engine
 					if (fieldPrefabID == 0)
 						continue;
 
-					auto fieldPrefab = AssetManager::GetAsset<Prefab>(fieldPrefabID);
-					if (!fieldPrefab.get())
-						continue;
-
-					//auto& fieldEntityInstance = ScriptEngine::GetEntityInstance(fieldPrefab);
-					instance->SetFieldValueInternal(name, &fieldPrefab->Handle);
+					auto& fieldEntityInstance = ScriptEngine::GetAssetInstance(fieldPrefabID);
+					instance->SetFieldValueInternal(name, fieldEntityInstance->GetMonoObject());
 					break;
 				}
 				default:
@@ -744,6 +749,24 @@ namespace Engine
 		return nullptr;
 	}
 
+	bool ScriptEngine::AssetInstanceExists(AssetHandle handle)
+	{
+		const auto& assetInstances = s_ScriptEngineData->AssetInstances;
+		if (assetInstances.find(handle) != assetInstances.end())
+			return true;
+
+		ENGINE_CORE_ERROR("Asset Instance for {}, does not exists!", handle);
+		return false;
+	}
+
+	Ref<ScriptInstance> ScriptEngine::GetAssetInstance(AssetHandle handle)
+	{
+		if (AssetInstanceExists(handle))
+			return s_ScriptEngineData->AssetInstances.at(handle);
+
+		return nullptr;
+	}
+
 	MonoClass* ScriptEngine::GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className)
 	{
 		MonoImage* image = mono_assembly_get_image(assembly);
@@ -824,6 +847,19 @@ namespace Engine
 		OnCollisionExit2DThunk = OnCollisionExit2DMethodPtr ? (OnCollisionExit2D)mono_method_get_unmanaged_thunk(OnCollisionExit2DMethodPtr) : nullptr;
 		//if (!OnCollisionExit2DThunk)
 		//	ENGINE_CORE_WARN("Could not find collision exit 2d method desc in class!");
+	}
+
+	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, AssetHandle handle)
+		: m_ScriptClass(scriptClass), m_Instance(m_ScriptClass->Instantiate())
+	{
+		MonoMethod* constructor = mono_class_get_method_from_name(s_ScriptEngineData->PrefabClass->GetMonoClass(), ".ctor", 1); // TODO change for asset class later vs prefab class
+		{
+			UUID id = handle;
+			void* param = &id;
+			m_ScriptClass->InvokeMethod(m_Instance, constructor, &param);
+		}
+
+		MonoClass* monoClass = m_ScriptClass->GetMonoClass();
 	}
 
 	void ScriptInstance::InvokeOnCreate()
@@ -940,15 +976,15 @@ namespace Engine
 	}
 
 	ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className, bool isCore)
-		: m_ClassNamespace(classNamespace), m_ClassName(className)
+		: m_ClassNamespace(classNamespace), m_ClassName(className), m_IsCore(isCore)
 	{
-		MonoAssembly* assembly = isCore ? s_ScriptEngineData->CoreAssembly : s_ScriptEngineData->AppAssembly;
+		MonoAssembly* assembly = m_IsCore ? s_ScriptEngineData->CoreAssembly : s_ScriptEngineData->AppAssembly;
 		m_MonoClass = ScriptEngine::GetClassInAssembly(assembly, m_ClassNamespace.c_str(), m_ClassName.c_str());
 	}
 
 	MonoObject* ScriptClass::Instantiate()
 	{
-		return ScriptEngine::InstantiateClass(m_MonoClass);
+		return ScriptEngine::InstantiateClass(m_MonoClass, m_IsCore);
 	}
 
 	MonoMethod* ScriptClass::GetMethod(const std::string& name, int parameterCount)

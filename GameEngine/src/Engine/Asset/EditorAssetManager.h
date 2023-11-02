@@ -1,11 +1,9 @@
 #pragma once
 #include "Engine/Asset/AssetManagerBase.h"
 
-#include <map>
-
 namespace Engine
 {
-	using AssetRegistry = std::map<AssetHandle, AssetMetadata>;
+	using AssetRegistry = std::unordered_map<AssetHandle, AssetMetadata>;
 
 	class EditorAssetManager : public AssetManagerBase
 	{
@@ -29,7 +27,7 @@ namespace Engine
 
 		void SaveAssetToRegistry(AssetHandle handle, const AssetMetadata& metadata);
 
-		const AssetRegistry& GetAssetRegistry() const { return m_AssetRegistry; }
+		const AssetRegistry& GetAssets() const { return m_AssetRegistry; }
 		const AssetMap& GetLoadedAssets() const { return m_LoadedAssets; }
 
 		const AssetType GetAssetTypeFromFileExtension(const std::filesystem::path& extension);

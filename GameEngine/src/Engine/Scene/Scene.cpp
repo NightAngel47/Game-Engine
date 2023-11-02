@@ -394,6 +394,14 @@ namespace Engine
 
 	void Scene::OnScriptsCreate()
 	{
+		for (const auto& [handle, metadata] : AssetManager::GetAssets()) // or asset pak
+		{
+			if (metadata.Type == AssetType::Prefab) // TODO remove once all asset types can work
+			{
+				ScriptEngine::InstantiateAsset(handle);
+			}
+		}
+
 		// Instantiate Entities in Script Engine
 		{
 			auto view = m_Registry.view<TransformComponent>();

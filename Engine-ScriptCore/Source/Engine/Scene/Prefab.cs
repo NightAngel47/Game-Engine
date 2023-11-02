@@ -1,4 +1,6 @@
-﻿namespace Engine.Scene
+﻿using Engine.Core;
+
+namespace Engine.Scene
 {
 	public class Prefab
 	{
@@ -7,6 +9,7 @@
 		internal Prefab(ulong id)
 		{
 			ID = id;
+			Log.Trace($"{ID}");
 		}
 	}
 }

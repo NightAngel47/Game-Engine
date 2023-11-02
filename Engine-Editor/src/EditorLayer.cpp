@@ -395,7 +395,7 @@ namespace Engine
 					ImGui::TableHeadersRow();
 
 					int row = 0;
-					for (const auto& [handle, metadata] : editorAssetManager->GetAssetRegistry())
+					for (const auto& [handle, metadata] : editorAssetManager->GetAssets())
 					{
 						ImGui::TableNextRow();
 
