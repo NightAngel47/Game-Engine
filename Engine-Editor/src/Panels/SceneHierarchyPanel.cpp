@@ -192,7 +192,7 @@ namespace Engine
 			else if (ImGui::MenuItem("Create Child Entity"))
 				CreateChildEntity();
 			//else if (!isPrefab && ImGui::MenuItem("Save Entity as Prefab"))
-			else if (ImGui::MenuItem("Save Entity as Prefab"))
+			else if (ImGui::MenuItem("Save Entity as Prefab")) // TODO add menu option for updating existing prefab vs saving a new one (also allow for new prefab asset separate from existing prefab)
 				SavePrefabAs();
 
 			ImGui::EndPopup();
