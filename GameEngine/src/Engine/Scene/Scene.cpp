@@ -109,7 +109,12 @@ namespace Engine
 	{
 		Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabHandle);
 
-		return CopyEntityFromOtherScene(prefab->m_PrefabEntity, prefab->m_PrefabScene);
+		Entity entity = CopyEntityFromOtherScene(prefab->m_PrefabEntity, prefab->m_PrefabScene);
+
+		if (m_IsRunning)
+			ScriptEngine::InstantiateEntity(entity);
+
+		return entity;
 	}
 
 	void Scene::DestroyEntity(Entity entity)

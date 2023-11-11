@@ -115,6 +115,7 @@ namespace Engine
 		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
 		std::unordered_map<UUID, Ref<ScriptInstance>> AssetInstances;
 		std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
+		std::unordered_map<UUID, ScriptFieldMap> AssetScriptFields;
 		std::unordered_map<std::string, ScriptFieldMap> ScriptFieldsDefaults;
 		std::unordered_map<std::string, ScriptMethodMap> ScriptMethodMap;
 
@@ -232,8 +233,10 @@ namespace Engine
 		ShutdownMono();
 
 		s_ScriptEngineData->EntityInstances.clear();
+		s_ScriptEngineData->AssetInstances.clear();
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->EntityScriptFields.clear();
+		s_ScriptEngineData->AssetScriptFields.clear();
 		s_ScriptEngineData->ScriptFieldsDefaults.clear();
 		s_ScriptEngineData->ScriptMethodMap.clear();
 		delete s_ScriptEngineData;
@@ -331,11 +334,14 @@ namespace Engine
 
 		// save copy of EntityScript Fields to restore values after reload
 		std::unordered_map<UUID, ScriptFieldMap> PreviousEntityScriptFields = s_ScriptEngineData->EntityScriptFields;
+		std::unordered_map<UUID, ScriptFieldMap> PreviousAssetScriptFields = s_ScriptEngineData->AssetScriptFields;
 
 		// clear s_ScriptEngineData
 		s_ScriptEngineData->EntityInstances.clear();
+		s_ScriptEngineData->AssetInstances.clear();
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->EntityScriptFields.clear();
+		s_ScriptEngineData->AssetScriptFields.clear();
 		s_ScriptEngineData->ScriptFieldsDefaults.clear();
 		s_ScriptEngineData->ScriptMethodMap.clear();
 
@@ -383,6 +389,45 @@ namespace Engine
 				entityFields[fieldName] = previousField;
 			}
 		}
+
+		// restore editor values to relevant fields after reload TODO check if needed for prefabs/assets
+		/*
+		for (auto& [entityID, previousFields] : PreviousAssetScriptFields)
+		{
+			if (!scene->DoesEntityExist(entityID))
+				continue;
+
+			Entity entity = scene->GetEntityWithUUID(entityID);
+			const auto& className = entity.GetComponent<ScriptComponent>().ClassName;
+			
+			const auto& entityClasses = ScriptEngine::GetEntityClasses();
+			if (entityClasses.find(className) == entityClasses.end())
+				continue;
+
+
+			auto& fields = entityClasses.at(className)->GetScriptFields();
+			auto& entityFields = s_ScriptEngineData->AssetScriptFields[entityID];
+
+			for (auto& [fieldName, field] : fields)
+			{
+				// is the field access level still public?
+				if (!field.IsPublic())
+					continue;
+
+				// is the previous field still relevant?
+				if (previousFields.find(fieldName) == previousFields.end())
+					continue;
+
+				auto& previousField = previousFields.at(fieldName);
+
+				// is the field type still the same?
+				if (previousField.Field.Type != field.Type)
+					continue;
+
+				entityFields[fieldName] = previousField;
+			}
+		}
+		*/
 	}
 
 	void ScriptEngine::LoadEntityClasses(MonoAssembly* assembly)
@@ -506,11 +551,16 @@ namespace Engine
 		return s_ScriptEngineData->EntityClasses;
 	}
 
-	ScriptFieldMap& ScriptEngine::GetScriptFieldMap(Entity entity)
+	ScriptFieldMap& ScriptEngine::GetEntityScriptFieldMap(Entity entity)
 	{
 		ENGINE_CORE_ASSERT(entity, "Entity doesn't exists!");
 
 		return s_ScriptEngineData->EntityScriptFields[entity.GetUUID()];
+	}
+
+	ScriptFieldMap& ScriptEngine::GetAssetScriptFieldMap(AssetHandle handle)
+	{
+		return s_ScriptEngineData->AssetScriptFields[handle];
 	}
 
 	ScriptFieldMap ScriptEngine::GetDefaultScriptFieldMap(const std::string& scriptName)
@@ -619,7 +669,53 @@ namespace Engine
 		UUID entityID = entity.GetUUID();
 		Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances.at(entityID);
 
-		// Copy field values
+		// TODO fix prefabs, if instantiating a new prefab script field values have to come from default values on asset vs letting the script do whatever.
+
+		if (entity.HasComponent<PrefabComponent>())
+		{
+			AssetHandle prefabHandle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+			// Copy field values from prefab asset to script
+			if (s_ScriptEngineData->AssetScriptFields.find(prefabHandle) != s_ScriptEngineData->AssetScriptFields.end())
+			{
+				ScriptFieldMap& fieldMap = s_ScriptEngineData->AssetScriptFields.at(prefabHandle);
+				for (auto& [name, fieldInstance] : fieldMap)
+				{
+					switch (fieldInstance.Field.Type)
+					{
+					case ScriptFieldType::String:
+						instance->SetFieldValueInternal(name, ScriptEngine::StringToMonoString(fieldInstance.m_StringBuffer));
+						break;
+					case ScriptFieldType::Entity:
+					{
+						uint64_t fieldEntityID = fieldInstance.GetValue<uint64_t>();
+						if (!SceneManager::GetActiveScene()->DoesEntityExist(fieldEntityID))
+							continue;
+
+						Entity fieldEntity = SceneManager::GetActiveScene()->GetEntityWithUUID(fieldEntityID);
+
+						auto& fieldEntityInstance = ScriptEngine::GetEntityInstance(fieldEntity);
+						instance->SetFieldValueInternal(name, fieldEntityInstance->GetMonoObject());
+						break;
+					}
+					case ScriptFieldType::Prefab:
+					{
+						uint64_t fieldPrefabID = fieldInstance.GetValue<uint64_t>();
+						if (fieldPrefabID == 0)
+							continue;
+
+						auto& fieldEntityInstance = ScriptEngine::GetAssetInstance(fieldPrefabID);
+						instance->SetFieldValueInternal(name, fieldEntityInstance->GetMonoObject());
+						break;
+					}
+					default:
+						instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);
+						break;
+					}
+				}
+			}
+		}
+
+		// Copy field values entity in scene to script
 		if (s_ScriptEngineData->EntityScriptFields.find(entityID) != s_ScriptEngineData->EntityScriptFields.end())
 		{
 			ScriptFieldMap& fieldMap = s_ScriptEngineData->EntityScriptFields.at(entityID);

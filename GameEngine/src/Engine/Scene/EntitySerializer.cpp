@@ -399,10 +399,17 @@ namespace Engine
 
 			// Fields
 			const auto& scriptFields = ScriptEngine::GetEntityClasses().at(scriptComponent.ClassName)->GetScriptFields();
-			if (scriptFields.size() > 0)
+			if (!scriptFields.empty())
 			{
+				AssetHandle prefabHandle = AssetHandle::INVALID();
+				if (entity.HasComponent<PrefabComponent>())
+				{
+					prefabHandle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+				}
+
+				ScriptFieldMap& entityFields = prefabHandle.IsValid() ? ScriptEngine::GetAssetScriptFieldMap(prefabHandle) : ScriptEngine::GetEntityScriptFieldMap(entity);
+
 				out << YAML::Key << "ScriptFields" << YAML::Value;
-				auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
 				out << YAML::BeginSeq;
 				for (auto const& [name, field] : scriptFields)
 				{
@@ -661,22 +668,27 @@ namespace Engine
 				Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(sc.ClassName);
 				if (entityClass)
 				{
-					const auto& fields = entityClass->GetScriptFields();
-					auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
 
+					AssetHandle prefabHandle = AssetHandle::INVALID();
+					if (entity.HasComponent<PrefabComponent>())
+					{
+						prefabHandle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+					}
+
+					ScriptFieldMap& entityFields = prefabHandle.IsValid() ? ScriptEngine::GetAssetScriptFieldMap(prefabHandle) : ScriptEngine::GetEntityScriptFieldMap(entity);
+
+					const auto& fields = entityClass->GetScriptFields();
 					for (auto scriptField : scriptFields)
 					{
 						std::string name = scriptField["Name"].as<std::string>();
 						std::string typeString = scriptField["Type"].as<std::string>();
 						ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
 
-						ScriptFieldInstance& fieldInstance = entityFields[name];
-
-						//ENGINE_CORE_ASSERT(fields.find(name) != fields.end()); // extra field in saved file
-
 						if (fields.find(name) == fields.end())
 							continue;
+							//ENGINE_CORE_ASSERT(fields.find(name) != fields.end()); // extra field in saved file
 
+						ScriptFieldInstance& fieldInstance = entityFields[name];
 						fieldInstance.Field = fields.at(name);
 
 						switch (type)

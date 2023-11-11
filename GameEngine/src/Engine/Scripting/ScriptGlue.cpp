@@ -471,6 +471,13 @@ namespace InternalCalls
 			return 0;
 		}
 
+		if (entity.HasComponent<Engine::ScriptComponent>())
+		{
+			//Engine::ScriptEngine::InstantiateEntity(entity);
+			Engine::ScriptEngine::OnCreateEntity(entity);
+			Engine::ScriptEngine::OnStartEntity(entity);
+		}
+
 		return entity.GetUUID();
 	}
 

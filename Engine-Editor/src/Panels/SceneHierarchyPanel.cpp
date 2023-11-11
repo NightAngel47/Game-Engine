@@ -901,7 +901,13 @@ namespace Engine
 			// Fields
 			Ref<ScriptInstance> scriptInstance = sceneRunning ? ScriptEngine::GetEntityInstance(entity) : nullptr;
 			auto& fields = sceneRunning ? scriptInstance->GetScriptClass()->GetScriptFields() : ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
-			auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
+
+			AssetHandle prefabHandle = AssetHandle::INVALID();
+			if (entity.HasComponent<PrefabComponent>())
+			{
+				prefabHandle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+			}
+			ScriptFieldMap& entityFields = prefabHandle.IsValid() ? ScriptEngine::GetAssetScriptFieldMap(prefabHandle) : ScriptEngine::GetEntityScriptFieldMap(entity);
 
 			for (auto& [name, field] : fields)
 			{
@@ -1142,10 +1148,10 @@ namespace Engine
 		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 		
 		AssetHandle handle = editorAssetManager->GetAssetHandleFromFilePath(relativePath);
-		Ref<Prefab> prefab;
+		Ref<Prefab> prefab = CreateRef<Prefab>(GetSelectedEntity(), m_Context);
 		if (handle.IsValid())
 		{
-			prefab = CreateRef<Prefab>(GetSelectedEntity());
+			//prefab = CreateRef<Prefab>(GetSelectedEntity());
 			prefab->Handle = handle;
 
 			// add component to legacy/broken prefab entities (aka it's a prefab but missing prefab component)
@@ -1156,12 +1162,12 @@ namespace Engine
 		}
 		else
 		{
-			prefab = CreateRef<Prefab>(GetSelectedEntity());
+			//prefab = CreateRef<Prefab>(GetSelectedEntity());
 			editorAssetManager->SaveAssetAs(prefab, relativePath.generic_string());
 			GetSelectedEntity().AddComponent<PrefabComponent>().PrefabHandle = prefab->Handle;
 		}
 
-		editorAssetManager->SaveAssetAs(prefab, relativePath.generic_string());
+		editorAssetManager->SaveAsset(prefab);
 
 		//m_ContentBrowserPanel->RefreshAssetTree(); // TODO create a way to update content browser panel when asset registry is updated from anywhere
 	}

@@ -169,7 +169,8 @@ namespace Engine
 		static void ReloadAssembly();
 
 		static std::unordered_map<std::string, Ref<ScriptClass>> GetEntityClasses();
-		static ScriptFieldMap& GetScriptFieldMap(Entity entity);
+		static ScriptFieldMap& GetEntityScriptFieldMap(Entity entity);
+		static ScriptFieldMap& GetAssetScriptFieldMap(AssetHandle handle);
 		static ScriptFieldMap GetDefaultScriptFieldMap(const std::string& scriptName);
 		static ScriptMethodMap GetScriptMethodMap(const std::string& scriptName);
 
