@@ -408,35 +408,29 @@ namespace Engine
 		}
 
 		// Instantiate Entities in Script Engine
+		auto view = m_Registry.view<TransformComponent>();
+		for (auto e : view)
 		{
-			auto view = m_Registry.view<TransformComponent>();
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				ScriptEngine::InstantiateEntity(entity);
-			}
+			Entity entity = { e, this };
+			ScriptEngine::InstantiateEntity(entity);
 		}
 
 		// Script OnCreate
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
-			auto view = m_Registry.view<ScriptComponent>();
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				ScriptEngine::OnCreateEntity(entity);
-			}
-		}
+			Entity entity = { e, this };
+			ScriptEngine::OnCreateEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnScriptsStart()
 	{
 		// Scripts OnStart
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnStartEntity(entity);
-		}
+			ScriptEngine::OnStartEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnUIStop()
@@ -451,12 +445,11 @@ namespace Engine
 
 	void Scene::OnScriptsStop()
 	{
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnDestroyEntity(entity);
-		}
+			ScriptEngine::OnDestroyEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnUIUpdate(Timestep ts)
@@ -467,12 +460,11 @@ namespace Engine
 	void Scene::OnScriptsUpdate(Timestep ts)
 	{
 		// Update Scripts
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnUpdateEntity(entity, ts);
-		}
+			ScriptEngine::OnUpdateEntity(entity, sc, ts);
+		});
 
 		// Update Native Scripts
 		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
@@ -496,12 +488,11 @@ namespace Engine
 	void Scene::OnScriptsLateUpdate(Timestep ts)
 	{
 		// Late Update Scripts
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnLateUpdateEntity(entity, ts);
-		}
+			ScriptEngine::OnLateUpdateEntity(entity, sc, ts);
+		});
 	}
 
 	void Scene::OnRender2DUpdate()

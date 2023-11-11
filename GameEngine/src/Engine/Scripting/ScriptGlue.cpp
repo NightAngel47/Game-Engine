@@ -474,9 +474,9 @@ namespace InternalCalls
 
 		if (entity.HasComponent<Engine::ScriptComponent>())
 		{
-			//Engine::ScriptEngine::InstantiateEntity(entity);
-			Engine::ScriptEngine::OnCreateEntity(entity);
-			Engine::ScriptEngine::OnStartEntity(entity);
+			Engine::ScriptComponent sc = entity.GetComponent<Engine::ScriptComponent>();
+			Engine::ScriptEngine::OnCreateEntity(entity, sc);
+			Engine::ScriptEngine::OnStartEntity(entity, sc);
 		}
 
 		return entity.GetUUID();
@@ -824,10 +824,11 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		std::string classNameString = Engine::ScriptEngine::MonoStringToUTF8(className);
-		entity.GetComponent<Engine::ScriptComponent>().ClassName = classNameString;
+		Engine::ScriptComponent sc = entity.GetComponent<Engine::ScriptComponent>();
+		sc.ClassName = classNameString;
 		Engine::ScriptEngine::InstantiateEntity(entity);
-		Engine::ScriptEngine::OnCreateEntity(entity);
-		Engine::ScriptEngine::OnStartEntity(entity);
+		Engine::ScriptEngine::OnCreateEntity(entity, sc);
+		Engine::ScriptEngine::OnStartEntity(entity, sc);
 	}
 
 #pragma endregion ScriptComponent

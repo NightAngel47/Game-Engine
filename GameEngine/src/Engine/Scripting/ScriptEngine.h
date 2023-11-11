@@ -183,11 +183,11 @@ namespace Engine
 
 		static void InstantiateAsset(AssetHandle handle);
 		static void InstantiateEntity(Entity entity);
-		static void OnCreateEntity(Entity entity);
-		static void OnStartEntity(Entity entity);
-		static void OnDestroyEntity(Entity entity);
-		static void OnUpdateEntity(Entity entity, Timestep ts);
-		static void OnLateUpdateEntity(Entity entity, Timestep ts);
+		static void OnCreateEntity(Entity entity, const ScriptComponent& sc);
+		static void OnStartEntity(Entity entity, const ScriptComponent& sc);
+		static void OnDestroyEntity(Entity entity, const ScriptComponent& sc);
+		static void OnUpdateEntity(Entity entity, const ScriptComponent& sc, Timestep ts);
+		static void OnLateUpdateEntity(Entity entity, const ScriptComponent& sc, Timestep ts);
 
 		static void OnTriggerEnter2D(Entity entity, Physics2DContact contact2D);
 		static void OnTriggerExit2D(Entity entity, Physics2DContact contact2D);

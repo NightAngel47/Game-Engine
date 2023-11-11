@@ -656,20 +656,13 @@ namespace Engine
 		s_ScriptEngineData->EntityInstances[entityID] = instance;
 	}
 
-	void ScriptEngine::OnCreateEntity(Entity entity)
+	void ScriptEngine::OnCreateEntity(Entity entity, const ScriptComponent& sc)
 	{
-		if (!entity.HasComponent<ScriptComponent>())
-			return;
-
-		const auto& sc = entity.GetComponent<ScriptComponent>();
-
 		if (!EntityClassExists(sc.ClassName) || !EntityInstanceExists(entity))
 			return;
 
 		UUID entityID = entity.GetUUID();
 		Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances.at(entityID);
-
-		// TODO fix prefabs, if instantiating a new prefab script field values have to come from default values on asset vs letting the script do whatever.
 
 		if (entity.HasComponent<PrefabComponent>())
 		{
@@ -758,18 +751,14 @@ namespace Engine
 		instance->InvokeOnCreate();
 	}
 
-	void ScriptEngine::OnStartEntity(Entity entity)
+	void ScriptEngine::OnStartEntity(Entity entity, const ScriptComponent& sc)
 	{
-		const auto& sc = entity.GetComponent<ScriptComponent>();
-
 		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
 			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnStart();
 	}
 
-	void ScriptEngine::OnDestroyEntity(Entity entity)
+	void ScriptEngine::OnDestroyEntity(Entity entity, const ScriptComponent& sc)
 	{
-		const auto& sc = entity.GetComponent<ScriptComponent>();
-
 		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
 		{
 			Ref<ScriptInstance> instance = s_ScriptEngineData->EntityInstances.at(entity.GetUUID());
@@ -779,17 +768,15 @@ namespace Engine
 		}
 	}
 
-	void ScriptEngine::OnUpdateEntity(Entity entity, Timestep ts)
+	void ScriptEngine::OnUpdateEntity(Entity entity, const ScriptComponent& sc, Timestep ts)
 	{
-		const auto& sc = entity.GetComponent<ScriptComponent>();
-
 		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
 			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnUpdate((float)ts);
 	}
 
-	void ScriptEngine::OnLateUpdateEntity(Entity entity, Timestep ts)
+	void ScriptEngine::OnLateUpdateEntity(Entity entity, const ScriptComponent& sc, Timestep ts)
 	{
-		const auto& sc = entity.GetComponent<ScriptComponent>();
+		//const auto& sc = entity.GetComponent<ScriptComponent>();
 
 		if (EntityClassExists(sc.ClassName) && EntityInstanceExists(entity))
 			s_ScriptEngineData->EntityInstances.at(entity.GetUUID())->InvokeOnLateUpdate((float)ts);
