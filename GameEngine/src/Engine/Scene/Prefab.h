@@ -9,10 +9,9 @@ namespace Engine
 	public:
 		Prefab() = default;
 		Prefab(Entity entity, Ref<Scene> originalScene)
-			:m_PrefabEntity(entity) 
 		{
 			m_PrefabScene = CreateRef<Scene>("Prefab Scene");
-			m_PrefabScene->CopyEntityFromOtherScene(entity, originalScene);
+			m_PrefabEntity = m_PrefabScene->CopyEntityFromOtherScene(entity, originalScene);
 		}
 		~Prefab() = default;
 
