@@ -210,6 +210,7 @@ namespace InternalCalls
 
 #pragma region ScriptComponent
 
+		static MonoString* ScriptComponent_GetClassName(Engine::UUID entityID);
 		static void ScriptComponent_InstantiateClass(Engine::UUID entityID, MonoString* className);
 
 #pragma endregion ScriptComponent

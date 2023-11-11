@@ -336,11 +336,11 @@ namespace Engine
 		Entity entityA = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureAEntityID);
 		Entity entityB = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureBEntityID);
 
-		if (fixtureA->IsSensor() && SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
+		if (fixtureA->IsSensor() && entityB.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerEnter2D(entityB, Physics2DContact{ fixtureAEntityID, fixtureBEntityID });
 		}
-		else if(fixtureB->IsSensor() && SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
+		else if(fixtureB->IsSensor() && entityA.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerEnter2D(entityA, Physics2DContact{ fixtureBEntityID, fixtureAEntityID });
 		}

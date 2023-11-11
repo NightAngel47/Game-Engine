@@ -145,6 +145,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_GetOrthographicSize);
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_SetOrthographicSize);
 
+		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_GetClassName);
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_InstantiateClass);
 	}
 
@@ -811,6 +812,13 @@ namespace InternalCalls
 #pragma endregion CameraComponent
 
 #pragma region ScriptComponent
+
+	MonoString* ScriptGlue::ScriptComponent_GetClassName(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		std::string className = entity.GetComponent<Engine::ScriptComponent>().ClassName;
+		return Engine::ScriptEngine::StringToMonoString(className);
+	}
 
 	void ScriptGlue::ScriptComponent_InstantiateClass(Engine::UUID entityID, MonoString* className)
 	{

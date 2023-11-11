@@ -222,6 +222,11 @@ namespace Engine.Scene
 
 	public class ScriptComponent : Component
 	{
+		public string ClassName
+		{
+			get => InternalCalls.ScriptComponent_GetClassName(Entity.ID);
+		}
+
 		public void InstantiateClass(string className)
 		{
 			InternalCalls.ScriptComponent_InstantiateClass(Entity.ID, className);

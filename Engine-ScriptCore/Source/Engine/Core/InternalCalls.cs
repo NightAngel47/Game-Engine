@@ -331,6 +331,9 @@ namespace Engine.Core
 		#region ScriptComponent
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern string ScriptComponent_GetClassName(ulong entityID); // used for checking script class "type"
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void ScriptComponent_InstantiateClass(ulong entityID, string className);
 
 		#endregion ScriptComponent
