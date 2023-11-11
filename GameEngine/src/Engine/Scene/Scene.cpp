@@ -224,11 +224,11 @@ namespace Engine
 	Entity Scene::FindEntityByName(const std::string_view& entityName)
 	{
 		auto view = m_Registry.view<TagComponent>();
-		for (auto entity : view)
+		for (auto e : view)
 		{
-			const TagComponent& tc = view.get<TagComponent>(entity);
+			const TagComponent& tc = view.get<TagComponent>(e);
 			if (tc.Tag == entityName)
-				return Entity{ entity, this };
+				return Entity{ e, this };
 		}
 
 		return {};
@@ -497,35 +497,26 @@ namespace Engine
 
 	void Scene::OnRender2DUpdate()
 	{
-		{ // Draw Sprites
-			auto view = m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
-				Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
-			}
-		}
+		// Draw Sprites
+		m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& sprite)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
+		});
 
-		{ // Draw Circles
-			auto view = m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
-				Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
-			}
-		}
+		// Draw Circles
+		m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& circle)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
+		});
 
-		{ // Draw Text
-			auto view = m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
-				Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
-			}
-		}
+		// Draw Text
+		m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& trc)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
+		});
 	}
 
 	void Scene::OnRenderUIUpdate()
