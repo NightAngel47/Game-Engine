@@ -4,6 +4,7 @@
 #include "Engine/Asset/AssetManager.h"
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Audio/AudioEngine.h"
 #include "Engine/UI/UIEngine.h"
 
 #include "Engine/Utils/PlatformUtils.h"
@@ -39,6 +40,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
+		AudioEngine::Shutdown();
 		ScriptEngine::Shutdown();
 		Renderer::Shutdown();
 	}
