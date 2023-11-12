@@ -5,6 +5,7 @@
 #include "Engine/Core/Application.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Entity.h"
+#include "Engine/Scene/Prefab.h"
 #include "Engine/Math/Random.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scene/SceneManager.h"
@@ -90,6 +91,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Entity_AddComponent);
 		ENGINE_ADD_INTERNAL_CALL(Entity_FindEntityByName);
 		ENGINE_ADD_INTERNAL_CALL(Entity_CreateEntity);
+		ENGINE_ADD_INTERNAL_CALL(Entity_InstantiatePrefab);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetScriptInstance);
 		ENGINE_ADD_INTERNAL_CALL(Entity_DestroyEntity);
 		ENGINE_ADD_INTERNAL_CALL(Entity_GetParent);
@@ -143,6 +145,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_GetOrthographicSize);
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_SetOrthographicSize);
 
+		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_GetClassName);
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_InstantiateClass);
 	}
 
@@ -441,11 +444,41 @@ namespace InternalCalls
 		Engine::Scene* scene = Engine::SceneManager::GetActiveScene().get();
 		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
 		Engine::Entity entity = scene->CreateEntity(entityName);
-
 		if (!entity)
 		{
 			return 0;
 		}
+		return entity.GetUUID();
+	}
+
+	uint64_t ScriptGlue::Entity_InstantiatePrefab(Engine::AssetHandle prefabID)
+	{
+		if (!prefabID.IsValid())
+		{
+			return 0;
+		}
+
+		auto prefab = Engine::AssetManager::GetAsset<Engine::Prefab>(prefabID);
+		if (!prefab->Handle.IsValid())
+		{
+			return 0;
+		}
+
+		Engine::Scene* scene = Engine::SceneManager::GetActiveScene().get();
+		ENGINE_CORE_ASSERT(scene, "Active Scene Context was not set in Script Engine!");
+		Engine::Entity entity = scene->CreateEntityFromPrefab(prefabID);
+		if (!entity)
+		{
+			return 0;
+		}
+
+		if (entity.HasComponent<Engine::ScriptComponent>())
+		{
+			Engine::ScriptComponent sc = entity.GetComponent<Engine::ScriptComponent>();
+			Engine::ScriptEngine::OnCreateEntity(entity, sc);
+			Engine::ScriptEngine::OnStartEntity(entity, sc);
+		}
+
 		return entity.GetUUID();
 	}
 
@@ -780,14 +813,22 @@ namespace InternalCalls
 
 #pragma region ScriptComponent
 
+	MonoString* ScriptGlue::ScriptComponent_GetClassName(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		std::string className = entity.GetComponent<Engine::ScriptComponent>().ClassName;
+		return Engine::ScriptEngine::StringToMonoString(className);
+	}
+
 	void ScriptGlue::ScriptComponent_InstantiateClass(Engine::UUID entityID, MonoString* className)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		std::string classNameString = Engine::ScriptEngine::MonoStringToUTF8(className);
-		entity.GetComponent<Engine::ScriptComponent>().ClassName = classNameString;
+		Engine::ScriptComponent sc = entity.GetComponent<Engine::ScriptComponent>();
+		sc.ClassName = classNameString;
 		Engine::ScriptEngine::InstantiateEntity(entity);
-		Engine::ScriptEngine::OnCreateEntity(entity);
-		Engine::ScriptEngine::OnStartEntity(entity);
+		Engine::ScriptEngine::OnCreateEntity(entity, sc);
+		Engine::ScriptEngine::OnStartEntity(entity, sc);
 	}
 
 #pragma endregion ScriptComponent

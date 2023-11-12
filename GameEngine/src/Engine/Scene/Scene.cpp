@@ -109,7 +109,12 @@ namespace Engine
 	{
 		Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabHandle);
 
-		return CopyEntityFromOtherScene(prefab->m_PrefabEntity, prefab->m_PrefabScene);
+		Entity entity = CopyEntityFromOtherScene(prefab->m_PrefabEntity);
+
+		if (m_IsRunning)
+			ScriptEngine::InstantiateEntity(entity);
+
+		return entity;
 	}
 
 	void Scene::DestroyEntity(Entity entity)
@@ -219,17 +224,17 @@ namespace Engine
 	Entity Scene::FindEntityByName(const std::string_view& entityName)
 	{
 		auto view = m_Registry.view<TagComponent>();
-		for (auto entity : view)
+		for (auto e : view)
 		{
-			const TagComponent& tc = view.get<TagComponent>(entity);
+			const TagComponent& tc = view.get<TagComponent>(e);
 			if (tc.Tag == entityName)
-				return Entity{ entity, this };
+				return Entity{ e, this };
 		}
 
 		return {};
 	}
 
-	Entity Scene::CopyEntityFromOtherScene(Entity otherEntity, Ref<Scene> otherScene)
+	Entity Scene::CopyEntityFromOtherScene(Entity otherEntity)
 	{
 		std::string name = otherEntity.GetName();
 		Entity newEntity = CreateEntity(name);
@@ -240,10 +245,11 @@ namespace Engine
 		if (relationship.HasChildren())
 		{
 			UUID childIterator = relationship.FirstChild;
+			Scene* otherScene = otherEntity.m_Scene;
 			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
 			{
 				Entity childEntity = otherScene->GetEntityWithUUID(childIterator);
-				Entity newChildEntity = CopyEntityFromOtherScene(childEntity, otherScene);
+				Entity newChildEntity = CopyEntityFromOtherScene(childEntity);
 				newEntity.AddChild(newChildEntity);
 
 				childIterator = childEntity.GetComponent<RelationshipComponent>().NextChild;
@@ -394,36 +400,38 @@ namespace Engine
 
 	void Scene::OnScriptsCreate()
 	{
-		// Instantiate Entities in Script Engine
+		for (const auto& [handle, metadata] : AssetManager::GetAssets()) // or asset pak
 		{
-			auto view = m_Registry.view<TransformComponent>();
-			for (auto e : view)
+			if (metadata.Type == AssetType::Prefab) // TODO remove once all asset types can work
 			{
-				Entity entity = { e, this };
-				ScriptEngine::InstantiateEntity(entity);
+				ScriptEngine::InstantiateAsset(handle);
 			}
 		}
 
-		// Script OnCreate
+		// Instantiate Entities in Script Engine
+		auto view = m_Registry.view<TransformComponent>();
+		for (auto e : view)
 		{
-			auto view = m_Registry.view<ScriptComponent>();
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				ScriptEngine::OnCreateEntity(entity);
-			}
+			Entity entity = { e, this };
+			ScriptEngine::InstantiateEntity(entity);
 		}
+
+		// Script OnCreate
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
+		{
+			Entity entity = { e, this };
+			ScriptEngine::OnCreateEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnScriptsStart()
 	{
 		// Scripts OnStart
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnStartEntity(entity);
-		}
+			ScriptEngine::OnStartEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnUIStop()
@@ -438,12 +446,11 @@ namespace Engine
 
 	void Scene::OnScriptsStop()
 	{
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnDestroyEntity(entity);
-		}
+			ScriptEngine::OnDestroyEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnUIUpdate(Timestep ts)
@@ -454,12 +461,11 @@ namespace Engine
 	void Scene::OnScriptsUpdate(Timestep ts)
 	{
 		// Update Scripts
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnUpdateEntity(entity, ts);
-		}
+			ScriptEngine::OnUpdateEntity(entity, sc, ts);
+		});
 
 		// Update Native Scripts
 		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
@@ -483,45 +489,35 @@ namespace Engine
 	void Scene::OnScriptsLateUpdate(Timestep ts)
 	{
 		// Late Update Scripts
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnLateUpdateEntity(entity, ts);
-		}
+			ScriptEngine::OnLateUpdateEntity(entity, sc, ts);
+		});
 	}
 
 	void Scene::OnRender2DUpdate()
 	{
-		{ // Draw Sprites
-			auto view = m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
-				Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
-			}
-		}
+		// Draw Sprites
+		m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& sprite)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
+		});
 
-		{ // Draw Circles
-			auto view = m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
-				Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
-			}
-		}
+		// Draw Circles
+		m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& circle)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
+		});
 
-		{ // Draw Text
-			auto view = m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
-				Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
-			}
-		}
+		// Draw Text
+		m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& trc)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
+		});
 	}
 
 	void Scene::OnRenderUIUpdate()

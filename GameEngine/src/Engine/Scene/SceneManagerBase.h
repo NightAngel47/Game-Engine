@@ -1,6 +1,8 @@
 #pragma once
 #include "Engine/Scene/Scene.h"
 
+#include <map>
+
 namespace Engine
 {
 	class SceneManagerBase

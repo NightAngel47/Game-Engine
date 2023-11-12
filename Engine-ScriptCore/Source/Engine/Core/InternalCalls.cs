@@ -162,6 +162,9 @@ namespace Engine.Core
 		internal static extern ulong Entity_CreateEntity(string name);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern ulong Entity_InstantiatePrefab(ulong prefabID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern object Entity_GetScriptInstance(ulong entityID);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -326,6 +329,9 @@ namespace Engine.Core
 		#endregion CameraComponent
 
 		#region ScriptComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern string ScriptComponent_GetClassName(ulong entityID); // used for checking script class "type"
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void ScriptComponent_InstantiateClass(ulong entityID, string className);

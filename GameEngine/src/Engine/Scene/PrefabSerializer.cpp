@@ -22,7 +22,7 @@ namespace Engine
 		ENGINE_CORE_TRACE("Serializing prefab '{0}'", entity.GetName());
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 		EntitySerializer entitySerializer = EntitySerializer();
-		entitySerializer.Serialize(out, entity, SceneManager::GetActiveScene());
+		entitySerializer.Serialize(out, entity, prefab->m_PrefabScene);
 		out << YAML::EndSeq;
 		out << YAML::EndMap; // Prefab
 

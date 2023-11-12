@@ -22,9 +22,9 @@ namespace Engine.Scene
 		public override int GetHashCode() => base.GetHashCode();
 
 		public override bool Equals(object obj)
-		{
+		{ 
 			//Check for null and compare run-time types.
-			if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+			if ((obj == null) || !GetType().Equals(obj.GetType()))
 			{
 				return false;
 			}
@@ -103,6 +103,12 @@ namespace Engine.Scene
 			}
 
 			return entity;
+		}
+
+		public Entity InstantiatePrefab(Prefab prefab)
+		{
+			var entityID = InternalCalls.Entity_InstantiatePrefab(prefab.ID);
+			return InternalCalls.Entity_GetScriptInstance(entityID) as Entity;
 		}
 
 		public T As<T>() where T : Entity, new()

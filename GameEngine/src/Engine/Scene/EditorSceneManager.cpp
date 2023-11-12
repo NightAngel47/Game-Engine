@@ -6,7 +6,7 @@ namespace Engine
 {
 	EditorSceneManager::EditorSceneManager()
 	{
-		const auto& registry = Project::GetActive()->GetEditorAssetManager()->GetAssetRegistry();
+		const auto& registry = Project::GetActive()->GetEditorAssetManager()->GetAssets();
 		for (const auto& [handle, metadata] : registry)
 		{
 			if (metadata.Type == AssetType::Scene)

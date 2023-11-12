@@ -8,8 +8,11 @@ namespace Engine
 	{
 	public:
 		Prefab() = default;
-		Prefab(Entity entity, Ref<Scene> scene = CreateRef<Scene>())
-			:m_PrefabEntity(entity), m_PrefabScene(scene) {}
+		Prefab(Entity entity)
+		{
+			m_PrefabScene = CreateRef<Scene>("Prefab Scene");
+			m_PrefabEntity = m_PrefabScene->CopyEntityFromOtherScene(entity);
+		}
 		~Prefab() = default;
 
 		static AssetType GetStaticType() { return AssetType::Prefab; }

@@ -32,6 +32,7 @@ namespace Engine
 		void DrawEntityNode(Entity entity);
 		void DrawComponents(Entity entity);
 
+		void SavePrefab();
 		void SavePrefabAs();
 		void CreateChildEntity();
 	private:

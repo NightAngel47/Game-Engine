@@ -147,7 +147,7 @@ namespace Engine
 		bool isPrefab = entity.HasComponent<PrefabComponent>() && entity.GetComponent<PrefabComponent>().PrefabHandle.IsValid();
 		if (isPrefab)
 		{
-			ImGui::PushStyleColor(ImGuiCol_Text, {0.0f, 0.0f, 1.0f, 1.0f});
+			ImGui::PushStyleColor(ImGuiCol_Text, {0.0f, 0.5f, 1.0f, 1.0f});
 		}
 
 		ImGuiTreeNodeFlags flags = (IsSelectedEntityValid() && (GetSelectedEntity() == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
@@ -191,8 +191,9 @@ namespace Engine
 				entityDeleted = true;
 			else if (ImGui::MenuItem("Create Child Entity"))
 				CreateChildEntity();
-			//else if (!isPrefab && ImGui::MenuItem("Save Entity as Prefab"))
-			else if (ImGui::MenuItem("Save Entity as Prefab"))
+			else if (isPrefab && ImGui::MenuItem("Save Prefab"))
+				SavePrefab();
+			else if (ImGui::MenuItem("Save as New Prefab"))
 				SavePrefabAs();
 
 			ImGui::EndPopup();
@@ -901,7 +902,13 @@ namespace Engine
 			// Fields
 			Ref<ScriptInstance> scriptInstance = sceneRunning ? ScriptEngine::GetEntityInstance(entity) : nullptr;
 			auto& fields = sceneRunning ? scriptInstance->GetScriptClass()->GetScriptFields() : ScriptEngine::GetEntityClass(component.ClassName)->GetScriptFields();
-			auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
+
+			AssetHandle prefabHandle = AssetHandle::INVALID();
+			if (entity.HasComponent<PrefabComponent>())
+			{
+				prefabHandle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+			}
+			ScriptFieldMap& entityFields = prefabHandle.IsValid() ? ScriptEngine::GetAssetScriptFieldMap(prefabHandle) : ScriptEngine::GetEntityScriptFieldMap(entity);
 
 			for (auto& [name, field] : fields)
 			{
@@ -1082,6 +1089,29 @@ namespace Engine
 						}
 						break;
 					}
+					case ScriptFieldType::Prefab:
+					{
+						uint64_t data = 0;
+						GET_FEILD_VALUE(name, data, scriptInstance, scriptField, sceneRunning, fieldExists, component.ClassName, uint64_t);
+						std::string dataEntityName = "None";
+						if (data != 0)
+						{
+							dataEntityName = Project::GetActive()->GetEditorAssetManager()->GetAssetPath(data).filename().string();
+						}
+						ImGui::InputText(("##" + name).c_str(), &dataEntityName, ImGuiInputTextFlags_ReadOnly);
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+							{
+								const UUID* prefabItemID = (const UUID*)payload->Data;
+								data = *prefabItemID;
+								sceneRunning ? scriptInstance->SetFieldValue(name, &data) : scriptField.SetValue(data);
+							}
+
+							ImGui::EndDragDropTarget();
+						}
+						break;
+					}
 					default:
 						break;
 				}
@@ -1103,6 +1133,21 @@ namespace Engine
 		}
 	}
 
+	void SceneHierarchyPanel::SavePrefab()
+	{
+		if (!GetSelectedEntity().HasComponent<PrefabComponent>())
+		{
+			SavePrefabAs();
+			return;
+		}
+
+		AssetHandle handle = GetSelectedEntity().GetComponent<PrefabComponent>().PrefabHandle;
+		Ref<Prefab> prefab = CreateRef<Prefab>(GetSelectedEntity());
+		prefab->Handle = handle;
+
+		Project::GetActive()->GetEditorAssetManager()->SaveAsset(prefab);
+	}
+
 	void SceneHierarchyPanel::SavePrefabAs()
 	{
 		std::filesystem::path filepath = FileDialogs::SaveFile("Prefab (*.prefab)\0*.prefab\0");
@@ -1119,10 +1164,9 @@ namespace Engine
 		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 		
 		AssetHandle handle = editorAssetManager->GetAssetHandleFromFilePath(relativePath);
-		Ref<Prefab> prefab;
+		Ref<Prefab> prefab = CreateRef<Prefab>(GetSelectedEntity());
 		if (handle.IsValid())
 		{
-			prefab = CreateRef<Prefab>(GetSelectedEntity());
 			prefab->Handle = handle;
 
 			// add component to legacy/broken prefab entities (aka it's a prefab but missing prefab component)
@@ -1133,12 +1177,12 @@ namespace Engine
 		}
 		else
 		{
-			prefab = CreateRef<Prefab>(GetSelectedEntity());
+			//prefab = CreateRef<Prefab>(GetSelectedEntity());
 			editorAssetManager->SaveAssetAs(prefab, relativePath.generic_string());
 			GetSelectedEntity().AddComponent<PrefabComponent>().PrefabHandle = prefab->Handle;
 		}
 
-		editorAssetManager->SaveAssetAs(prefab, relativePath.generic_string());
+		editorAssetManager->SaveAsset(prefab);
 
 		//m_ContentBrowserPanel->RefreshAssetTree(); // TODO create a way to update content browser panel when asset registry is updated from anywhere
 	}

@@ -176,6 +176,7 @@ namespace Engine
 					WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
 					WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
 					WRITE_SCRIPT_FIELD(Entity, uint64_t);
+					WRITE_SCRIPT_FIELD(Prefab, uint64_t);
 				default:
 					ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(scriptField.Field.Type));
 				}
@@ -229,6 +230,7 @@ namespace Engine
 					READ_SCRIPT_FIELD(Vector3, glm::vec3);
 					READ_SCRIPT_FIELD(Vector4, glm::vec4);
 					READ_SCRIPT_FIELD(Entity, uint64_t);
+					READ_SCRIPT_FIELD(Prefab, uint64_t);
 				default:
 					ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", Utils::ScriptFieldTypeToString(type));
 				}
@@ -397,10 +399,17 @@ namespace Engine
 
 			// Fields
 			const auto& scriptFields = ScriptEngine::GetEntityClasses().at(scriptComponent.ClassName)->GetScriptFields();
-			if (scriptFields.size() > 0)
+			if (!scriptFields.empty())
 			{
+				AssetHandle prefabHandle = AssetHandle::INVALID();
+				if (entity.HasComponent<PrefabComponent>())
+				{
+					prefabHandle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+				}
+
+				ScriptFieldMap& entityFields = prefabHandle.IsValid() ? ScriptEngine::GetAssetScriptFieldMap(prefabHandle) : ScriptEngine::GetEntityScriptFieldMap(entity);
+
 				out << YAML::Key << "ScriptFields" << YAML::Value;
-				auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
 				out << YAML::BeginSeq;
 				for (auto const& [name, field] : scriptFields)
 				{
@@ -432,7 +441,8 @@ namespace Engine
 						WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
 						WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
 						WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
-						WRITE_SCRIPT_FIELD(Entity, UUID);
+						WRITE_SCRIPT_FIELD(Entity, uint64_t);
+						WRITE_SCRIPT_FIELD(Prefab, uint64_t);
 					default:
 						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(field.Type));
 					}
@@ -658,22 +668,27 @@ namespace Engine
 				Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(sc.ClassName);
 				if (entityClass)
 				{
-					const auto& fields = entityClass->GetScriptFields();
-					auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
 
+					AssetHandle prefabHandle = AssetHandle::INVALID();
+					if (entity.HasComponent<PrefabComponent>())
+					{
+						prefabHandle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+					}
+
+					ScriptFieldMap& entityFields = prefabHandle.IsValid() ? ScriptEngine::GetAssetScriptFieldMap(prefabHandle) : ScriptEngine::GetEntityScriptFieldMap(entity);
+
+					const auto& fields = entityClass->GetScriptFields();
 					for (auto scriptField : scriptFields)
 					{
 						std::string name = scriptField["Name"].as<std::string>();
 						std::string typeString = scriptField["Type"].as<std::string>();
 						ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
 
-						ScriptFieldInstance& fieldInstance = entityFields[name];
-
-						//ENGINE_CORE_ASSERT(fields.find(name) != fields.end()); // extra field in saved file
-
 						if (fields.find(name) == fields.end())
 							continue;
+							//ENGINE_CORE_ASSERT(fields.find(name) != fields.end()); // extra field in saved file
 
+						ScriptFieldInstance& fieldInstance = entityFields[name];
 						fieldInstance.Field = fields.at(name);
 
 						switch (type)
@@ -695,6 +710,7 @@ namespace Engine
 							READ_SCRIPT_FIELD(Vector3, glm::vec3);
 							READ_SCRIPT_FIELD(Vector4, glm::vec4);
 							READ_SCRIPT_FIELD(Entity, uint64_t);
+							READ_SCRIPT_FIELD(Prefab, uint64_t);
 						default:
 							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", Utils::ScriptFieldTypeToString(type));
 						}

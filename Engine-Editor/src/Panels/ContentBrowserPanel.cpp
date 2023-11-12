@@ -191,7 +191,7 @@ namespace Engine
 
 	void ContentBrowserPanel::RefreshAssetTree()
 	{
-		const auto& assetRegistry = Project::GetActive()->GetEditorAssetManager()->GetAssetRegistry();
+		const auto& assetRegistry = Project::GetActive()->GetEditorAssetManager()->GetAssets();
 		for (const auto&[handle, metadata] : assetRegistry)
 		{
 			uint32_t currentNodeIndex = 0;
