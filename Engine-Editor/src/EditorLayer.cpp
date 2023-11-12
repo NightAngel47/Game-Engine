@@ -802,7 +802,7 @@ namespace Engine
 
 			case Key::B:
 			{
-				AudioEngine::PlaySound(Project::GetAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
+				AudioEngine::PlaySound(Project::GetActiveAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
 				break;
 			}
 		}
