@@ -147,7 +147,7 @@ namespace Engine
 		bool isPrefab = entity.HasComponent<PrefabComponent>() && entity.GetComponent<PrefabComponent>().PrefabHandle.IsValid();
 		if (isPrefab)
 		{
-			ImGui::PushStyleColor(ImGuiCol_Text, {0.0f, 0.0f, 1.0f, 1.0f});
+			ImGui::PushStyleColor(ImGuiCol_Text, {0.0f, 0.5f, 1.0f, 1.0f});
 		}
 
 		ImGuiTreeNodeFlags flags = (IsSelectedEntityValid() && (GetSelectedEntity() == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
@@ -191,8 +191,9 @@ namespace Engine
 				entityDeleted = true;
 			else if (ImGui::MenuItem("Create Child Entity"))
 				CreateChildEntity();
-			//else if (!isPrefab && ImGui::MenuItem("Save Entity as Prefab"))
-			else if (ImGui::MenuItem("Save Entity as Prefab")) // TODO add menu option for updating existing prefab vs saving a new one (also allow for new prefab asset separate from existing prefab)
+			else if (isPrefab && ImGui::MenuItem("Save Prefab"))
+				SavePrefab();
+			else if (ImGui::MenuItem("Save as New Prefab"))
 				SavePrefabAs();
 
 			ImGui::EndPopup();
@@ -1132,6 +1133,21 @@ namespace Engine
 		}
 	}
 
+	void SceneHierarchyPanel::SavePrefab()
+	{
+		if (!GetSelectedEntity().HasComponent<PrefabComponent>())
+		{
+			SavePrefabAs();
+			return;
+		}
+
+		AssetHandle handle = GetSelectedEntity().GetComponent<PrefabComponent>().PrefabHandle;
+		Ref<Prefab> prefab = CreateRef<Prefab>(GetSelectedEntity());
+		prefab->Handle = handle;
+
+		Project::GetActive()->GetEditorAssetManager()->SaveAsset(prefab);
+	}
+
 	void SceneHierarchyPanel::SavePrefabAs()
 	{
 		std::filesystem::path filepath = FileDialogs::SaveFile("Prefab (*.prefab)\0*.prefab\0");
@@ -1148,10 +1164,9 @@ namespace Engine
 		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 		
 		AssetHandle handle = editorAssetManager->GetAssetHandleFromFilePath(relativePath);
-		Ref<Prefab> prefab = CreateRef<Prefab>(GetSelectedEntity(), m_Context);
+		Ref<Prefab> prefab = CreateRef<Prefab>(GetSelectedEntity());
 		if (handle.IsValid())
 		{
-			//prefab = CreateRef<Prefab>(GetSelectedEntity());
 			prefab->Handle = handle;
 
 			// add component to legacy/broken prefab entities (aka it's a prefab but missing prefab component)

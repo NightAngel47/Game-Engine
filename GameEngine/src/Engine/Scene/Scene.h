@@ -41,7 +41,7 @@ namespace Engine
 		bool IsEntityHandleValid(entt::entity handle);
 		Entity GetEntityWithUUID(UUID uuid);
 		Entity FindEntityByName(const std::string_view& entityName);
-		Entity CopyEntityFromOtherScene(Entity otherEntity, Ref<Scene> otherScene);
+		Entity CopyEntityFromOtherScene(Entity otherEntity);
 		
 		// Start Play/Sim Whole
 		void OnRuntimeStart();

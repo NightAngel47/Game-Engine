@@ -109,7 +109,7 @@ namespace Engine
 	{
 		Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabHandle);
 
-		Entity entity = CopyEntityFromOtherScene(prefab->m_PrefabEntity, prefab->m_PrefabScene);
+		Entity entity = CopyEntityFromOtherScene(prefab->m_PrefabEntity);
 
 		if (m_IsRunning)
 			ScriptEngine::InstantiateEntity(entity);
@@ -234,7 +234,7 @@ namespace Engine
 		return {};
 	}
 
-	Entity Scene::CopyEntityFromOtherScene(Entity otherEntity, Ref<Scene> otherScene)
+	Entity Scene::CopyEntityFromOtherScene(Entity otherEntity)
 	{
 		std::string name = otherEntity.GetName();
 		Entity newEntity = CreateEntity(name);
@@ -245,10 +245,11 @@ namespace Engine
 		if (relationship.HasChildren())
 		{
 			UUID childIterator = relationship.FirstChild;
+			Scene* otherScene = otherEntity.m_Scene;
 			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
 			{
 				Entity childEntity = otherScene->GetEntityWithUUID(childIterator);
-				Entity newChildEntity = CopyEntityFromOtherScene(childEntity, otherScene);
+				Entity newChildEntity = CopyEntityFromOtherScene(childEntity);
 				newEntity.AddChild(newChildEntity);
 
 				childIterator = childEntity.GetComponent<RelationshipComponent>().NextChild;
