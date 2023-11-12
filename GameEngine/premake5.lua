@@ -43,7 +43,6 @@ project "GameEngine"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.box2d}",
-		"%{IncludeDir.miniaudio}",
 		"%{IncludeDir.filewatch}",
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
