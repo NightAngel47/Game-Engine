@@ -72,6 +72,32 @@ namespace Engine
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
+
+		glm::vec3 Up() const
+		{
+			glm::mat4 transform = GetTransform();
+			return {transform[1][0], transform[1][1], transform[1][2]};
+		}
+
+		glm::vec3 Right() const
+		{
+			glm::mat4 transform = GetTransform();
+			return {transform[0][0], transform[0][1], transform[0][2]};
+		}
+
+		glm::vec3 Forward() const
+		{
+			glm::mat4 transform = GetTransform();
+			return {transform[2][0], transform[2][0], transform[2][2]};
+		}
+	};
+
+	struct PrefabComponent
+	{
+		AssetHandle PrefabHandle = AssetHandle::INVALID();
+
+		PrefabComponent() = default;
+		PrefabComponent(const PrefabComponent&) = default;
 	};
 
 #pragma endregion Entity Components
@@ -99,7 +125,7 @@ namespace Engine
 
 		void AssignTexture(AssetHandle handle)
 		{
-			if (handle.IsValid())
+			if (AssetManager::IsAssetHandleValid(handle))
 			{
 				Texture = handle;
 
@@ -122,8 +148,10 @@ namespace Engine
 
 		const Ref<Texture2D> GetTexture2D()
 		{
-			if (Texture.IsValid())
-				return AssetManager::GetAsset<Texture2D>(Texture);
+			if (!AssetManager::IsAssetHandleValid(Texture))
+				return nullptr;
+
+			return AssetManager::GetAsset<Texture2D>(Texture);
 		}
 	};
 
@@ -208,8 +236,11 @@ namespace Engine
 			None = 0, Interpolation, Extrapolation
 		};
 		SmoothingType Smoothing = SmoothingType::Interpolation;
-		glm::vec2 previousPosition;
-		float previousAngle;
+
+		float GravityScale = 1.0f;
+
+		glm::vec2 PreviousPosition;
+		float PreviousAngle;
 
 		// Storage for runtime
 		void* RuntimeBody = nullptr;
@@ -327,7 +358,7 @@ namespace Engine
 	};
 
 	using AllComponents = ComponentGroup<
-		TransformComponent, 
+		TransformComponent, PrefabComponent, 
 		SpriteRendererComponent, CircleRendererComponent, TextRendererComponent,
 		CameraComponent, 
 		NativeScriptComponent, ScriptComponent, 

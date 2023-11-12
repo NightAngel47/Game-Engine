@@ -73,6 +73,7 @@ namespace Engine
 
 		bool m_ShowPhysicsColliders = true;
 
+		bool m_ShowAssetManagerWindow = false;
 		bool m_ShowSpriteWindow = false;
 		bool m_ShowProjectSettingsWindow = false;
 

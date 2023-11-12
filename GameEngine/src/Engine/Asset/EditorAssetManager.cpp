@@ -72,7 +72,6 @@ namespace Engine
 		return it->second;
 	}
 
-
 	const AssetType EditorAssetManager::GetAssetType(AssetHandle handle) const
 	{
 		if (IsAssetHandleValid(handle))
@@ -81,13 +80,13 @@ namespace Engine
 		return AssetType::None;
 	}
 
-
 	const std::filesystem::path& EditorAssetManager::GetAssetPath(AssetHandle handle) const
 	{
-		if (IsAssetHandleValid(handle))
-			return GetAssetMetadata(handle).Path;
+		static std::filesystem::path s_NullPath;
+		if (!IsAssetHandleValid(handle))
+			return s_NullPath;
 
-		return "";
+		return GetAssetMetadata(handle).Path;
 	}
 
 	const AssetHandle EditorAssetManager::GetAssetHandleFromFilePath(const std::filesystem::path& path)
@@ -99,12 +98,11 @@ namespace Engine
 		return AssetHandle::INVALID();
 	}
 
-
 	void EditorAssetManager::ImportAsset(const std::filesystem::path& path)
 	{
-		std::filesystem::path relativePath = std::filesystem::relative(path, Project::GetAssetDirectory());
+		//std::filesystem::path relativePath = std::filesystem::relative(path, Project::GetActiveAssetDirectory());
 
-		AssetHandle handle = GetAssetHandleFromFilePath(relativePath);
+		AssetHandle handle = GetAssetHandleFromFilePath(path);
 
 		if (handle.IsValid())
 		{
@@ -115,8 +113,8 @@ namespace Engine
 		handle = AssetHandle(); // generate new handle for asset
 
 		AssetMetadata metadata = AssetMetadata();
-		metadata.Path = relativePath;
-		metadata.Type = GetAssetTypeFromFileExtension(relativePath.extension());
+		metadata.Path = path;
+		metadata.Type = GetAssetTypeFromFileExtension(path.extension());
 		ENGINE_CORE_ASSERT(metadata.Type != AssetType::None, "Asset type was None when importing!");
 
 		Ref<Asset> asset = AssetImporter::ImportAsset(handle, metadata);
@@ -127,20 +125,25 @@ namespace Engine
 
 	void EditorAssetManager::SaveAssetAs(const Ref<Asset>& asset, const std::filesystem::path& path)
 	{
-		AssetHandle handle = asset->Handle.IsValid() ? asset->Handle : AssetHandle();
-		if (IsAssetHandleValid(handle))
+		AssetHandle handle = asset->Handle;
+		if (IsAssetHandleValid(handle) && handle == GetAssetHandleFromFilePath(path))
 		{
+			// save as existing asset
 			SaveAsset(asset);
 			return;
 		}
+
+		// save as new asset
+		handle = AssetHandle(); // generate new handle
+		asset->Handle = handle;
 
 		AssetMetadata metadata = AssetMetadata();
 		metadata.Path = path;
 		metadata.Type = asset->GetAssetType();
 
-		m_AssetRegistry[handle] = metadata;
+		m_LoadedAssets[handle] = asset;
 
-		AssetImporter::SerializeAsset(metadata, asset);
+		AssetImporter::SaveAsset(metadata, asset);
 		SaveAssetToRegistry(handle, metadata);
 	}
 
@@ -154,7 +157,7 @@ namespace Engine
 			m_LoadedAssets[handle] = asset;
 
 		const AssetMetadata& metadata = GetAssetMetadata(handle);
-		AssetImporter::SerializeAsset(metadata, asset);
+		AssetImporter::SaveAsset(metadata, asset);
 		SaveAssetToRegistry(handle, metadata);
 	}
 
@@ -168,15 +171,14 @@ namespace Engine
 	}
 
 
-	AssetType EditorAssetManager::GetAssetTypeFromFileExtension(const std::filesystem::path& extension)
+	const AssetType EditorAssetManager::GetAssetTypeFromFileExtension(const std::filesystem::path& extension)
 	{
 		if (s_AssetExtensionMap.find(extension) == s_AssetExtensionMap.end())
 		{
-			ENGINE_CORE_WARN("Could not find asset type based on extension: {}", extension);
+			//ENGINE_CORE_WARN("Could not find asset type based on extension: {}", extension);
 			return AssetType::None;
 		}
 
 		return s_AssetExtensionMap.at(extension);
 	}
-
 }

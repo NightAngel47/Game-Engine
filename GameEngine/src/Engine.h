@@ -34,10 +34,9 @@
 #include "Engine/Scene/SceneManager.h"
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Scene/PrefabSerializer.h"
+#include "Engine/Scene/Prefab.h"
 
 #include "Engine/Scripting/ScriptEngine.h"
-
-#include "Engine/Audio/AudioEngine.h"
 
 #include "Engine/Asset/Assets.h"
 #include "Engine/Asset/AssetManager.h"

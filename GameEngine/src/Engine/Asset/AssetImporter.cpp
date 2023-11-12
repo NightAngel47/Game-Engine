@@ -4,46 +4,49 @@
 
 #include "Engine/Asset/SceneImporter.h"
 #include "Engine/Asset/TextureImporter.h"
+#include "Engine/Asset/PrefabImporter.h"
 
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Renderer/TextureSerializer.h"
+#include "Engine/Scene/PrefabSerializer.h"
 
 namespace Engine
 {
-	static std::unordered_map<AssetType, Ref<AssetSerializer>> s_Serializers;
+	using AssetSaveFunction = std::function<void(const AssetMetadata& metadata, const Ref<Asset>& asset)>;
+	static std::unordered_map<AssetType, AssetSaveFunction> s_AssetSaveFunctions = 
+	{
+		{ AssetType::Scene,		SceneImporter::SaveScene},
+		{ AssetType::Texture2D,	TextureImporter::SaveTexture2D},
+		{ AssetType::Prefab,	PrefabImporter::SavePrefab}
+	};
 
 	using AssetImportFunction = std::function<Ref<Asset>(AssetHandle, const AssetMetadata&)>;
 	static std::unordered_map<AssetType, AssetImportFunction> s_AssetImportFunctions = 
 	{
 		{ AssetType::Scene,		SceneImporter::ImportScene},
-		{ AssetType::Texture2D,	TextureImporter::ImportTexture2D}
+		{ AssetType::Texture2D,	TextureImporter::ImportTexture2D},
+		{ AssetType::Prefab,	PrefabImporter::ImportPrefab}
 	};
-
-	void AssetImporter::Init()
-	{
-		s_Serializers[AssetType::Scene]		= CreateScope<SceneSerializer>();
-		s_Serializers[AssetType::Texture2D]	= CreateScope<TextureSerializer>();
-	}
-
-	void AssetImporter::Shutdown()
-	{
-
-	}
 
 	Ref<Asset> AssetImporter::ImportAsset(AssetHandle handle, const AssetMetadata& metadata)
 	{
 		if (s_AssetImportFunctions.find(metadata.Type) == s_AssetImportFunctions.end())
 		{
-			ENGINE_CORE_ERROR("No importer availabel for asset type: {}", Utils::AssetTypeToString(metadata.Type));
+			ENGINE_CORE_ERROR("No importer available for asset type: {}", Utils::AssetTypeToString(metadata.Type));
 			return nullptr;
 		}
 
 		return s_AssetImportFunctions.at(metadata.Type)(handle, metadata);
 	}
 
-	void AssetImporter::SerializeAsset(const AssetMetadata& metadata, const Ref<Asset>& asset)
+	void AssetImporter::SaveAsset(const AssetMetadata& metadata, const Ref<Asset>& asset)
 	{
-		s_Serializers.at(metadata.Type)->Serialize(metadata, asset);
-	}
+		if (s_AssetImportFunctions.find(metadata.Type) == s_AssetImportFunctions.end())
+		{
+			ENGINE_CORE_ERROR("No save available for asset type: {}", Utils::AssetTypeToString(metadata.Type));
+			return;
+		}
 
+		s_AssetSaveFunctions.at(metadata.Type)(metadata, asset);
+	}
 }

@@ -10,8 +10,8 @@ namespace Engine
 			: m_SelectionContext(UUID::INVALID()) {};
 		SceneHierarchyPanel(const Ref<Scene>& context);
 
-		void SetContext(const Ref<Scene>& context);
 		const Ref<Scene> GetContext() const { return m_Context; }
+		void SetContext(const Ref<Scene>& context);
 
 		void OnImGuiRender();
 
@@ -32,9 +32,8 @@ namespace Engine
 		void DrawEntityNode(Entity entity);
 		void DrawComponents(Entity entity);
 
+		void SavePrefab();
 		void SavePrefabAs();
-		void CreateFromPrefab();
-		void CreateFromPrefab(const std::filesystem::path& filepath);
 		void CreateChildEntity();
 	private:
 		Ref<Scene> m_Context;

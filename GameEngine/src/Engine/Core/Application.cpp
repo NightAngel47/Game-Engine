@@ -4,7 +4,6 @@
 #include "Engine/Asset/AssetManager.h"
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Scripting/ScriptEngine.h"
-#include "Engine/Audio/AudioEngine.h"
 #include "Engine/UI/UIEngine.h"
 
 #include "Engine/Utils/PlatformUtils.h"
@@ -40,7 +39,6 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		AudioEngine::Shutdown();
 		ScriptEngine::Shutdown();
 		Renderer::Shutdown();
 	}
@@ -63,7 +61,10 @@ namespace Engine
 
 	void Application::Close()
 	{
-		m_Running = false;
+		if (m_Specification.Runtime)
+			m_Running = false;
+		else
+			ENGINE_CORE_TRACE("\"Application Close\"");
 	}
 
 	void Application::SubmitToMainThread(const std::function<void()>& function)

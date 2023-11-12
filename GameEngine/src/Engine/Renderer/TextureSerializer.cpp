@@ -9,7 +9,7 @@ namespace Engine
 
 	void TextureSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
 	{
-		// TODO - is this needed?
+
 	}
 	
 	bool TextureSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
@@ -17,11 +17,7 @@ namespace Engine
 		if (metadata.Path.empty())
 			return false;
 
-		ENGINE_CORE_WARN("Use Count: {0}", asset.use_count());
-
-		//asset = Texture2D::Create(Project::GetAssetFileSystemPath(metadata.Path));
-
-		ENGINE_CORE_WARN("Use Count: {0}", asset.use_count());
+		// TODO remove?
 
 		return true;
 	}

@@ -40,13 +40,16 @@ namespace Engine
 		T& GetComponent()
 		{
 			ENGINE_CORE_ASSERT(HasComponent<T>(), "Entity does not have componenet!");
-			
+
 			return m_Scene->m_Registry.get<T>(m_EntityHandle);
 		}
 		
 		template<typename T>
 		bool HasComponent()
 		{
+			if (!m_Scene->IsEntityHandleValid(m_EntityHandle))
+				return false;
+
 			return m_Scene->m_Registry.has<T>(m_EntityHandle);
 		}
 
@@ -220,12 +223,11 @@ namespace Engine
 				return {};
 
 			auto& relationship = GetComponent<RelationshipComponent>();
-			std::vector<Entity> childEntities = std::vector<Entity>();
-
 			if (!relationship.HasChildren())
-				return childEntities;
+				return {};
 
 			UUID childIterator = relationship.FirstChild;
+			std::vector<Entity> childEntities = std::vector<Entity>();
 			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
 			{
 				if (!childIterator.IsValid())
@@ -246,5 +248,7 @@ namespace Engine
 	private:
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
+
+		friend class Scene;
 	};
 }

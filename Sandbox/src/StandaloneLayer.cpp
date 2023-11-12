@@ -25,7 +25,7 @@ void Standalone::OnAttach()
 
 	if (Engine::Project::Load(projectFilePath))
 	{
-		Engine::AssetHandle handle = Engine::Project::GetActive()->GetConfig().StartScene;
+		Engine::AssetHandle handle = Engine::Project::GetActive()->GetConfig().RuntimeStartScene;
 		Engine::SceneManager::LoadScene(handle);
 	}
 	else

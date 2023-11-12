@@ -201,7 +201,7 @@ namespace Engine
 		shaderc::Compiler compiler;
 		shaderc::CompileOptions options;
 		options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
-		const bool optimize = true;
+		const bool optimize = false;
 		if (optimize) options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
 		std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
@@ -257,7 +257,7 @@ namespace Engine
 		shaderc::Compiler compiler;
 		shaderc::CompileOptions options;
 		options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
-		const bool optimize = true;
+		const bool optimize = false;
 		if (optimize) options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
 		std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
@@ -338,11 +338,13 @@ namespace Engine
 			for (auto id : shaderIDs)
 				glDeleteShader(id);
 		}
-		
-		for (auto id : shaderIDs)
+		else
 		{
-			glDetachShader(program, id);
-			glDeleteShader(id);
+			for (auto id : shaderIDs)
+			{
+				glDetachShader(program, id);
+				glDeleteShader(id);
+			}
 		}
 
 		m_RenderID = program;

@@ -175,7 +175,8 @@ namespace Engine
 					WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
 					WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
 					WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
-					WRITE_SCRIPT_FIELD(Entity, UUID);
+					WRITE_SCRIPT_FIELD(Entity, uint64_t);
+					WRITE_SCRIPT_FIELD(Prefab, uint64_t);
 				default:
 					ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(scriptField.Field.Type));
 				}
@@ -228,7 +229,8 @@ namespace Engine
 					READ_SCRIPT_FIELD(Vector2, glm::vec2);
 					READ_SCRIPT_FIELD(Vector3, glm::vec3);
 					READ_SCRIPT_FIELD(Vector4, glm::vec4);
-					READ_SCRIPT_FIELD(Entity, UUID);
+					READ_SCRIPT_FIELD(Entity, uint64_t);
+					READ_SCRIPT_FIELD(Prefab, uint64_t);
 				default:
 					ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", Utils::ScriptFieldTypeToString(type));
 				}
@@ -284,6 +286,17 @@ namespace Engine
 			out << YAML::Key << "Scale" << YAML::Value << transformComponent.Scale;
 
 			out << YAML::EndMap; // TransformComponent
+		}
+
+		if (entity.HasComponent<PrefabComponent>())
+		{
+			out << YAML::Key << "PrefabComponent";
+			out << YAML::BeginMap; // PrefabComponent
+
+			AssetHandle handle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+			out << YAML::Key << "PrefabHandle" << YAML::Value << handle;
+
+			out << YAML::EndMap; // PrefabComponent
 		}
 
 		if (entity.HasComponent<UILayoutComponent>())
@@ -386,10 +399,17 @@ namespace Engine
 
 			// Fields
 			const auto& scriptFields = ScriptEngine::GetEntityClasses().at(scriptComponent.ClassName)->GetScriptFields();
-			if (scriptFields.size() > 0)
+			if (!scriptFields.empty())
 			{
+				AssetHandle prefabHandle = AssetHandle::INVALID();
+				if (entity.HasComponent<PrefabComponent>())
+				{
+					prefabHandle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+				}
+
+				ScriptFieldMap& entityFields = prefabHandle.IsValid() ? ScriptEngine::GetAssetScriptFieldMap(prefabHandle) : ScriptEngine::GetEntityScriptFieldMap(entity);
+
 				out << YAML::Key << "ScriptFields" << YAML::Value;
-				auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
 				out << YAML::BeginSeq;
 				for (auto const& [name, field] : scriptFields)
 				{
@@ -421,7 +441,8 @@ namespace Engine
 						WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
 						WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
 						WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
-						WRITE_SCRIPT_FIELD(Entity, UUID);
+						WRITE_SCRIPT_FIELD(Entity, uint64_t);
+						WRITE_SCRIPT_FIELD(Prefab, uint64_t);
 					default:
 						ENGINE_CORE_ERROR("Script Field Type {} does not support serialization!", Utils::ScriptFieldTypeToString(field.Type));
 					}
@@ -444,6 +465,7 @@ namespace Engine
 			out << YAML::Key << "Type" << YAML::Value << Utils::Rigidbody2DBodyTypeToString(rigidbody2DComponent.Type);
 			out << YAML::Key << "FixedRotation" << YAML::Value << rigidbody2DComponent.FixedRotation;
 			out << YAML::Key << "Smoothing" << YAML::Value << Utils::Rigidbody2DSmoothingTypeToString(rigidbody2DComponent.Smoothing);
+			out << YAML::Key << "GravityScale" << YAML::Value << rigidbody2DComponent.GravityScale;
 
 			out << YAML::EndMap; // Rigidbody2DComponent
 		}
@@ -556,6 +578,13 @@ namespace Engine
 			relationship.Parent = relationshipComponent["Parent"].as<uint64_t>();
 		}
 
+		auto prefabComponent = entityOut["PrefabComponent"];
+		if (prefabComponent)
+		{
+			auto& pc = entity.AddComponent<PrefabComponent>();
+			pc.PrefabHandle = prefabComponent["PrefabHandle"].as<uint64_t>();
+		}
+
 		auto uiLayoutComponent = entityOut["UILayoutComponent"];
 		if (uiLayoutComponent)
 		{
@@ -639,22 +668,27 @@ namespace Engine
 				Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(sc.ClassName);
 				if (entityClass)
 				{
-					const auto& fields = entityClass->GetScriptFields();
-					auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
 
+					AssetHandle prefabHandle = AssetHandle::INVALID();
+					if (entity.HasComponent<PrefabComponent>())
+					{
+						prefabHandle = entity.GetComponent<PrefabComponent>().PrefabHandle;
+					}
+
+					ScriptFieldMap& entityFields = prefabHandle.IsValid() ? ScriptEngine::GetAssetScriptFieldMap(prefabHandle) : ScriptEngine::GetEntityScriptFieldMap(entity);
+
+					const auto& fields = entityClass->GetScriptFields();
 					for (auto scriptField : scriptFields)
 					{
 						std::string name = scriptField["Name"].as<std::string>();
 						std::string typeString = scriptField["Type"].as<std::string>();
 						ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
 
-						ScriptFieldInstance& fieldInstance = entityFields[name];
-
-						//ENGINE_CORE_ASSERT(fields.find(name) != fields.end()); // extra field in saved file
-
 						if (fields.find(name) == fields.end())
 							continue;
+							//ENGINE_CORE_ASSERT(fields.find(name) != fields.end()); // extra field in saved file
 
+						ScriptFieldInstance& fieldInstance = entityFields[name];
 						fieldInstance.Field = fields.at(name);
 
 						switch (type)
@@ -675,7 +709,8 @@ namespace Engine
 							READ_SCRIPT_FIELD(Vector2, glm::vec2);
 							READ_SCRIPT_FIELD(Vector3, glm::vec3);
 							READ_SCRIPT_FIELD(Vector4, glm::vec4);
-							READ_SCRIPT_FIELD(Entity, UUID);
+							READ_SCRIPT_FIELD(Entity, uint64_t);
+							READ_SCRIPT_FIELD(Prefab, uint64_t);
 						default:
 							ENGINE_CORE_ERROR("Script Field Type {} does not support deserialization!", Utils::ScriptFieldTypeToString(type));
 						}
@@ -695,6 +730,7 @@ namespace Engine
 			rigidbody2D.Type = Utils::Rigidbody2DBodyTypeFromString(rigidbody2DComponent["Type"].as<std::string>());
 			rigidbody2D.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
 			rigidbody2D.Smoothing = Utils::Rigidbody2DSmoothingTypeFromString(rigidbody2DComponent["Smoothing"].as<std::string>());
+			rigidbody2D.GravityScale = rigidbody2DComponent["GravityScale"].as<float>();
 		}
 
 		auto boxCollider2DComponent = entityOut["BoxCollider2DComponent"];

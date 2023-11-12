@@ -37,7 +37,8 @@ namespace Engine
 		{
 			if (assetType == "None")			return AssetType::None;
 			if (assetType == "Scene")			return AssetType::Scene;
-			if (assetType == "Texture2D")			return AssetType::Texture2D;
+			if (assetType == "Texture2D")		return AssetType::Texture2D;
+			if (assetType == "Prefab")			return AssetType::Prefab;
 
 			ENGINE_CORE_ASSERT(false, "Unknown Asset Type");
 			return AssetType::None;
@@ -50,6 +51,7 @@ namespace Engine
 			case Engine::AssetType::None:		return "None";
 			case Engine::AssetType::Scene:		return "Scene";
 			case Engine::AssetType::Texture2D:	return "Texture2D";
+			case Engine::AssetType::Prefab:		return "Prefab";
 			}
 
 			ENGINE_CORE_ASSERT(false, "Unknown Asset Type");

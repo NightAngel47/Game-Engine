@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Asset/TextureImporter.h"
 #include "Engine/Project/Project.h"
+#include "Engine/Renderer/TextureSerializer.h"
 
 #include <stb_image.h>
 
@@ -10,7 +11,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		Ref<Texture2D> texture = LoadTexture2D(Project::GetAssetFileSystemPath(metadata.Path).string());
+		Ref<Texture2D> texture = LoadTexture2D(Project::GetActiveAssetFileSystemPath(metadata.Path).string());
 		texture->Handle = handle;
 		return texture;
 	}
@@ -54,6 +55,12 @@ namespace Engine
 		texture->Handle = AssetHandle();
 		data.Release();
 		return texture;
+	}
+
+	void TextureImporter::SaveTexture2D(const AssetMetadata& metadata, const Ref<Asset>& asset)
+	{
+		TextureSerializer serializer = TextureSerializer();
+		serializer.Serialize(metadata, asset);
 	}
 
 }

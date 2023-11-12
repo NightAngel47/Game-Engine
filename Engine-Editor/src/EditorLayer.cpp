@@ -52,8 +52,6 @@ namespace Engine
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
-
-		AudioEngine::SetMasterVolume(0.1f);
 	}
 
 	void EditorLayer::OnDetach()
@@ -65,8 +63,8 @@ namespace Engine
 	{
 		m_FrameTime = ts.GetMilliseconds();
 
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto activeScene = editorSceneManager.GetActiveScene();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto activeScene = editorSceneManager->GetActiveScene();
 
 		activeScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 		
@@ -89,7 +87,7 @@ namespace Engine
 		m_Framebuffer->ClearAttachment(1, -1);
 
 		// Update Scene
-		switch (editorSceneManager.GetEditorSceneState())
+		switch (editorSceneManager->GetEditorSceneState())
 		{
 			case EditorSceneState::Edit:
 			{
@@ -97,6 +95,10 @@ namespace Engine
 				m_EditorCamera.OnUpdate(ts);
 
 				activeScene->OnUpdateEditor(ts, m_EditorCamera);
+
+				if (m_EditorScene != activeScene)
+					OpenScene(activeScene->Handle);
+
 				break;
 			}
 			case EditorSceneState::Play:
@@ -198,6 +200,8 @@ namespace Engine
 			{
 				if (ImGui::MenuItem("Project Settings"))
 					m_ShowProjectSettingsWindow = true;
+				if (ImGui::MenuItem("Asset Manager Stats"))
+					m_ShowAssetManagerWindow = true;
 
 				ImGui::EndMenu();
 			}
@@ -208,8 +212,6 @@ namespace Engine
 				if (ImGui::MenuItem("Reload Assembly", "Crtl+R"))
 				{
 					ScriptEngine::ReloadAssembly();
-					// TODO prompt user to save any changes before reloading scene
-					//OpenScene(m_EditorScene->Handle); // reload scene to match new assembly state
 					SceneManager::LoadScene(m_EditorScene->Handle); // reload scene to match new assembly state
 				}
 
@@ -258,70 +260,11 @@ namespace Engine
 		ImGui::Checkbox("Toggle Gizmo Mode (World/Local)", &m_IsGizmoWorld);
 
 		ImGui::Separator();
-		ImGui::Text("UI Settings");
+		ImGui::Text("UI Stats");
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
 
 		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
-
-		ImGui::Separator();
-		Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
-
-		{
-			ImGui::BeginTable("Asset Registry", 3, ImGuiTableFlags_Resizable);
-
-			ImGui::TableSetupColumn("Handle");
-			ImGui::TableSetupColumn("Type");
-			ImGui::TableSetupColumn("Path");
-			ImGui::TableHeadersRow();
-
-			int row = 0;
-			for (const auto& [handle, metadata] : editorAssetManager->GetAssetRegistry())
-			{
-				ImGui::TableNextRow();
-
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text(std::to_string((uint64_t)handle).c_str());
-
-				ImGui::TableSetColumnIndex(1);
-				std::string assetTypeStr = Utils::AssetTypeToString(metadata.Type);
-				ImGui::Text(assetTypeStr.c_str());
-
-				ImGui::TableSetColumnIndex(2);
-				ImGui::Text(metadata.Path.string().c_str());
-
-				++row;
-			}
-			ImGui::EndTable();
-		}
-
-		{
-			ImGui::BeginTable("Assets Loaded", 3, ImGuiTableFlags_Resizable);
-
-			ImGui::TableSetupColumn("Handle");
-			ImGui::TableSetupColumn("Type");
-			ImGui::TableSetupColumn("Uses");
-			ImGui::TableHeadersRow();
-
-			int row = 0;
-			for (const auto& [handle, asset] : editorAssetManager->GetLoadedAssets())
-			{
-				ImGui::TableNextRow();
-
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text(std::to_string((uint64_t)handle).c_str());
-
-				ImGui::TableSetColumnIndex(1);
-				std::string assetTypeStr = Utils::AssetTypeToString(asset->GetAssetType());
-				ImGui::Text(assetTypeStr.c_str());
-
-				ImGui::TableSetColumnIndex(2);
-				ImGui::Text(std::to_string((long)asset.use_count()).c_str());
-
-				++row;
-			}
-			ImGui::EndTable();
-		}
 
 		ImGui::End();
 
@@ -435,10 +378,79 @@ namespace Engine
 		
 		ImGui::End();
 
+		if (m_ShowAssetManagerWindow)
+		{
+			ImGui::Begin("Asset Manager Stats", &m_ShowAssetManagerWindow);
+			Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
+
+			if (editorAssetManager)
+			{
+				{
+					ImGui::Text("Asset Registry Table");
+					ImGui::BeginTable("Asset Registry", 3, ImGuiTableFlags_Resizable);
+
+					ImGui::TableSetupColumn("Handle");
+					ImGui::TableSetupColumn("Type");
+					ImGui::TableSetupColumn("Path");
+					ImGui::TableHeadersRow();
+
+					int row = 0;
+					for (const auto& [handle, metadata] : editorAssetManager->GetAssets())
+					{
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text(std::to_string((uint64_t)handle).c_str());
+
+						ImGui::TableSetColumnIndex(1);
+						std::string assetTypeStr = Utils::AssetTypeToString(metadata.Type);
+						ImGui::Text(assetTypeStr.c_str());
+
+						ImGui::TableSetColumnIndex(2);
+						ImGui::Text(metadata.Path.string().c_str());
+
+						++row;
+					}
+					ImGui::EndTable();
+				}
+
+				ImGui::Separator();
+				{
+					ImGui::Text("Assets Loaded Table");
+					ImGui::BeginTable("Assets Loaded", 3, ImGuiTableFlags_Resizable);
+
+					ImGui::TableSetupColumn("Handle");
+					ImGui::TableSetupColumn("Type");
+					ImGui::TableSetupColumn("Uses");
+					ImGui::TableHeadersRow();
+
+					int row = 0;
+					for (const auto& [handle, asset] : editorAssetManager->GetLoadedAssets())
+					{
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text(std::to_string((uint64_t)handle).c_str());
+
+						ImGui::TableSetColumnIndex(1);
+						std::string assetTypeStr = Utils::AssetTypeToString(asset->GetAssetType());
+						ImGui::Text(assetTypeStr.c_str());
+
+						ImGui::TableSetColumnIndex(2);
+						ImGui::Text(std::to_string((long)asset.use_count()).c_str());
+
+						++row;
+					}
+					ImGui::EndTable();
+				}
+			}
+
+			ImGui::End();
+		}
+
 		if (m_ShowProjectSettingsWindow)
 		{
 			ImGui::Begin("Project Settings", &m_ShowProjectSettingsWindow);
-
 			Ref<Project> project = Project::GetActive();
 
 			if (project)
@@ -450,56 +462,95 @@ namespace Engine
 				ImGui::Text(config.Name.c_str());
 				ImGui::Separator();
 
-				AssetHandle startScene = config.StartScene;
-				ImGui::Text("Start Scene: ");
-				ImGui::SameLine();
 				Ref<EditorAssetManager> editorAssetManager = project->GetEditorAssetManager();
-				std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(startScene) ? editorAssetManager->GetAssetPath(startScene) : "None";
-				ImGui::Text(scenePath.generic_string().c_str());
-				ImGui::SameLine();
-				if (ImGui::InputScalar("##StartSceneHandle", ImGuiDataType_U64, &startScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly));
-				if (ImGui::BeginDragDropTarget())
+
 				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					AssetHandle runtimeStartScene = config.RuntimeStartScene;
+					ImGui::Text("Runtime Start Scene: ");
+					ImGui::SameLine();
+					std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(runtimeStartScene) ? editorAssetManager->GetAssetPath(runtimeStartScene) : "None";
+					ImGui::Text(scenePath.generic_string().c_str());
+					ImGui::SameLine(); 
+					ImGui::InputScalar("##RuntimeStartSceneHandle", ImGuiDataType_U64, &runtimeStartScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
+					if (ImGui::BeginDragDropTarget())
 					{
-						AssetHandle handle = *(AssetHandle*)payload->Data;
-						if (editorAssetManager->IsAssetHandleValid(handle))
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 						{
-							auto type = editorAssetManager->GetAssetType(handle);
-							if (type == AssetType::Scene)
+							AssetHandle handle = *(AssetHandle*)payload->Data;
+							if (editorAssetManager->IsAssetHandleValid(handle))
 							{
-								config.StartScene = handle;
-								project->Save();
+								auto type = editorAssetManager->GetAssetType(handle);
+								if (type == AssetType::Scene)
+								{
+									config.RuntimeStartScene = handle;
+									project->Save();
+								}
+								else
+								{
+									ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(type));
+								}
 							}
 							else
 							{
-								ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(type));
+								ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
 							}
 						}
-						else
-						{
-							ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
-						}
-					}
 
-					ImGui::EndDragDropTarget();
+						ImGui::EndDragDropTarget();
+					}
+				}
+
+				{
+					AssetHandle editorStartScene = config.EditorStartScene;
+					ImGui::Text("Editor Start Scene: ");
+					ImGui::SameLine();
+					std::filesystem::path scenePath = AssetManager::IsAssetHandleValid(editorStartScene) ? editorAssetManager->GetAssetPath(editorStartScene) : "None";
+					ImGui::Text(scenePath.generic_string().c_str());
+					ImGui::SameLine();
+					ImGui::InputScalar("##StartSceneHandle", ImGuiDataType_U64, &editorStartScene, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
+					if (ImGui::BeginDragDropTarget())
+					{
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+						{
+							AssetHandle handle = *(AssetHandle*)payload->Data;
+							if (editorAssetManager->IsAssetHandleValid(handle))
+							{
+								auto type = editorAssetManager->GetAssetType(handle);
+								if (type == AssetType::Scene)
+								{
+									config.EditorStartScene = handle;
+									project->Save();
+								}
+								else
+								{
+									ENGINE_CORE_WARN("AssetType is not a scene: {}", Utils::AssetTypeToString(type));
+								}
+							}
+							else
+							{
+								ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
+							}
+						}
+
+						ImGui::EndDragDropTarget();
+					}
 				}
 
 				ImGui::Text("Project Directory: ");
 				ImGui::SameLine();
-				ImGui::Text(project->GetProjectDirectory().generic_string().c_str());
+				ImGui::Text(Project::GetActiveProjectDirectory().generic_string().c_str());
 
 				ImGui::Text("Asset Directory: ");
 				ImGui::SameLine();
-				ImGui::Text(project->GetAssetDirectory().generic_string().c_str());
+				ImGui::Text(Project::GetActiveAssetDirectory().generic_string().c_str());
 
 				ImGui::Text("Asset Registry Path: ");
 				ImGui::SameLine();
-				ImGui::Text(project->GetAssetRegistryPath().generic_string().c_str());
+				ImGui::Text(Project::GetActiveAssetRegistryPath().generic_string().c_str());
 
 				ImGui::Text("Script Module Path: ");
 				ImGui::SameLine();
-				ImGui::Text(Project::GetAssetFileSystemPath(config.ScriptModulePath).generic_string().c_str());
+				ImGui::Text(Project::GetActiveAssetFileSystemPath(config.ScriptModulePath).generic_string().c_str());
 			}
 
 			ImGui::End();
@@ -569,9 +620,9 @@ namespace Engine
 		float size = ImGui::GetWindowHeight() - 8.0f;
 		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
 
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
-		auto activeScene = editorSceneManager.GetActiveScene();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
+		auto activeScene = editorSceneManager->GetActiveScene();
 
 		// play button
 		if (sceneState != EditorSceneState::Simulate)
@@ -712,6 +763,7 @@ namespace Engine
 			case Key::T:
 			{
 				m_IsGizmoWorld = !m_IsGizmoWorld;
+				break;
 			}
 
 			// Other
@@ -720,6 +772,15 @@ namespace Engine
 				if (control)
 					OnDuplicateEntity();
 
+				break;
+			}
+			case Key::F:
+			{
+				if (m_SceneHierarchyPanel.IsSelectedEntityValid())
+				{
+					Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+					m_EditorCamera.SetFocusTarget(Math::PositionFromTransform(selectedEntity.GetWorldSpaceTransform()), 10.0f);
+				}
 				break;
 			}
 			case Key::Delete:
@@ -734,12 +795,6 @@ namespace Engine
 					}
 				}
 
-				break;
-			}
-
-			case Key::B:
-			{
-				AudioEngine::PlaySound(Project::GetAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
 				break;
 			}
 		}
@@ -773,9 +828,9 @@ namespace Engine
 
 	void EditorLayer::OnOverlayRender()
 	{
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
-		auto activeScene = editorSceneManager.GetActiveScene();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
+		auto activeScene = editorSceneManager->GetActiveScene();
 
 		if (sceneState == EditorSceneState::Play)
 		{
@@ -877,9 +932,9 @@ namespace Engine
 	{
 		if (Project::Load(path))
 		{
-			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
+			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>(Project::GetActive());
 
-			AssetHandle startScene = Project::GetActive()->GetConfig().StartScene;
+			AssetHandle startScene = Project::GetActive()->GetConfig().EditorStartScene;
 			AssetManager::IsAssetHandleValid(startScene) ? OpenScene(startScene) : NewScene();
 		}
 		else
@@ -895,6 +950,8 @@ namespace Engine
 
 	void EditorLayer::NewScene()
 	{
+		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) OnSceneStop();
+
 		m_EditorScene = SceneManager::CreateNewScene();
         m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_EditorScene);
@@ -905,7 +962,7 @@ namespace Engine
 		std::string filepath = FileDialogs::OpenFile("Game Scene (*.scene)\0*.scene\0");
 		if (!filepath.empty())
 		{
-			auto relativePath = std::filesystem::relative(filepath, Project::GetAssetDirectory());
+			auto relativePath = std::filesystem::relative(filepath, Project::GetActiveAssetDirectory());
 			OpenScene(relativePath);
 		}
 	}
@@ -927,8 +984,6 @@ namespace Engine
 	{
 		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) OnSceneStop();
 
-		NewScene();
-
 		m_EditorScene = SceneManager::LoadScene(handle);
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}
@@ -938,15 +993,19 @@ namespace Engine
 		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) return;
 
 		std::filesystem::path fullPath = FileDialogs::SaveFile("Game Scene (*.scene)\0*.scene\0");
-		std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetAssetDirectory());
 
-		SceneManager::GetActiveScene()->SetSceneName(relativePath.filename().string());
+		if (fullPath.empty())
+			return;
 
-		AssetMetadata metadata = AssetMetadata();
-		metadata.Path = fullPath;
-		metadata.Type = AssetType::Scene;
+		if (fullPath.extension() != ".scene")
+			fullPath += ".scene";
 
-		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, relativePath);
+		std::filesystem::path relativePath = std::filesystem::relative(fullPath, Project::GetActiveAssetDirectory());
+
+		SceneManager::GetActiveScene()->SetSceneName(relativePath.filename().generic_string());
+
+		Project::GetActive()->GetEditorAssetManager()->SaveAssetAs(m_EditorScene, relativePath.generic_string());
+		m_ContentBrowserPanel->RefreshAssetTree();
 	}
 
 	void EditorLayer::SaveScene()
@@ -1006,17 +1065,17 @@ namespace Engine
 
 	void EditorLayer::OnScenePlay()
 	{
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
 		if (sceneState == EditorSceneState::Simulate)
 			OnSceneStop();
 
 		SaveScene();
 
 		ENGINE_CORE_TRACE("SceneState changed to Play.");
-		editorSceneManager.SetEditorSceneState(EditorSceneState::Play);
+		editorSceneManager->SetEditorSceneState(EditorSceneState::Play);
 
-		auto& scene = editorSceneManager.LoadSceneCopy(m_EditorScene);
+		auto& scene = editorSceneManager->LoadSceneCopy(m_EditorScene);
 		scene->OnRuntimeStart();
 
 		m_SceneHierarchyPanel.SetContext(scene);
@@ -1024,15 +1083,15 @@ namespace Engine
 
 	void EditorLayer::OnSceneSimulate()
 	{
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
 		if (sceneState == EditorSceneState::Play)
 			OnSceneStop();
 
 		ENGINE_CORE_TRACE("SceneState changed to Simulate.");
-		editorSceneManager.SetEditorSceneState(EditorSceneState::Simulate);
+		editorSceneManager->SetEditorSceneState(EditorSceneState::Simulate);
 
-		auto& scene = editorSceneManager.LoadSceneCopy(m_EditorScene);
+		auto& scene = editorSceneManager->LoadSceneCopy(m_EditorScene);
 		scene->OnSimulationStart();
 
 		m_SceneHierarchyPanel.SetContext(scene);
@@ -1040,11 +1099,11 @@ namespace Engine
 
 	void EditorLayer::OnSceneStop()
 	{
-		EditorSceneManager& editorSceneManager = *Project::GetActive()->GetEditorSceneManager();
-		auto sceneState = editorSceneManager.GetEditorSceneState();
+		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
+		auto sceneState = editorSceneManager->GetEditorSceneState();
 		ENGINE_CORE_ASSERT(sceneState == EditorSceneState::Play || sceneState == EditorSceneState::Simulate);
 
-		auto& scene = editorSceneManager.GetActiveScene();
+		auto& scene = editorSceneManager->GetActiveScene();
 		if (sceneState == EditorSceneState::Play)
 			scene->OnRuntimeStop();
 		else if (sceneState == EditorSceneState::Simulate)
@@ -1052,9 +1111,9 @@ namespace Engine
 
 
 		ENGINE_CORE_TRACE("SceneState changed to Edit.");
-		editorSceneManager.SetEditorSceneState(EditorSceneState::Edit);
+		editorSceneManager->SetEditorSceneState(EditorSceneState::Edit);
 		scene->SetPaused(false);
-		m_EditorScene = editorSceneManager.LoadScene(m_EditorScene->Handle);
+		m_EditorScene = editorSceneManager->LoadScene(m_EditorScene->Handle);
 
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}

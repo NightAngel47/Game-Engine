@@ -1,6 +1,4 @@
-﻿using Engine.Core;
-
-using System;
+﻿using System;
 
 namespace Engine.Math
 {

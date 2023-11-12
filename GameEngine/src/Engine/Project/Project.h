@@ -15,7 +15,8 @@ namespace Engine
 	{
 		std::string Name;
 
-		AssetHandle StartScene;
+		AssetHandle EditorStartScene;
+		AssetHandle RuntimeStartScene;
 
 		std::filesystem::path AssetDirectory;
 		std::filesystem::path AssetRegistryPath;
@@ -33,29 +34,34 @@ namespace Engine
 			return s_ActiveProject;
 		}
 
-		static const std::filesystem::path GetProjectDirectory()
+		static const std::filesystem::path GetActiveProjectDirectory()
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
-			return s_ActiveProject->m_ProjectDirectory;
+			return s_ActiveProject->GetProjectDirectory();
 		}
 
-		static std::filesystem::path GetAssetDirectory()
+		static std::filesystem::path GetActiveAssetDirectory()
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
-			return (GetProjectDirectory() / s_ActiveProject->m_Config.AssetDirectory);
+			return s_ActiveProject->GetAssetDirectory();
 		}
 
-		static std::filesystem::path GetAssetRegistryPath()
+		static std::filesystem::path GetActiveAssetRegistryPath()
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
-			return (GetAssetDirectory() / s_ActiveProject->m_Config.AssetRegistryPath);
+			return s_ActiveProject->GetAssetRegistryPath();
 		}
 
-		static std::filesystem::path GetAssetFileSystemPath(const std::filesystem::path& path)
+		static std::filesystem::path GetActiveAssetFileSystemPath(const std::filesystem::path& path)
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
-			return (GetAssetDirectory() / path);
+			return s_ActiveProject->GetAssetFileSystemPath(path);
 		}
+
+		const std::filesystem::path GetProjectDirectory() { return m_ProjectDirectory; }
+		std::filesystem::path GetAssetDirectory() { return (GetProjectDirectory() / m_Config.AssetDirectory); }
+		std::filesystem::path GetAssetRegistryPath() { return (GetAssetDirectory() / m_Config.AssetRegistryPath); }
+		std::filesystem::path GetAssetFileSystemPath(const std::filesystem::path& path) { return (GetAssetDirectory() / path); }
 
 		Ref<AssetManagerBase> GetAssetManager() { return m_AssetManager; }
 		Ref<EditorAssetManager> GetEditorAssetManager() { return As<EditorAssetManager>(m_AssetManager); }

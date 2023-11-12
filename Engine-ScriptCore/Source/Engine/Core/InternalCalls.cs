@@ -1,10 +1,18 @@
 ﻿using System.Runtime.CompilerServices;
+using System;
 using Engine.Math;
 
 namespace Engine.Core
 {
 	internal class InternalCalls
 	{
+		#region Application
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Application_Quit();
+
+		#endregion Application
+
 		#region Log
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -82,6 +90,9 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Vector2_Normalize(out Vector2 vector2);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Vector2_RotateAroundAxis(out Vector2 vector2, float angle);
+
 		#endregion Vector2
 
 		#region Vector3
@@ -95,6 +106,9 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Vector3_Normalize(out Vector3 vector3);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Vector3_RotateAroundAxis(out Vector3 vector3, float angle, ref Vector3 axis);
+
 		#endregion Vector3
 
 		#region Vector4
@@ -107,6 +121,9 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Vector4_Normalize(out Vector4 vector4);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Vector4_RotateAroundAxis(out Vector4 vector4, float angle, ref Vector3 axis);
 
 		#endregion Vector4
 
@@ -145,10 +162,28 @@ namespace Engine.Core
 		internal static extern ulong Entity_CreateEntity(string name);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern ulong Entity_InstantiatePrefab(ulong prefabID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern object Entity_GetScriptInstance(ulong entityID);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Entity_DestroyEntity(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern ulong Entity_GetParent(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_SetParent(ulong entityID, ulong parentID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern ulong[] Entity_GetChildren(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_GetWorldTransformPosition(ulong entityID, out Vector3 position);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Entity_GetUITransformPosition(ulong entityID, out Vector3 position);
 
 		#endregion Entity
 
@@ -171,6 +206,15 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void TransformComponent_SetScale(ulong entityID, ref Vector3 scale);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetUp(ulong entityID, out Vector3 up);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetRight(ulong entityID, out Vector3 right);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void TransformComponent_GetForward(ulong entityID, out Vector3 forward);
 
 		#endregion TransformComponent
 
@@ -239,7 +283,7 @@ namespace Engine.Core
 		internal static extern void TextRendererComponent_SetLineSpacing(ulong entityID, float lineSpacing);
 
 		#endregion TextRendererComponent
-		
+
 		#region Rigidbody2DComponent
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -255,6 +299,12 @@ namespace Engine.Core
 		internal static extern void Rigidbody2DComponent_SetLinearVelocity(ulong entityID, ref Vector2 velocity);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Rigidbody2DComponent_GetGravityScale(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_SetGravityScale(ulong entityID, float gravityScale);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_ApplyLinearImpulse(ulong entityID, ref Vector2 impulse, ref Vector2 worldPosition, bool wake);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -267,5 +317,25 @@ namespace Engine.Core
 		internal static extern void Rigidbody2DComponent_ApplyForceToCenter(ulong entityID, ref Vector2 force, bool wake);
 
 		#endregion Rigidbody2DComponent
+
+		#region CameraComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float CameraComponent_GetOrthographicSize(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void CameraComponent_SetOrthographicSize(ulong entityID, float size);
+
+		#endregion CameraComponent
+
+		#region ScriptComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern string ScriptComponent_GetClassName(ulong entityID); // used for checking script class "type"
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void ScriptComponent_InstantiateClass(ulong entityID, string className);
+
+		#endregion ScriptComponent
 	}
 }

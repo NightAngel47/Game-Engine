@@ -5,6 +5,7 @@
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/ScriptableEntity.h"
+#include "Engine/Scene/Prefab.h"
 #include "Engine/Renderer/Renderer2D.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scripting/ScriptEngine.h"
@@ -97,6 +98,21 @@ namespace Engine
 		entity.AddComponent<TagComponent>().Tag = name.empty() ? "Entity" : name;
 
 		m_EntityMap[uuid] = entity;
+
+		if (m_IsRunning)
+			ScriptEngine::InstantiateEntity(entity);
+
+		return entity;
+	}
+
+	Entity Scene::CreateEntityFromPrefab(AssetHandle prefabHandle)
+	{
+		Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabHandle);
+
+		Entity entity = CopyEntityFromOtherScene(prefab->m_PrefabEntity);
+
+		if (m_IsRunning)
+			ScriptEngine::InstantiateEntity(entity);
 
 		return entity;
 	}
@@ -208,14 +224,41 @@ namespace Engine
 	Entity Scene::FindEntityByName(const std::string_view& entityName)
 	{
 		auto view = m_Registry.view<TagComponent>();
-		for (auto entity : view)
+		for (auto e : view)
 		{
-			const TagComponent& tc = view.get<TagComponent>(entity);
+			const TagComponent& tc = view.get<TagComponent>(e);
 			if (tc.Tag == entityName)
-				return Entity{ entity, this };
+				return Entity{ e, this };
 		}
 
 		return {};
+	}
+
+	Entity Scene::CopyEntityFromOtherScene(Entity otherEntity)
+	{
+		std::string name = otherEntity.GetName();
+		Entity newEntity = CreateEntity(name);
+		CopyComponentIfExists(AllComponents{}, newEntity, otherEntity);
+
+		auto& relationship = otherEntity.GetComponent<RelationshipComponent>();
+
+		if (relationship.HasChildren())
+		{
+			UUID childIterator = relationship.FirstChild;
+			Scene* otherScene = otherEntity.m_Scene;
+			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
+			{
+				Entity childEntity = otherScene->GetEntityWithUUID(childIterator);
+				Entity newChildEntity = CopyEntityFromOtherScene(childEntity);
+				newEntity.AddChild(newChildEntity);
+
+				childIterator = childEntity.GetComponent<RelationshipComponent>().NextChild;
+				if (!childIterator.IsValid())
+					break;
+			}
+		}
+
+		return newEntity;
 	}
 
 	void Scene::OnRuntimeStart()
@@ -347,36 +390,48 @@ namespace Engine
 
 	void Scene::OnUIStart()
 	{
-		UIEngine::OnUIStart(this);
+		UIEngine::OnUIStart();
 	}
 
 	void Scene::OnPhysics2DStart()
 	{
-		Physics2DEngine::OnPhysicsStart(this);
+		Physics2DEngine::OnPhysicsStart();
 	}
 
 	void Scene::OnScriptsCreate()
 	{
-		ScriptEngine::OnRuntimeStart(this);
+		for (const auto& [handle, metadata] : AssetManager::GetAssets()) // or asset pak
+		{
+			if (metadata.Type == AssetType::Prefab) // TODO remove once all asset types can work
+			{
+				ScriptEngine::InstantiateAsset(handle);
+			}
+		}
 
-		// Instantiate Script Entities
-		auto view = m_Registry.view<ScriptComponent>();
+		// Instantiate Entities in Script Engine
+		auto view = m_Registry.view<TransformComponent>();
 		for (auto e : view)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnCreateEntity(entity);
+			ScriptEngine::InstantiateEntity(entity);
 		}
+
+		// Script OnCreate
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
+		{
+			Entity entity = { e, this };
+			ScriptEngine::OnCreateEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnScriptsStart()
 	{
 		// Scripts OnStart
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnStartEntity(entity);
-		}
+			ScriptEngine::OnStartEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnUIStop()
@@ -391,14 +446,11 @@ namespace Engine
 
 	void Scene::OnScriptsStop()
 	{
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnDestroyEntity(entity);
-		}
-
-		ScriptEngine::OnRuntimeStop();
+			ScriptEngine::OnDestroyEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnUIUpdate(Timestep ts)
@@ -409,12 +461,11 @@ namespace Engine
 	void Scene::OnScriptsUpdate(Timestep ts)
 	{
 		// Update Scripts
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnUpdateEntity(entity, ts);
-		}
+			ScriptEngine::OnUpdateEntity(entity, sc, ts);
+		});
 
 		// Update Native Scripts
 		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
@@ -438,45 +489,35 @@ namespace Engine
 	void Scene::OnScriptsLateUpdate(Timestep ts)
 	{
 		// Late Update Scripts
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnLateUpdateEntity(entity, ts);
-		}
+			ScriptEngine::OnLateUpdateEntity(entity, sc, ts);
+		});
 	}
 
 	void Scene::OnRender2DUpdate()
 	{
-		{ // Draw Sprites
-			auto view = m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
-				Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
-			}
-		}
+		// Draw Sprites
+		m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& sprite)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
+		});
 
-		{ // Draw Circles
-			auto view = m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
-				Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
-			}
-		}
+		// Draw Circles
+		m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& circle)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
+		});
 
-		{ // Draw Text
-			auto view = m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
-				Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
-			}
-		}
+		// Draw Text
+		m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& trc)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
+		});
 	}
 
 	void Scene::OnRenderUIUpdate()
@@ -537,6 +578,11 @@ namespace Engine
 	}
 
 	template<>
+	void Scene::OnComponentAdded<PrefabComponent>(Entity entity, PrefabComponent& component)
+	{
+	}
+
+	template<>
 	void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
 	{
 	}
@@ -567,9 +613,7 @@ namespace Engine
 	void Scene::OnComponentAdded<Rigidbody2DComponent>(Entity entity, Rigidbody2DComponent& component)
 	{
 		if (m_IsRunning)
-		{
 			component.RuntimeBody = Physics2DEngine::CreateRigidbody(entity);
-		}
 	}
 
 	template<>

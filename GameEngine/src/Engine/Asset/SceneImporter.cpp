@@ -17,4 +17,10 @@ namespace Engine
 		return nullptr;
 	}
 
+	void SceneImporter::SaveScene(const AssetMetadata& metadata, const Ref<Asset>& asset)
+	{
+		SceneSerializer serializer = SceneSerializer();
+		serializer.Serialize(metadata, asset);
+	}
+
 }

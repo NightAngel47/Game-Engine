@@ -10,6 +10,7 @@ extern "C"
 	typedef struct _MonoAssembly MonoAssembly;
 	typedef struct _MonoClass MonoClass;
 	typedef struct _MonoObject MonoObject;
+	typedef struct _MonoArray MonoArray;
 	typedef struct _MonoMethod MonoMethod;
 	typedef struct _MonoClassField MonoClassField;
 	typedef struct _MonoType MonoType;
@@ -40,7 +41,7 @@ namespace Engine
 		SByte, Short, Int, Long,
 		Byte, UShort, UInt, ULong,
 		Vector2, Vector3, Vector4,
-		Entity
+		Entity, Prefab
 	};
 
 	enum class Accessibility : uint8_t
@@ -132,7 +133,7 @@ namespace Engine
 	{
 	public:
 		ScriptClass() = default;
-		ScriptClass(const std::string& classNamespace, const std::string& className);
+		ScriptClass(const std::string& classNamespace, const std::string& className, bool isCore = false);
 		~ScriptClass() = default;
 
 		MonoObject* Instantiate();
@@ -148,6 +149,7 @@ namespace Engine
 	private:
 		std::string m_ClassNamespace;
 		std::string m_ClassName;
+		bool m_IsCore;
 
 		MonoClass* m_MonoClass = nullptr;
 
@@ -166,14 +168,11 @@ namespace Engine
 
 		static void ReloadAssembly();
 
-		static void OnRuntimeStart(Scene* scene);
-		static void OnRuntimeStop();
-
 		static std::unordered_map<std::string, Ref<ScriptClass>> GetEntityClasses();
-		static ScriptFieldMap& GetScriptFieldMap(Entity entity);
+		static ScriptFieldMap& GetEntityScriptFieldMap(Entity entity);
+		static ScriptFieldMap& GetAssetScriptFieldMap(AssetHandle handle);
 		static ScriptFieldMap GetDefaultScriptFieldMap(const std::string& scriptName);
 		static ScriptMethodMap GetScriptMethodMap(const std::string& scriptName);
-		static Scene* GetSceneContext();
 
 		static MonoAssembly* GetCoreAssembly();
 		
@@ -182,11 +181,13 @@ namespace Engine
 		static Ref<ScriptInstance> CreateEntityInstance(Entity entity, const std::string& scriptName);
 		static void DeleteEntityInstance(Ref<ScriptInstance> instance, Entity entity);
 
-		static void OnCreateEntity(Entity entity);
-		static void OnStartEntity(Entity entity);
-		static void OnDestroyEntity(Entity entity);
-		static void OnUpdateEntity(Entity entity, Timestep ts);
-		static void OnLateUpdateEntity(Entity entity, Timestep ts);
+		static void InstantiateAsset(AssetHandle handle);
+		static void InstantiateEntity(Entity entity);
+		static void OnCreateEntity(Entity entity, const ScriptComponent& sc);
+		static void OnStartEntity(Entity entity, const ScriptComponent& sc);
+		static void OnDestroyEntity(Entity entity, const ScriptComponent& sc);
+		static void OnUpdateEntity(Entity entity, const ScriptComponent& sc, Timestep ts);
+		static void OnLateUpdateEntity(Entity entity, const ScriptComponent& sc, Timestep ts);
 
 		static void OnTriggerEnter2D(Entity entity, Physics2DContact contact2D);
 		static void OnTriggerExit2D(Entity entity, Physics2DContact contact2D);
@@ -195,6 +196,9 @@ namespace Engine
 
 		static bool EntityInstanceExists(Entity& entity);
 		static Ref<ScriptInstance> GetEntityInstance(Entity entity);
+
+		static bool AssetInstanceExists(AssetHandle handle);
+		static Ref<ScriptInstance> GetAssetInstance(AssetHandle handle);
 
 		static MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className);
 		
@@ -206,6 +210,19 @@ namespace Engine
 		static MonoString* CharToMonoString(char* charString);
 		static MonoString* StringToMonoString(const std::string& string);
 		static std::string MonoStringToUTF8(MonoString* monoString);
+
+		static MonoArray* CreateMonoArray(ScriptFieldType type, uint64_t count);
+
+		template<typename T>
+		static MonoArray* ArrayToMonoArray(const T* array, ScriptFieldType type, uint64_t count)
+		{
+			MonoArray* monoArray = CreateMonoArray(type, count);
+
+			for (int i = 0; i < count; i++)
+				mono_array_set(monoArray, T, i, array[i]);
+
+			return monoArray;
+		}
 	
 	private:
 		static void InitMono();
@@ -215,7 +232,7 @@ namespace Engine
 		static bool LoadAppAssembly(const std::filesystem::path& assemblyPath);
 
 		static void LoadEntityClasses(MonoAssembly* assembly);
-		static MonoObject* InstantiateClass(MonoClass* monoClass);
+		static MonoObject* InstantiateClass(MonoClass* monoClass, bool isCore = false);
 
 		friend class ScriptClass;
 		friend class ScriptGlue;
@@ -226,6 +243,7 @@ namespace Engine
 	public:
 		ScriptInstance() = default;
 		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
+		ScriptInstance(Ref<ScriptClass> scriptClass, AssetHandle handle);
 		~ScriptInstance() = default;
 
 		Ref<ScriptClass> GetScriptClass() { return m_ScriptClass; }
@@ -317,26 +335,28 @@ namespace Engine
 		{
 			switch (fieldType)
 			{
-			case ScriptFieldType::None:		return "None";
-			case ScriptFieldType::Void:		return "Void";
-			case ScriptFieldType::Float:	return "Float";
-			case ScriptFieldType::Double:	return "Double";
-			case ScriptFieldType::Bool:		return "Bool";
-			case ScriptFieldType::Char:		return "Char";
-			case ScriptFieldType::String:	return "String";
-			case ScriptFieldType::SByte:	return "SByte";
-			case ScriptFieldType::Short:	return "Short";
-			case ScriptFieldType::Int:		return "Int";
-			case ScriptFieldType::Long:		return "Long";
-			case ScriptFieldType::Byte:		return "Byte";
-			case ScriptFieldType::UShort:	return "UShort";
-			case ScriptFieldType::UInt:		return "UInt";
-			case ScriptFieldType::ULong:	return "ULong";
-			case ScriptFieldType::Vector2:	return "Vector2";
-			case ScriptFieldType::Vector3:	return "Vector3";
-			case ScriptFieldType::Vector4:	return "Vector4";
-			case ScriptFieldType::Entity:	return "Entity";
+				case ScriptFieldType::None:		return "None";
+				case ScriptFieldType::Void:		return "Void";
+				case ScriptFieldType::Float:	return "Float";
+				case ScriptFieldType::Double:	return "Double";
+				case ScriptFieldType::Bool:		return "Bool";
+				case ScriptFieldType::Char:		return "Char";
+				case ScriptFieldType::String:	return "String";
+				case ScriptFieldType::SByte:	return "SByte";
+				case ScriptFieldType::Short:	return "Short";
+				case ScriptFieldType::Int:		return "Int";
+				case ScriptFieldType::Long:		return "Long";
+				case ScriptFieldType::Byte:		return "Byte";
+				case ScriptFieldType::UShort:	return "UShort";
+				case ScriptFieldType::UInt:		return "UInt";
+				case ScriptFieldType::ULong:	return "ULong";
+				case ScriptFieldType::Vector2:	return "Vector2";
+				case ScriptFieldType::Vector3:	return "Vector3";
+				case ScriptFieldType::Vector4:	return "Vector4";
+				case ScriptFieldType::Entity:	return "Entity";
+				case ScriptFieldType::Prefab:	return "Prefab";
 			}
+
 			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
 			return "None";
 		}
@@ -362,6 +382,7 @@ namespace Engine
 			if (fieldType == "Vector3")		return ScriptFieldType::Vector3;
 			if (fieldType == "Vector4")		return ScriptFieldType::Vector4;
 			if (fieldType == "Entity")		return ScriptFieldType::Entity;
+			if (fieldType == "Prefab")		return ScriptFieldType::Prefab;
 
 			ENGINE_CORE_ASSERT(false, "Unknown ScriptFieldType");
 			return ScriptFieldType::None;
