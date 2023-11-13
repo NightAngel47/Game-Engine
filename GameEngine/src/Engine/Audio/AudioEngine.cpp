@@ -1,5 +1,6 @@
 #include "enginepch.h"
 #include "Engine/Audio/AudioEngine.h"
+#include "Engine/Project/Project.h"
 
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio.h>
@@ -11,7 +12,7 @@ namespace Engine
 	struct AudioEngineData
 	{
 		ma_engine Engine;
-		std::vector<ma_sound> Sounds;
+		std::unordered_map<std::string, ma_sound> Sounds;
 	};
 
 	static AudioEngineData* s_AudioEngineData = nullptr;
@@ -38,7 +39,7 @@ namespace Engine
 		if (!s_AudioEngineData)
 			return;
 		
-		for (auto& sound : s_AudioEngineData->Sounds)
+		for (auto& [path, sound] : s_AudioEngineData->Sounds)
 		{
 			ma_sound_uninit(&sound);
 		}
@@ -58,39 +59,37 @@ namespace Engine
 			ENGINE_CORE_ASSERT("Failed to set master volume!");
 	}
 
+	void AudioEngine::LoadSound(const std::filesystem::path& path)
+	{
+		if (!s_AudioEngineData)
+			return;
+
+		ma_sound& sound = s_AudioEngineData->Sounds[path.filename().generic_string()];
+		auto result = ma_sound_init_from_file(&s_AudioEngineData->Engine, path.generic_string().c_str(), 0, nullptr, nullptr, &sound);
+		if (result != MA_SUCCESS)
+		{
+			ENGINE_CORE_ASSERT("Failed to initialize sound from file!");
+			return;
+		}
+	}
+
 	void AudioEngine::PlaySound(const std::filesystem::path& path)
 	{
 		if (!s_AudioEngineData)
 			return;
 
-		if (ma_engine_play_sound(&s_AudioEngineData->Engine, path.generic_string().c_str(), nullptr) != MA_SUCCESS)
-			ENGINE_CORE_ASSERT("Failed to play sound: {}", path.generic_string());
-
-		/*
-		ma_sound sound;
-
+		if (s_AudioEngineData->Sounds.find(path.filename().generic_string()) == s_AudioEngineData->Sounds.end())
 		{
-			//ma_result result = ma_sound_init_from_file(&s_AudioEngineData->Engine, path.generic_string().c_str(), 0, nullptr, nullptr, &sound);
-			//ma_result result = ma_sound_init_from_file(&s_AudioEngineData->Engine, path.generic_string().c_str(), MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC, nullptr, nullptr, &sound);
-			ma_result result = ma_sound_init_from_file(&s_AudioEngineData->Engine, path.generic_string().c_str(), MA_SOUND_FLAG_DECODE, nullptr, nullptr, &sound);
-			//ma_result result = ma_sound_init_from_file(&s_AudioEngineData->Engine, path.generic_string().c_str(), MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE | MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC | MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM, nullptr, nullptr, &sound);
-			if (result != MA_SUCCESS)
-			{
-				ENGINE_CORE_ASSERT("Failed to load sound: {}", path.generic_string());
-				return;
-			}
+			ENGINE_CORE_ERROR("Sound not loaded and cannot be played!");
+			return;
 		}
 
-		s_AudioEngineData->Sounds.emplace_back(sound);
-
+		ma_sound& sound = s_AudioEngineData->Sounds.at(path.filename().generic_string());
+		auto result = ma_sound_start(&sound);
+		if (result != MA_SUCCESS)
 		{
-			ma_result result = ma_sound_start(&sound);
-			if (result != MA_SUCCESS)
-			{
-				ENGINE_CORE_ASSERT("Failed to play sound: {}", path.generic_string());
-				return;
-			}
+			ENGINE_CORE_ASSERT("Failed to start sound!");
+			return;
 		}
-		*/
 	}
 }

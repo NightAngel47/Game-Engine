@@ -800,8 +800,16 @@ namespace Engine
 				break;
 			}
 
+			case Key::L:
+			{
+				AudioEngine::LoadSound(Project::GetActiveAssetFileSystemPath("Audio/Shoot/laser-4.wav"));
+				AudioEngine::LoadSound(Project::GetActiveAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
+				break;
+			}
+
 			case Key::B:
 			{
+				AudioEngine::PlaySound(Project::GetActiveAssetFileSystemPath("Audio/Shoot/laser-4.wav"));
 				AudioEngine::PlaySound(Project::GetActiveAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
 				break;
 			}
