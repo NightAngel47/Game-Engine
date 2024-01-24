@@ -24,6 +24,8 @@ namespace Engine
 	private:
 		Ref<Project> m_Project;
 
+		uint32_t m_ThumbnailSize = 128;
+
 		std::map<std::filesystem::path, ThumbnailImage> m_CachedImages;
 
 		struct ThumbnailInfo

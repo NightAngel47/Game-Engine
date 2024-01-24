@@ -113,6 +113,39 @@ namespace Engine
 		glDeleteTextures(1, &m_RendererID);
 	}
 
+	void OpenGLTexture2D::ChangeSize(uint32_t newWidth, uint32_t newHeight)
+	{
+		// Create new texture
+		uint32_t newTextureID;
+		glCreateTextures(GL_TEXTURE_2D, 1, &newTextureID);
+		glTextureStorage2D(newTextureID, 1, m_InternalFormat, newWidth, newHeight);
+
+		glTextureParameteri(newTextureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(newTextureID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTextureParameteri(newTextureID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(newTextureID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		// downsample
+		GLuint framebufferRendererIDs[2] = { 0 };
+		glGenFramebuffers(2, framebufferRendererIDs);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferRendererIDs[0]);
+		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_RendererID, 0);
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferRendererIDs[1]);
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, newTextureID, 0);
+
+		glBlitFramebuffer(0, 0, m_Width, m_Height, 0, 0, newWidth, newHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+		// swap textures
+		glDeleteTextures(1, &m_RendererID);
+		glDeleteFramebuffers(2, framebufferRendererIDs);
+		m_RendererID = newTextureID;
+		m_Width = newWidth;
+		m_Height = newHeight;
+	}
+
 	void OpenGLTexture2D::SetData(Buffer data) 
 	{
 		ENGINE_PROFILE_FUNCTION();
@@ -128,5 +161,5 @@ namespace Engine
 		
 		glBindTextureUnit(slot, m_RendererID);
 	}
-	
+
 }

@@ -94,7 +94,10 @@ namespace Engine
 				}
 				
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
+				float thumbnailHeight = thumbnailSize * ((float)icon->GetHeight() / (float)icon->GetWidth());
+				float diff = thumbnailSize - thumbnailHeight;
+				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailHeight }, { 0, 1 }, { 1, 0 });
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + diff);
 
 				if (ImGui::BeginDragDropSource())
 				{
@@ -151,7 +154,10 @@ namespace Engine
 				}
 
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
+				float thumbnailHeight = thumbnailSize * ((float)icon->GetHeight() / (float)icon->GetWidth());
+				float diff = thumbnailSize - thumbnailHeight;
+				ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailHeight }, { 0, 1 }, { 1, 0 });
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + diff);
 
 				const auto& assetType = editorAssetManager->GetAssetTypeFromFileExtension(relativePath.extension());
 				if (assetType != AssetType::None && ImGui::BeginPopupContextItem())
@@ -180,7 +186,7 @@ namespace Engine
 		
 		ImGui::EndTable();
 		
-		ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 32, 164);
+		ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 32, 256);
 		// ImGui::SliderFloat("Padding Size", &padding, 0, 32);
 		// TODO: Status bar
 		

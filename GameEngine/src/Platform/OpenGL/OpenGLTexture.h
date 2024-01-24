@@ -16,6 +16,8 @@ namespace Engine
 		virtual uint32_t GetHeight() const override { return m_Height; }
 		virtual uint32_t GetRendererID() const override { return m_RendererID; }
 		
+		void ChangeSize(uint32_t newWidth, uint32_t newHeight) override;
+
 		virtual void SetData(Buffer data) override;
 		
 		virtual void Bind(uint32_t slot = 0) const override;
