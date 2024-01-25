@@ -8,11 +8,29 @@
 
 namespace Engine
 {
+	void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
+	{
+		(void)pInput;
+
+		ma_engine_read_pcm_frames((ma_engine*)pDevice->pUserData, pOutput, frameCount, nullptr);
+	}
 
 	struct AudioEngineData
 	{
-		ma_engine Engine;
+		ma_resource_manager ResourceManager;
+
+		ma_context Context;
+		ma_device_info* PlaybackDeviceInfos;
+		uint32_t PlaybackDeviceCount;
+
+		ma_engine Engines[2];
+		ma_device Devices[2];
+
+		uint32_t EngineCount;
+
 		std::unordered_map<std::string, ma_sound> Sounds;
+
+		uint32_t OutputDevice;
 	};
 
 	static AudioEngineData* s_AudioEngineData = nullptr;
@@ -23,14 +41,95 @@ namespace Engine
 
 		ma_result result;
 
-		//ma_engine_config engineConfig = ma_engine_config_init();
-		
-		//result = ma_engine_init(&engineConfig, &s_AudioEngineData->Engine);
-		result = ma_engine_init(nullptr, &s_AudioEngineData->Engine);
+		// Config Resource Manager
+		ma_resource_manager_config resourceManagerConfig = ma_resource_manager_config_init();
+		resourceManagerConfig.decodedFormat = ma_format_f32;
+		resourceManagerConfig.decodedChannels = 0;
+		resourceManagerConfig.decodedSampleRate = 48000;
+
+		result = ma_resource_manager_init(&resourceManagerConfig, &s_AudioEngineData->ResourceManager);
 		if (result != MA_SUCCESS)
 		{
-			ENGINE_CORE_ASSERT("Failed to initialize Audio Engine!");
+			ENGINE_CORE_ERROR("Failed to initialize Resource Manager!");
 			return;
+		}
+
+		// Setup Context
+		result = ma_context_init(nullptr, 0, nullptr, &s_AudioEngineData->Context);
+		if (result != MA_SUCCESS)
+		{
+			ENGINE_CORE_ERROR("Failed to initialize Context!");
+			return;
+		}
+
+		result = ma_context_get_devices(&s_AudioEngineData->Context, &s_AudioEngineData->PlaybackDeviceInfos, &s_AudioEngineData->PlaybackDeviceCount, nullptr, nullptr);
+		if (result != MA_SUCCESS)
+		{
+			ENGINE_CORE_ERROR("Failed to enumerate playback devices!");
+			return;
+		}
+		
+		// Log available devices
+		for (int i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
+		{
+			ENGINE_CORE_INFO("    %d: %s\n", i, s_AudioEngineData->PlaybackDeviceInfos[i].name);
+		}
+
+		// Config Devices and Engines
+		s_AudioEngineData->OutputDevice = 0;
+		s_AudioEngineData->EngineCount = 0;
+		for (int i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
+		{
+			ma_device_config deviceConfig;
+			ma_engine_config engineConfig;
+
+			// Config Device
+			deviceConfig = ma_device_config_init(ma_device_type_playback);
+			deviceConfig.playback.pDeviceID = &s_AudioEngineData->PlaybackDeviceInfos[i].id; // chosen device?
+			deviceConfig.playback.format = s_AudioEngineData->ResourceManager.config.decodedFormat;
+			deviceConfig.playback.channels = 0;
+			deviceConfig.sampleRate = s_AudioEngineData->ResourceManager.config.decodedSampleRate;
+			deviceConfig.dataCallback = data_callback;
+			deviceConfig.pUserData = &s_AudioEngineData->Engines[s_AudioEngineData->EngineCount]; // engine count?
+
+			result = ma_device_init(&s_AudioEngineData->Context, &deviceConfig, &s_AudioEngineData->Devices[s_AudioEngineData->EngineCount]); // engine count?
+			if (result != MA_SUCCESS)
+			{
+				ENGINE_CORE_ERROR("Failed to initialize device for {}.", s_AudioEngineData->PlaybackDeviceInfos[i].name); // chosen device ?
+				return;
+			}
+
+			// Config Engine
+			engineConfig = ma_engine_config_init();
+			engineConfig.pDevice = &s_AudioEngineData->Devices[s_AudioEngineData->EngineCount]; // engine count?
+			engineConfig.pResourceManager = &s_AudioEngineData->ResourceManager;
+			engineConfig.noAutoStart = MA_TRUE;
+
+			result = ma_engine_init(&engineConfig, &s_AudioEngineData->Engines[s_AudioEngineData->EngineCount]); // engine count?
+			if (result != MA_SUCCESS)
+			{
+				ENGINE_CORE_ERROR("Failed to initialize engine for {}.", s_AudioEngineData->PlaybackDeviceInfos[i].name);  // chosen device ?
+				ma_device_uninit(&s_AudioEngineData->Devices[s_AudioEngineData->EngineCount]); // engine count?
+				return;
+			}
+
+			// Set output device to default
+			if (s_AudioEngineData->PlaybackDeviceInfos[i].isDefault)
+			{
+				s_AudioEngineData->OutputDevice = i;
+			}
+
+			s_AudioEngineData->EngineCount++;
+		}
+
+		// Start Engines
+		for (int i = 0; i < s_AudioEngineData->EngineCount; i++)
+		{
+			result = ma_engine_start(&s_AudioEngineData->Engines[i]);
+			if (result != MA_SUCCESS)
+			{
+				ENGINE_CORE_WARN("Failed to start engine {}", i);
+			}
 		}
 	}
 
@@ -44,9 +143,64 @@ namespace Engine
 			ma_sound_uninit(&sound);
 		}
 
-		ma_engine_uninit(&s_AudioEngineData->Engine);
+		for (int i = 0; i < s_AudioEngineData->EngineCount; i++)
+		{
+			ma_engine_uninit(&s_AudioEngineData->Engines[i]);
+			ma_device_uninit(&s_AudioEngineData->Devices[i]);
+		}
+
+		ma_context_uninit(&s_AudioEngineData->Context);
+
+		ma_resource_manager_uninit(&s_AudioEngineData->ResourceManager);
 
 		delete s_AudioEngineData;
+	}
+
+	void AudioEngine::SetOutputDevice(uint32_t deviceNumber)
+	{
+		if (!s_AudioEngineData)
+			return;
+
+		if (deviceNumber >= s_AudioEngineData->EngineCount)
+		{
+			ENGINE_CORE_WARN("Device number out of range!");
+			return;
+		}
+
+		ma_device_stop(&s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice]);
+
+		s_AudioEngineData->OutputDevice = deviceNumber;
+		ma_device_start(&s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice]);
+	}
+
+	uint32_t AudioEngine::GetOutputDevice()
+	{
+		if (!s_AudioEngineData)
+			return 0;
+
+		return s_AudioEngineData->OutputDevice;
+	}
+
+	uint32_t AudioEngine::GetTotalOutputDevices()
+	{
+		if (!s_AudioEngineData)
+			return 0;
+
+		return s_AudioEngineData->EngineCount;
+	}
+
+	char* AudioEngine::GetDeviceName(uint32_t deviceNumber)
+	{
+		if (!s_AudioEngineData)
+			return nullptr;
+
+		if (deviceNumber >= s_AudioEngineData->EngineCount)
+		{
+			ENGINE_CORE_WARN("Device number out of range!");
+			return nullptr;
+		}
+
+		return s_AudioEngineData->PlaybackDeviceInfos[deviceNumber].name;
 	}
 
 	void AudioEngine::SetMasterVolume(float linearVolume)
@@ -54,9 +208,12 @@ namespace Engine
 		if (!s_AudioEngineData)
 			return;
 
-		ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engine, linearVolume);
-		if (result != MA_SUCCESS)
-			ENGINE_CORE_ASSERT("Failed to set master volume!");
+		for (int i = 0; i < s_AudioEngineData->EngineCount; i++)
+		{
+			ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engines[i], linearVolume);
+			if (result != MA_SUCCESS)
+				ENGINE_CORE_WARN("Failed to set master volume!");
+		}
 	}
 
 	void AudioEngine::LoadSound(const std::filesystem::path& path)
@@ -64,12 +221,26 @@ namespace Engine
 		if (!s_AudioEngineData)
 			return;
 
-		ma_sound& sound = s_AudioEngineData->Sounds[path.filename().generic_string()];
-		auto result = ma_sound_init_from_file(&s_AudioEngineData->Engine, path.generic_string().c_str(), 0, nullptr, nullptr, &sound);
-		if (result != MA_SUCCESS)
+		std::string filename = path.filename().generic_string();
+		if (s_AudioEngineData->Sounds.find(filename) != s_AudioEngineData->Sounds.end())
 		{
-			ENGINE_CORE_ASSERT("Failed to initialize sound from file!");
+			ENGINE_CORE_WARN("Audio file already loaded!");
 			return;
+		}
+
+		ma_sound& sound = s_AudioEngineData->Sounds[filename];
+		for (int i = 0; i < s_AudioEngineData->EngineCount; i++)
+		{
+			auto result = ma_sound_init_from_file(&s_AudioEngineData->Engines[i], path.generic_string().c_str(),
+				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE 
+				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC	// glitchy
+				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM // glitchy
+				, nullptr, nullptr, &sound);
+			if (result != MA_SUCCESS)
+			{
+				ENGINE_CORE_WARN("Failed to initialize sound from file!");
+				return;
+			}
 		}
 	}
 
@@ -78,17 +249,18 @@ namespace Engine
 		if (!s_AudioEngineData)
 			return;
 
-		if (s_AudioEngineData->Sounds.find(path.filename().generic_string()) == s_AudioEngineData->Sounds.end())
+		std::string filename = path.filename().generic_string();
+		if (s_AudioEngineData->Sounds.find(filename) == s_AudioEngineData->Sounds.end())
 		{
-			ENGINE_CORE_ERROR("Sound not loaded and cannot be played!");
+			ENGINE_CORE_WARN("Sound not loaded and cannot be played!");
 			return;
 		}
 
-		ma_sound& sound = s_AudioEngineData->Sounds.at(path.filename().generic_string());
+		ma_sound& sound = s_AudioEngineData->Sounds.at(filename);
 		auto result = ma_sound_start(&sound);
 		if (result != MA_SUCCESS)
 		{
-			ENGINE_CORE_ASSERT("Failed to start sound!");
+			ENGINE_CORE_WARN("Failed to start sound!");
 			return;
 		}
 	}
