@@ -216,9 +216,12 @@ namespace Engine
 		}
 	}
 
-	void AudioEngine::LoadSound(const std::filesystem::path& path, const AssetHandle handle)
+	void AudioEngine::LoadSound(const std::filesystem::path& path, AssetHandle handle)
 	{
 		if (!s_AudioEngineData)
+			return;
+
+		if (!handle.IsValid())
 			return;
 
 		if (s_AudioEngineData->Sounds.find(handle) != s_AudioEngineData->Sounds.end())
@@ -243,9 +246,12 @@ namespace Engine
 		}
 	}
 
-	void AudioEngine::PlaySound(const AssetHandle handle)
+	void AudioEngine::PlaySound(AssetHandle handle)
 	{
 		if (!s_AudioEngineData)
+			return;
+
+		if (!handle.IsValid())
 			return;
 
 		if (s_AudioEngineData->Sounds.find(handle) == s_AudioEngineData->Sounds.end())

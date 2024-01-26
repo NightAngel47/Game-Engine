@@ -23,8 +23,8 @@ namespace Engine
 		// Set master volume to 0 for silence, 1 for 100% volume, and above 1 for amplified
 		static void SetMasterVolume(float linearVolume);
 
-		static void LoadSound(const std::filesystem::path& path, const AssetHandle handle);
+		static void LoadSound(const std::filesystem::path& path, AssetHandle handle);
 
-		static void PlaySound(const AssetHandle handle);
+		static void PlaySound(AssetHandle handle);
 	};
 }

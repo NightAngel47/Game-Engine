@@ -337,5 +337,12 @@ namespace Engine.Core
 		internal static extern void ScriptComponent_InstantiateClass(ulong entityID, string className);
 
 		#endregion ScriptComponent
+
+		#region AudioSourceComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioSourceComponent_PlaySound(ulong entityID);
+
+		#endregion AudioSourceComponent
 	}
 }

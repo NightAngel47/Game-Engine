@@ -232,4 +232,12 @@ namespace Engine.Scene
 			InternalCalls.ScriptComponent_InstantiateClass(Entity.ID, className);
 		}
 	}
+
+	public class AudioSourceComponent : Component
+	{
+		public void PlaySound()
+		{
+			InternalCalls.AudioSourceComponent_PlaySound(Entity.ID);
+		}
+	}
 }

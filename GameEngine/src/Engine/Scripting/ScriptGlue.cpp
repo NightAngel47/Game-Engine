@@ -9,6 +9,7 @@
 #include "Engine/Math/Random.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scene/SceneManager.h"
+#include "Engine/Audio/AudioEngine.h"
 
 #include <box2d/b2_body.h>
 #include <glm/gtx/rotate_vector.hpp>
@@ -147,6 +148,8 @@ namespace InternalCalls
 
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_GetClassName);
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_InstantiateClass);
+
+		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_PlaySound);
 	}
 
 	template<typename... Component>
@@ -833,4 +836,14 @@ namespace InternalCalls
 
 #pragma endregion ScriptComponent
 
+#pragma region AudioSourceComponent
+
+	void ScriptGlue::AudioSourceComponent_PlaySound(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		Engine::AudioSourceComponent audioSource = entity.GetComponent<Engine::AudioSourceComponent>();
+		Engine::AudioEngine::PlaySound(audioSource.Clip);
+	}
+
+#pragma endregion AudioSourceComponent
 }
