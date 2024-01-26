@@ -8,6 +8,7 @@
 #include "Engine/Project/Project.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/UI/UIEngine.h"
+#include "Engine/Audio/AudioEngine.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -300,12 +301,14 @@ namespace Engine
 		AssetHandle Clip = AssetHandle::INVALID();
 
 		bool Loop = false;
+		bool AutoPlayOnStart = false;
 
 		void AssignAudioClip(AssetHandle handle)
 		{
 			if (AssetManager::IsAssetHandleValid(handle))
 			{
 				Clip = handle;
+				AssetManager::GetAsset<AudioClip>(Clip);
 			}
 		}
 

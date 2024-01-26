@@ -232,8 +232,8 @@ namespace Engine
 		{
 			auto result = ma_sound_init_from_file(&s_AudioEngineData->Engines[i], path.generic_string().c_str(),
 				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE 
-				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC	// glitchy
-				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM // glitchy
+				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
+				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM
 				, nullptr, nullptr, &sound);
 			if (result != MA_SUCCESS)
 			{

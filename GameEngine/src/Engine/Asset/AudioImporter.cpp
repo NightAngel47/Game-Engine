@@ -8,7 +8,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		Ref<AudioClip> audioClip = LoadAudioClip(Project::GetActiveAssetFileSystemPath(metadata.Path).string());
+		Ref<AudioClip> audioClip = LoadAudioClip(Project::GetActiveAssetFileSystemPath(metadata.Path).string(), handle);
 		audioClip->Handle = handle;
 		return audioClip;
 	}
@@ -18,7 +18,7 @@ namespace Engine
 		ENGINE_PROFILE_FUNCTION();
 
 		Ref<AudioClip> audioClip = CreateRef<AudioClip>();
-		audioClip->Handle = AssetHandle();
+		audioClip->Handle = handle.IsValid() ? handle : AssetHandle();
 		
 		AudioEngine::LoadSound(filepath, audioClip->Handle);
 

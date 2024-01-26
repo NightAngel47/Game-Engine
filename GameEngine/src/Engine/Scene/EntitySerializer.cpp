@@ -349,7 +349,6 @@ namespace Engine
 			auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
 			out << YAML::Key << "Texture" << YAML::Value << spriteRendererComponent.Texture;
 			out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
-			//out << YAML::Key << "Path" << YAML::Value << spriteRendererComponent.Path.string();
 			out << YAML::Key << "Tiling" << YAML::Value << spriteRendererComponent.Tiling;
 
 			out << YAML::Key << "IsSubTexture" << YAML::Value << spriteRendererComponent.IsSubTexture;
@@ -504,6 +503,19 @@ namespace Engine
 			out << YAML::EndMap; // CircleCollider2DComponent
 		}
 
+		if (entity.HasComponent<AudioSourceComponent>())
+		{
+			out << YAML::Key << "AudioSourceComponent";
+			out << YAML::BeginMap; // AudioSourceComponent
+
+			auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
+			out << YAML::Key << "Clip" << YAML::Value << audioSourceComponent.Clip;
+			out << YAML::Key << "Loop" << YAML::Value << audioSourceComponent.Loop;
+			out << YAML::Key << "AutoPlayOnStart" << YAML::Value << audioSourceComponent.AutoPlayOnStart;
+
+			out << YAML::EndMap; // AudioSourceComponent
+		}
+
 		if (entity.HasComponent<UIButtonComponent>())
 		{
 			out << YAML::Key << "UIButtonComponent";
@@ -622,7 +634,6 @@ namespace Engine
 			auto& spriteRenderer = entity.AddComponent<SpriteRendererComponent>();
 			spriteRenderer.Texture = spriteRendererComponent["Texture"].as<uint64_t>();
 			spriteRenderer.Color = spriteRendererComponent["Color"].as<glm::vec4>();
-			//spriteRenderer.Path = spriteRendererComponent["Path"].as<std::string>();
 			spriteRenderer.Tiling = spriteRendererComponent["Tiling"].as<float>();
 
 			spriteRenderer.IsSubTexture = spriteRendererComponent["IsSubTexture"].as<bool>();
@@ -630,9 +641,7 @@ namespace Engine
 			spriteRenderer.SubCellSize = spriteRendererComponent["SubCellSize"].as<glm::vec2>();
 			spriteRenderer.SubSpriteSize = spriteRendererComponent["SubSpriteSize"].as<glm::vec2>();
 
-			//spriteRenderer.LoadTexture(spriteRenderer.Path);
 			spriteRenderer.AssignTexture(spriteRenderer.Texture);
-			//AssetManager::GetAsset<Texture2D>(spriteRenderer.Texture);
 		}
 
 		auto circleRendererComponent = entityOut["CircleRendererComponent"];
@@ -761,6 +770,17 @@ namespace Engine
 			circleCollider2D.Friction = circleCollider2DComponent["Friction"].as<float>();
 			circleCollider2D.Restitution = circleCollider2DComponent["Restitution"].as<float>();
 			circleCollider2D.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
+		}
+
+		auto audioSourceComponent = entityOut["AudioSourceComponent"];
+		if (audioSourceComponent)
+		{
+			auto& audioSource = entity.AddComponent<AudioSourceComponent>();
+			audioSource.Clip = audioSourceComponent["Clip"].as<uint64_t>();
+			audioSource.Loop = audioSourceComponent["Loop"].as<bool>();
+			audioSource.AutoPlayOnStart = audioSourceComponent["AutoPlayOnStart"].as<bool>();
+
+			audioSource.AssignAudioClip(audioSource.Clip);
 		}
 
 		auto uiButtonComponent = entityOut["UIButtonComponent"];

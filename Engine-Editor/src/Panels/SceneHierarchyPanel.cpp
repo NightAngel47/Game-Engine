@@ -1174,6 +1174,10 @@ namespace Engine
 			ImGui::Text("Looping");
 			ImGui::SameLine();
 			ImGui::Checkbox("##Looping", &component.Loop);
+
+			ImGui::Text("Auto Play On Start");
+			ImGui::SameLine();
+			ImGui::Checkbox("##AutoPlayOnStart", &component.AutoPlayOnStart);
 		});
 	}
 
