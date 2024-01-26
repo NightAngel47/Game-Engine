@@ -28,6 +28,7 @@ namespace Engine
 
 		uint32_t EngineCount;
 
+		// TODO need to make sounds on a per audio source instance basis for simultaneous playback
 		std::unordered_map<AssetHandle, ma_sound> Sounds;
 
 		uint32_t OutputDevice;
@@ -236,7 +237,7 @@ namespace Engine
 			auto result = ma_sound_init_from_file(&s_AudioEngineData->Engines[i], path.generic_string().c_str(),
 				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE 
 				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
-				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM
+				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM // make toggle option (only need to stream music or sounds over 2 seconds)
 				, nullptr, nullptr, &sound);
 			if (result != MA_SUCCESS)
 			{
