@@ -131,7 +131,6 @@ namespace Engine
 				std::string filenameString = path.filename().string();
 				bool isDirectory = directoryEntry.is_directory();
 				const auto& relativePath = std::filesystem::relative(path, Project::GetActiveAssetDirectory());
-				
 
 				ImGui::PushID(filenameString.c_str());
 				ImGui::TableNextColumn();

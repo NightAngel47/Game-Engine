@@ -813,15 +813,24 @@ namespace Engine
 
 			case Key::L:
 			{
-				AudioEngine::LoadSound(Project::GetActiveAssetFileSystemPath("Audio/Shoot/laser-4.wav"));
-				AudioEngine::LoadSound(Project::GetActiveAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
+				//AudioEngine::LoadSound(Project::GetActiveAssetFileSystemPath("Audio/Shoot/laser-4.wav"));
+				//AudioEngine::LoadSound(Project::GetActiveAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
 				break;
 			}
 
 			case Key::B:
 			{
-				AudioEngine::PlaySound(Project::GetActiveAssetFileSystemPath("Audio/Shoot/laser-4.wav"));
-				AudioEngine::PlaySound(Project::GetActiveAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
+				//AudioEngine::PlaySound(Project::GetActiveAssetFileSystemPath("Audio/Shoot/laser-4.wav"));
+				//AudioEngine::PlaySound(Project::GetActiveAssetFileSystemPath("Audio/car-acceleration-sound.wav"));
+				auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<AudioSourceComponent>();
+				
+				for (auto entity : view)
+				{
+					auto audioSource = view.get<AudioSourceComponent>(entity);
+					AssetManager::GetAsset<AudioClip>(audioSource.Clip);
+					AudioEngine::PlaySound(audioSource.Clip);
+				}
+
 				break;
 			}
 		}

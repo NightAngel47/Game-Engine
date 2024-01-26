@@ -28,7 +28,7 @@ namespace Engine
 
 		uint32_t EngineCount;
 
-		std::unordered_map<std::string, ma_sound> Sounds;
+		std::unordered_map<AssetHandle, ma_sound> Sounds;
 
 		uint32_t OutputDevice;
 	};
@@ -70,7 +70,7 @@ namespace Engine
 		}
 		
 		// Log available devices
-		for (int i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
+		for (uint32_t i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
 		{
 			ENGINE_CORE_INFO("    %d: %s\n", i, s_AudioEngineData->PlaybackDeviceInfos[i].name);
 		}
@@ -78,7 +78,7 @@ namespace Engine
 		// Config Devices and Engines
 		s_AudioEngineData->OutputDevice = 0;
 		s_AudioEngineData->EngineCount = 0;
-		for (int i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
+		for (uint32_t i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
 		{
 			ma_device_config deviceConfig;
 			ma_engine_config engineConfig;
@@ -123,7 +123,7 @@ namespace Engine
 		}
 
 		// Start Engines
-		for (int i = 0; i < s_AudioEngineData->EngineCount; i++)
+		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
 			result = ma_engine_start(&s_AudioEngineData->Engines[i]);
 			if (result != MA_SUCCESS)
@@ -143,7 +143,7 @@ namespace Engine
 			ma_sound_uninit(&sound);
 		}
 
-		for (int i = 0; i < s_AudioEngineData->EngineCount; i++)
+		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
 			ma_engine_uninit(&s_AudioEngineData->Engines[i]);
 			ma_device_uninit(&s_AudioEngineData->Devices[i]);
@@ -208,7 +208,7 @@ namespace Engine
 		if (!s_AudioEngineData)
 			return;
 
-		for (int i = 0; i < s_AudioEngineData->EngineCount; i++)
+		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
 			ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engines[i], linearVolume);
 			if (result != MA_SUCCESS)
@@ -216,20 +216,19 @@ namespace Engine
 		}
 	}
 
-	void AudioEngine::LoadSound(const std::filesystem::path& path)
+	void AudioEngine::LoadSound(const std::filesystem::path& path, const AssetHandle handle)
 	{
 		if (!s_AudioEngineData)
 			return;
 
-		std::string filename = path.filename().generic_string();
-		if (s_AudioEngineData->Sounds.find(filename) != s_AudioEngineData->Sounds.end())
+		if (s_AudioEngineData->Sounds.find(handle) != s_AudioEngineData->Sounds.end())
 		{
 			ENGINE_CORE_WARN("Audio file already loaded!");
 			return;
 		}
 
-		ma_sound& sound = s_AudioEngineData->Sounds[filename];
-		for (int i = 0; i < s_AudioEngineData->EngineCount; i++)
+		ma_sound& sound = s_AudioEngineData->Sounds[handle];
+		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
 			auto result = ma_sound_init_from_file(&s_AudioEngineData->Engines[i], path.generic_string().c_str(),
 				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE 
@@ -244,19 +243,18 @@ namespace Engine
 		}
 	}
 
-	void AudioEngine::PlaySound(const std::filesystem::path& path)
+	void AudioEngine::PlaySound(const AssetHandle handle)
 	{
 		if (!s_AudioEngineData)
 			return;
 
-		std::string filename = path.filename().generic_string();
-		if (s_AudioEngineData->Sounds.find(filename) == s_AudioEngineData->Sounds.end())
+		if (s_AudioEngineData->Sounds.find(handle) == s_AudioEngineData->Sounds.end())
 		{
 			ENGINE_CORE_WARN("Sound not loaded and cannot be played!");
 			return;
 		}
 
-		ma_sound& sound = s_AudioEngineData->Sounds.at(filename);
+		ma_sound& sound = s_AudioEngineData->Sounds.at(handle);
 		auto result = ma_sound_start(&sound);
 		if (result != MA_SUCCESS)
 		{

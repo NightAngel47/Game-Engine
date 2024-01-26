@@ -14,6 +14,10 @@ namespace Engine
 		{".jpeg", AssetType::Texture2D},
 
 		{".prefab", AssetType::Prefab},
+		
+		{".wav", AssetType::AudioClip},
+		{".mp3", AssetType::AudioClip},
+		{".flac", AssetType::AudioClip},
 
 		{".cs", AssetType::ScriptFile}
 	};

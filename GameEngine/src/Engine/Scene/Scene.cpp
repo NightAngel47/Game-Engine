@@ -654,6 +654,11 @@ namespace Engine
 	}
 
 	template<>
+	void Scene::OnComponentAdded<AudioSourceComponent>(Entity entity, AudioSourceComponent& component)
+	{
+	}
+
+	template<>
 	void Scene::OnComponentAdded<UILayoutComponent>(Entity entity, UILayoutComponent& component)
 	{
 	}
