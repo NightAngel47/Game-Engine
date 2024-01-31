@@ -842,7 +842,7 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		Engine::AudioSourceComponent audioSource = entity.GetComponent<Engine::AudioSourceComponent>();
-		Engine::AudioEngine::PlaySound(audioSource.Clip);
+		Engine::AudioEngine::PlaySound(audioSource.Clip, entityID);
 	}
 
 #pragma endregion AudioSourceComponent

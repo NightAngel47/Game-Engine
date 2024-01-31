@@ -300,7 +300,10 @@ namespace Engine
 	{
 		AssetHandle Clip = AssetHandle::INVALID();
 
-		bool Loop = false;
+		bool Loop;
+		float Volume;
+		float Pitch;
+
 		bool AutoPlayOnStart = false;
 
 		void AssignAudioClip(AssetHandle handle)

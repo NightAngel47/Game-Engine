@@ -15,6 +15,13 @@ namespace Engine
 		ma_engine_read_pcm_frames((ma_engine*)pDevice->pUserData, pOutput, frameCount, nullptr);
 	}
 
+	struct AudioSource
+	{
+		ma_sound SoundInstances[4];
+		uint32_t SoundInstancesIndex = 0;
+		const uint32_t MAX_SOUND_INSTANCES = 4;
+	};
+
 	struct AudioEngineData
 	{
 		ma_resource_manager ResourceManager;
@@ -29,9 +36,7 @@ namespace Engine
 		uint32_t EngineCount;
 
 		std::unordered_map<AssetHandle, ma_sound> AudioClips;
-		ma_sound SoundInstances[64];
-		uint32_t SoundInstancesIndex;
-		const uint32_t MAX_SOUND_INSTANCES = 64;
+		std::unordered_map<UUID, AudioSource> AudioSources;
 
 		uint32_t OutputDevice;
 	};
@@ -50,7 +55,7 @@ namespace Engine
 		resourceManagerConfig.decodedChannels = 0;
 		resourceManagerConfig.decodedSampleRate = 48000;
 
-		//resourceManagerConfig.jobThreadCount = 4;
+		resourceManagerConfig.jobThreadCount = 4;
 
 		result = ma_resource_manager_init(&resourceManagerConfig, &s_AudioEngineData->ResourceManager);
 		if (result != MA_SUCCESS)
@@ -77,13 +82,12 @@ namespace Engine
 		// Log available devices
 		for (uint32_t i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
 		{
-			ENGINE_CORE_INFO("    %d: %s\n", i, s_AudioEngineData->PlaybackDeviceInfos[i].name);
+			ENGINE_CORE_INFO("{}: {}", i, s_AudioEngineData->PlaybackDeviceInfos[i].name);
 		}
 
 		// Config Devices and Engines
 		s_AudioEngineData->OutputDevice = 0;
 		s_AudioEngineData->EngineCount = 0;
-		s_AudioEngineData->SoundInstancesIndex = 0;
 		for (uint32_t i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
 		{
 			ma_device_config deviceConfig;
@@ -156,9 +160,12 @@ namespace Engine
 			ma_sound_uninit(&sound);
 		}
 
-		for (auto& sound : s_AudioEngineData->SoundInstances)
+		for (auto& [uuid, source] : s_AudioEngineData->AudioSources)
 		{
-			ma_sound_uninit(&sound);
+			for (auto& sound : source.SoundInstances)
+			{
+				ma_sound_uninit(&sound);
+			}
 		}
 
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
@@ -254,7 +261,7 @@ namespace Engine
 			auto result = ma_sound_init_from_file(&s_AudioEngineData->Engines[i], path.generic_string().c_str(),
 				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE 
 				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
-				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM // make toggle option (only need to stream music or sounds over 2 seconds)
+				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM // TODO create stream implementation (only need to stream music or sounds over 2 seconds)
 				, nullptr, nullptr, &sound);
 
 			if (result != MA_SUCCESS)
@@ -265,7 +272,7 @@ namespace Engine
 		}
 	}
 
-	void AudioEngine::PlaySound(AssetHandle handle)
+	void AudioEngine::PlaySound(AssetHandle handle, UUID entityID)
 	{
 		if (!s_AudioEngineData)
 			return;
@@ -280,15 +287,16 @@ namespace Engine
 		}
 
 		// Reset Sound Instance Index
-		if (s_AudioEngineData->SoundInstancesIndex >= s_AudioEngineData->MAX_SOUND_INSTANCES)
+		AudioSource& source = s_AudioEngineData->AudioSources[entityID];
+		if (source.SoundInstancesIndex >= source.MAX_SOUND_INSTANCES)
 		{
-			ma_sound& sound = s_AudioEngineData->SoundInstances[s_AudioEngineData->SoundInstancesIndex % s_AudioEngineData->MAX_SOUND_INSTANCES];
+			ma_sound& sound = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
 			ma_sound_uninit(&sound);
 		}
 
 		// Create Sound Instance
-		ma_sound& soundInstance = s_AudioEngineData->SoundInstances[s_AudioEngineData->SoundInstancesIndex % s_AudioEngineData->MAX_SOUND_INSTANCES];
-		s_AudioEngineData->SoundInstancesIndex++;
+		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
+		source.SoundInstancesIndex++;
 
 		// Get Original Sound and Copy to Instance
 		ma_sound& originalSound = s_AudioEngineData->AudioClips.at(handle);
@@ -313,5 +321,15 @@ namespace Engine
 			ENGINE_CORE_WARN("Failed to start sound!");
 			return;
 		}
+
 	}
+
+	void AudioEngine::StopSound(UUID entityID)
+	{
+		for (auto& sound : s_AudioEngineData->AudioSources[entityID].SoundInstances)
+		{
+			ma_sound_stop(&sound);
+		}
+	}
+
 }

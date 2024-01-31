@@ -25,6 +25,7 @@ namespace Engine
 
 		static void LoadSound(const std::filesystem::path& path, AssetHandle handle);
 
-		static void PlaySound(AssetHandle handle);
+		static void PlaySound(AssetHandle handle, UUID entityID);
+		static void StopSound(UUID entityID);
 	};
 }

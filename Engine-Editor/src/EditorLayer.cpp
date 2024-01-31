@@ -810,18 +810,6 @@ namespace Engine
 
 				break;
 			}
-
-			case Key::B:
-			{
-				auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<AudioSourceComponent>();
-				for (auto entity : view)
-				{
-					auto audioSource = view.get<AudioSourceComponent>(entity);
-					AudioEngine::PlaySound(audioSource.Clip);
-				}
-
-				break;
-			}
 		}
 
 		return false;
