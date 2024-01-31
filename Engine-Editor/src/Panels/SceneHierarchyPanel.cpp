@@ -1119,7 +1119,7 @@ namespace Engine
 			}
 		});
 
-		DrawComponent<AudioSourceComponent>("Audio Source", entity, [](auto& component)
+		DrawComponent<AudioSourceComponent>("Audio Source", entity, [&](auto& component)
 		{
 			ImGui::Text("Audio Clip");
 			ImGui::SameLine();
@@ -1171,13 +1171,24 @@ namespace Engine
 					component.ClearAudioClip();
 			}
 
-			ImGui::Text("Looping");
-			ImGui::SameLine();
-			ImGui::Checkbox("##Looping", &component.Loop);
-
 			ImGui::Text("Auto Play On Start");
 			ImGui::SameLine();
 			ImGui::Checkbox("##AutoPlayOnStart", &component.AutoPlayOnStart);
+
+			ImGui::Text("Looping");
+			ImGui::SameLine();
+			if (ImGui::Checkbox("##Looping", &component.Params.Loop))
+				AudioEngine::SetSoundLooping(entity.GetUUID(), component.Params.Loop);
+
+			ImGui::Text("Volume");
+			ImGui::SameLine();
+			if (ImGui::DragFloat("##Volume", &component.Params.Volume, 0.1f))
+				AudioEngine::SetSoundVolume(entity.GetUUID(), component.Params.Volume);
+
+			ImGui::Text("Pitch");
+			ImGui::SameLine();
+			if (ImGui::DragFloat("##Pitch", &component.Params.Pitch, 0.1f))
+				AudioEngine::SetSoundPitch(entity.GetUUID(), component.Params.Pitch);
 		});
 	}
 

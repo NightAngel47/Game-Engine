@@ -150,6 +150,14 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_InstantiateClass);
 
 		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_PlaySound);
+		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_StopSound);
+		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_IsSoundPlaying);
+		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_GetSoundLooping);
+		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_SetSoundLooping);
+		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_GetSoundVolume);
+		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_SetSoundVolume);
+		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_GetSoundPitch);
+		ENGINE_ADD_INTERNAL_CALL(AudioSourceComponent_SetSoundPitch);
 	}
 
 	template<typename... Component>
@@ -842,7 +850,76 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		Engine::AudioSourceComponent audioSource = entity.GetComponent<Engine::AudioSourceComponent>();
-		Engine::AudioEngine::PlaySound(audioSource.Clip, entityID);
+		Engine::AudioEngine::PlaySound(entityID, audioSource.Clip, audioSource.Params);
+	}
+
+	void ScriptGlue::AudioSourceComponent_StopSound(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		if (!entity.HasComponent<Engine::AudioSourceComponent>())
+			return;
+
+		Engine::AudioEngine::StopSound(entityID);
+	}
+
+	bool ScriptGlue::AudioSourceComponent_IsSoundPlaying(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		if (!entity.HasComponent<Engine::AudioSourceComponent>())
+			return false;
+
+		return Engine::AudioEngine::IsSoundPlaying(entityID);
+	}
+
+	bool ScriptGlue::AudioSourceComponent_GetSoundLooping(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		if (!entity.HasComponent<Engine::AudioSourceComponent>())
+			return false;
+
+		return Engine::AudioEngine::GetSoundLooping(entityID);
+	}
+
+	void ScriptGlue::AudioSourceComponent_SetSoundLooping(Engine::UUID entityID, bool state)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		Engine::AudioSourceComponent audioSource = entity.GetComponent<Engine::AudioSourceComponent>();
+		audioSource.Params.Loop = state;
+		Engine::AudioEngine::SetSoundLooping(entityID, audioSource.Params.Loop);
+	}
+
+	float ScriptGlue::AudioSourceComponent_GetSoundVolume(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		if (!entity.HasComponent<Engine::AudioSourceComponent>())
+			return 0;
+
+		return Engine::AudioEngine::GetSoundVolume(entityID);
+	}
+
+	void ScriptGlue::AudioSourceComponent_SetSoundVolume(Engine::UUID entityID, float volume)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		Engine::AudioSourceComponent audioSource = entity.GetComponent<Engine::AudioSourceComponent>();
+		audioSource.Params.Volume = volume;
+		Engine::AudioEngine::SetSoundVolume(entityID, audioSource.Params.Volume);
+	}
+
+	float ScriptGlue::AudioSourceComponent_GetSoundPitch(Engine::UUID entityID)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		if (!entity.HasComponent<Engine::AudioSourceComponent>())
+			return 0;
+
+		return Engine::AudioEngine::GetSoundPitch(entityID);
+	}
+
+	void ScriptGlue::AudioSourceComponent_SetSoundPitch(Engine::UUID entityID, float pitch)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		Engine::AudioSourceComponent audioSource = entity.GetComponent<Engine::AudioSourceComponent>();
+		audioSource.Params.Pitch = pitch;
+		Engine::AudioEngine::SetSoundPitch(entityID, audioSource.Params.Pitch);
 	}
 
 #pragma endregion AudioSourceComponent

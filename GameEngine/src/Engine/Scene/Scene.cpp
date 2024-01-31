@@ -284,7 +284,7 @@ namespace Engine
 			Entity entity = { e, this };
 			if (source.AutoPlayOnStart)
 			{
-				AudioEngine::PlaySound(source.Clip, entity.GetUUID());
+				AudioEngine::PlaySound(entity.GetUUID(), source.Clip, source.Params);
 			}
 		});
 	}
@@ -682,7 +682,7 @@ namespace Engine
 			auto& source = entity.GetComponent<AudioSourceComponent>();
 			if (source.AutoPlayOnStart)
 			{
-				AudioEngine::PlaySound(source.Clip, entity.GetUUID());
+				AudioEngine::PlaySound(entity.GetUUID(), component.Clip, component.Params);
 			}
 		}
 	}

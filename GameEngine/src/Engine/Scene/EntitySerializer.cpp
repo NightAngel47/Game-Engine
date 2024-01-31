@@ -510,8 +510,10 @@ namespace Engine
 
 			auto& audioSourceComponent = entity.GetComponent<AudioSourceComponent>();
 			out << YAML::Key << "Clip" << YAML::Value << audioSourceComponent.Clip;
-			out << YAML::Key << "Loop" << YAML::Value << audioSourceComponent.Loop;
 			out << YAML::Key << "AutoPlayOnStart" << YAML::Value << audioSourceComponent.AutoPlayOnStart;
+			out << YAML::Key << "Loop" << YAML::Value << audioSourceComponent.Params.Loop;
+			out << YAML::Key << "Volume" << YAML::Value << audioSourceComponent.Params.Volume;
+			out << YAML::Key << "Pitch" << YAML::Value << audioSourceComponent.Params.Pitch;
 
 			out << YAML::EndMap; // AudioSourceComponent
 		}
@@ -777,8 +779,10 @@ namespace Engine
 		{
 			auto& audioSource = entity.AddComponent<AudioSourceComponent>();
 			audioSource.Clip = audioSourceComponent["Clip"].as<uint64_t>();
-			audioSource.Loop = audioSourceComponent["Loop"].as<bool>();
 			audioSource.AutoPlayOnStart = audioSourceComponent["AutoPlayOnStart"].as<bool>();
+			audioSource.Params.Loop = audioSourceComponent["Loop"].as<bool>();
+			audioSource.Params.Volume = audioSourceComponent["Volume"].as<float>();
+			audioSource.Params.Pitch = audioSourceComponent["Pitch"].as<float>();
 
 			audioSource.AssignAudioClip(audioSource.Clip);
 		}

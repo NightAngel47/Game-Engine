@@ -300,9 +300,7 @@ namespace Engine
 	{
 		AssetHandle Clip = AssetHandle::INVALID();
 
-		bool Loop;
-		float Volume;
-		float Pitch;
+		SoundParams Params;
 
 		bool AutoPlayOnStart = false;
 

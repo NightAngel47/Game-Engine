@@ -3,6 +3,13 @@
 
 namespace Engine
 {
+	struct SoundParams
+	{
+		bool Loop = false;
+		float Volume = 1;
+		float Pitch = 0;
+	};
+
 	struct AudioClip : public Asset
 	{
 		static AssetType GetStaticType() { return AssetType::AudioClip; }
@@ -25,10 +32,19 @@ namespace Engine
 
 		static void LoadSound(const std::filesystem::path& path, AssetHandle handle);
 
-		static void PlaySound(AssetHandle handle, UUID entityID);
+		static void PlaySound(UUID entityID, AssetHandle clip, const SoundParams& params = {});
 		static void StopSound(UUID entityID);
 
 		static void PausePlayback(bool pause);
+
+		static bool IsSoundPlaying(UUID entityID);
+
+		static bool GetSoundLooping(UUID entityID);
+		static void SetSoundLooping(UUID entityID, bool state);
+		static float GetSoundVolume(UUID entityID);
+		static void SetSoundVolume(UUID entityID, float volume);
+		static float GetSoundPitch(UUID entityID);
+		static void SetSoundPitch(UUID entityID, float pitch);
 
 		static void ClearAudioSource(UUID entityID);
 	};
