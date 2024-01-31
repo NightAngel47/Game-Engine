@@ -8,12 +8,6 @@
 
 namespace Engine
 {
-	void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
-	{
-		(void)pInput;
-
-		ma_engine_read_pcm_frames((ma_engine*)pDevice->pUserData, pOutput, frameCount, nullptr);
-	}
 
 	struct AudioSource
 	{
@@ -37,11 +31,22 @@ namespace Engine
 
 		std::unordered_map<AssetHandle, ma_sound> AudioClips;
 		std::unordered_map<UUID, AudioSource> AudioSources;
+		bool PlaybackPaused;
 
 		uint32_t OutputDevice;
 	};
 
 	static AudioEngineData* s_AudioEngineData = nullptr;
+
+	void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
+	{
+		(void)pInput;
+
+		if (!s_AudioEngineData->PlaybackPaused)
+		{
+			ma_engine_read_pcm_frames((ma_engine*)pDevice->pUserData, pOutput, frameCount, nullptr);
+		}
+	}
 
 	void AudioEngine::Init()
 	{
@@ -160,6 +165,8 @@ namespace Engine
 			ma_sound_uninit(&sound);
 		}
 
+		s_AudioEngineData->AudioClips.clear();
+
 		for (auto& [uuid, source] : s_AudioEngineData->AudioSources)
 		{
 			for (auto& sound : source.SoundInstances)
@@ -167,6 +174,8 @@ namespace Engine
 				ma_sound_uninit(&sound);
 			}
 		}
+
+		s_AudioEngineData->AudioSources.clear();
 
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
@@ -321,7 +330,6 @@ namespace Engine
 			ENGINE_CORE_WARN("Failed to start sound!");
 			return;
 		}
-
 	}
 
 	void AudioEngine::StopSound(UUID entityID)
@@ -330,6 +338,21 @@ namespace Engine
 		{
 			ma_sound_stop(&sound);
 		}
+	}
+
+	void AudioEngine::PausePlayback(bool pause)
+	{
+		s_AudioEngineData->PlaybackPaused = pause;
+	}
+
+	void AudioEngine::ClearAudioSource(UUID entityID)
+	{
+		for (auto& sound : s_AudioEngineData->AudioSources[entityID].SoundInstances)
+		{
+			ma_sound_uninit(&sound);
+		}
+
+		s_AudioEngineData->AudioSources.erase(entityID);
 	}
 
 }

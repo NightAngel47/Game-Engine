@@ -27,5 +27,9 @@ namespace Engine
 
 		static void PlaySound(AssetHandle handle, UUID entityID);
 		static void StopSound(UUID entityID);
+
+		static void PausePlayback(bool pause);
+
+		static void ClearAudioSource(UUID entityID);
 	};
 }
