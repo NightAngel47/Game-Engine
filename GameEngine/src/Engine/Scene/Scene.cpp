@@ -122,7 +122,7 @@ namespace Engine
 		if (m_IsRunning)
 		{
 			Physics2DEngine::DestroyBody(entity);
-			AudioEngine::ClearAudioSource(entity.GetUUID());
+			AudioEngine::StopSound(entity.GetUUID());
 		}
 
 		if (entity.GetComponent<RelationshipComponent>().Parent.IsValid())
@@ -311,7 +311,7 @@ namespace Engine
 		m_Registry.view<AudioSourceComponent>().each([=](auto e, const auto& source)
 		{
 			Entity entity = { e, this };
-			AudioEngine::ClearAudioSource(entity.GetUUID());
+			AudioEngine::StopSound(entity.GetUUID());
 		});
 	}
 

@@ -45,7 +45,5 @@ namespace Engine
 		static void SetSoundVolume(UUID entityID, float volume);
 		static float GetSoundPitch(UUID entityID);
 		static void SetSoundPitch(UUID entityID, float pitch);
-
-		static void ClearAudioSource(UUID entityID);
 	};
 }
