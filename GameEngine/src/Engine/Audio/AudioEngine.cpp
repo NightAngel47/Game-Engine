@@ -165,18 +165,6 @@ namespace Engine
 			ma_sound_uninit(&sound);
 		}
 
-		s_AudioEngineData->AudioClips.clear();
-
-		for (auto& [uuid, source] : s_AudioEngineData->AudioSources)
-		{
-			for (auto& sound : source.SoundInstances)
-			{
-				ma_sound_uninit(&sound);
-			}
-		}
-
-		s_AudioEngineData->AudioSources.clear();
-
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
 			ma_engine_uninit(&s_AudioEngineData->Engines[i]);
@@ -399,8 +387,6 @@ namespace Engine
 	{
 		for (auto& sound : s_AudioEngineData->AudioSources[entityID].SoundInstances)
 			ma_sound_uninit(&sound);
-
-		s_AudioEngineData->AudioSources.erase(entityID);
 	}
 
 }
