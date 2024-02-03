@@ -337,5 +337,36 @@ namespace Engine.Core
 		internal static extern void ScriptComponent_InstantiateClass(ulong entityID, string className);
 
 		#endregion ScriptComponent
+
+		#region AudioSourceComponent
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioSourceComponent_PlaySound(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioSourceComponent_StopSound(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern bool AudioSourceComponent_IsSoundPlaying(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern bool AudioSourceComponent_GetSoundLooping(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioSourceComponent_SetSoundLooping(ulong entityID, bool state);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float AudioSourceComponent_GetSoundVolume(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioSourceComponent_SetSoundVolume(ulong entityID, float volume);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float AudioSourceComponent_GetSoundPitch(ulong entityID);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioSourceComponent_SetSoundPitch(ulong entityID, float pitch);
+
+		#endregion AudioSourceComponent
 	}
 }

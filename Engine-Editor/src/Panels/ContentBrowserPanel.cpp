@@ -45,7 +45,7 @@ namespace Engine
 		if (columCount < 1) columCount = 1;
 		ImGui::BeginTable("Content Browser", columCount);
 
-		if (m_Mode == Mode::Asset)
+		if (m_Mode == Mode::Asset) // Asset View
 		{
 			TreeNode* node = &m_TreeNodes[0];
 
@@ -71,7 +71,7 @@ namespace Engine
 			for (const auto& [item, treeNodeIndex] : node->Children)
 			{
 				std::string itemStr = item.generic_string();
-				bool isDirectory = std::filesystem::is_directory(m_Project->GetAssetDirectory() / item);
+				bool isDirectory = std::filesystem::is_directory(m_CurrentDirectory / item);
 				AssetHandle indexHandle = m_TreeNodes[treeNodeIndex].Handle;
 
 				ImGui::PushID(itemStr.c_str());
@@ -124,7 +124,7 @@ namespace Engine
 				ImGui::PopID();
 			}
 		}
-		else
+		else // File View
 		{
 			Ref<EditorAssetManager> editorAssetManager = Project::GetActive()->GetEditorAssetManager();
 
@@ -134,7 +134,6 @@ namespace Engine
 				std::string filenameString = path.filename().string();
 				bool isDirectory = directoryEntry.is_directory();
 				const auto& relativePath = std::filesystem::relative(path, Project::GetActiveAssetDirectory());
-				
 
 				ImGui::PushID(filenameString.c_str());
 				ImGui::TableNextColumn();

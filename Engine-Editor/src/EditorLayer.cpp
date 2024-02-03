@@ -52,6 +52,8 @@ namespace Engine
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+
+		AudioEngine::SetMasterVolume(0.1f);
 	}
 
 	void EditorLayer::OnDetach()
@@ -256,15 +258,26 @@ namespace Engine
 
 		ImGui::Begin("Settings");
 
+		ImGui::Separator();
+		ImGui::Text("Physics");
 		ImGui::Checkbox("Show physics colliders", &m_ShowPhysicsColliders);
 		ImGui::Checkbox("Toggle Gizmo Mode (World/Local)", &m_IsGizmoWorld);
 
 		ImGui::Separator();
-		ImGui::Text("UI Stats");
+		ImGui::Text("UI");
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
 
 		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
+
+		ImGui::Separator();
+		ImGui::Text("Audio");
+		int outputDevice = AudioEngine::GetOutputDevice();
+		ImGui::Text("Device: %s", AudioEngine::GetDeviceName(outputDevice));
+		if (ImGui::DragInt("Device", &outputDevice, 1.0f, 0, AudioEngine::GetTotalOutputDevices() - 1))
+		{
+			AudioEngine::SetOutputDevice(outputDevice);
+		}
 
 		ImGui::End();
 

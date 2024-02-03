@@ -579,6 +579,7 @@ namespace Engine
 			DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
 			DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
 			DisplayAddComponentEntry<ScriptComponent>("Script Component");
+			DisplayAddComponentEntry<AudioSourceComponent>("Audio Source Component");
 			
 			ImGui::EndPopup();
 		}
@@ -1116,6 +1117,78 @@ namespace Engine
 						break;
 				}
 			}
+		});
+
+		DrawComponent<AudioSourceComponent>("Audio Source", entity, [&](auto& component)
+		{
+			ImGui::Text("Audio Clip");
+			ImGui::SameLine();
+
+			std::string audioClipName = "None";
+			if (component.Clip.IsValid())
+			{
+				if (AssetManager::IsAssetHandleValid(component.Clip))
+				{
+					audioClipName = Project::GetActive()->GetEditorAssetManager()->GetAssetPath(component.Clip).filename().string();
+				}
+				else
+				{
+					audioClipName = "Invalid";
+					ENGINE_CORE_WARN("Assigned Audio Clip Handle as invalid: {}", component.Clip);
+				}
+			}
+
+			const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			ImVec2 textSize = ImGui::CalcTextSize(audioClipName.c_str());
+			const ImVec2 buttonSize = { textSize.x + GImGui->Style.FramePadding.x * 2.0f, lineHeight };
+			ImGui::Button(audioClipName.c_str(), buttonSize);
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					AssetHandle handle = *(AssetHandle*)payload->Data;
+					if (AssetManager::IsAssetHandleValid(handle))
+					{
+						if (Project::GetActive()->GetEditorAssetManager()->GetAssetType(handle) == AssetType::AudioClip)
+							component.AssignAudioClip(handle);
+						else
+							ENGINE_CORE_WARN("Asset was not a audio clip!");
+					}
+					else
+					{
+						ENGINE_CORE_WARN("Asset was not valid. Check that it's been imported.");
+					}
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+
+			if (component.Clip.IsValid())
+			{
+				ImGui::SameLine();
+				if (ImGui::Button("X", ImVec2{ lineHeight, lineHeight }))
+					component.ClearAudioClip();
+			}
+
+			ImGui::Text("Auto Play On Start");
+			ImGui::SameLine();
+			ImGui::Checkbox("##AutoPlayOnStart", &component.AutoPlayOnStart);
+
+			ImGui::Text("Looping");
+			ImGui::SameLine();
+			if (ImGui::Checkbox("##Looping", &component.Params.Loop))
+				AudioEngine::SetSoundLooping(entity.GetUUID(), component.Params.Loop);
+
+			ImGui::Text("Volume");
+			ImGui::SameLine();
+			if (ImGui::DragFloat("##Volume", &component.Params.Volume, 0.1f))
+				AudioEngine::SetSoundVolume(entity.GetUUID(), component.Params.Volume);
+
+			ImGui::Text("Pitch");
+			ImGui::SameLine();
+			if (ImGui::DragFloat("##Pitch", &component.Params.Pitch, 0.1f))
+				AudioEngine::SetSoundPitch(entity.GetUUID(), component.Params.Pitch);
 		});
 	}
 

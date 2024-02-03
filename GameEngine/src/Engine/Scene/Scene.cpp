@@ -122,6 +122,7 @@ namespace Engine
 		if (m_IsRunning)
 		{
 			Physics2DEngine::DestroyBody(entity);
+			AudioEngine::ClearAudioSource(entity.GetUUID());
 		}
 
 		if (entity.GetComponent<RelationshipComponent>().Parent.IsValid())
@@ -276,6 +277,16 @@ namespace Engine
 
 		// Scripts OnStart
 		OnScriptsStart();
+
+		// Start Audio on Start
+		m_Registry.view<AudioSourceComponent>().each([=](auto e, const auto& source)
+		{
+			Entity entity = { e, this };
+			if (source.AutoPlayOnStart)
+			{
+				AudioEngine::PlaySound(entity.GetUUID(), source.Clip, source.Params);
+			}
+		});
 	}
 
 	void Scene::OnSimulationStart()
@@ -295,6 +306,13 @@ namespace Engine
 
 		// Destroy Physics Objects
 		OnPhysics2DStop();
+
+		// Stop Audio
+		m_Registry.view<AudioSourceComponent>().each([=](auto e, const auto& source)
+		{
+			Entity entity = { e, this };
+			AudioEngine::ClearAudioSource(entity.GetUUID());
+		});
 	}
 
 	void Scene::OnSimulationStop()
@@ -318,7 +336,7 @@ namespace Engine
 			// Late Update scripts
 			OnScriptsLateUpdate(ts);
 		}
-		
+
 		// Render 2D
 		Camera* mainCamera = nullptr;
 		glm::mat4 cameraTransform;
@@ -353,6 +371,9 @@ namespace Engine
 		OnRenderUIUpdate();
 
 		Renderer2D::EndScene();
+
+		// Pause Audio Playback
+		AudioEngine::PausePlayback(m_IsPaused);
 	}
 
 	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
@@ -651,6 +672,19 @@ namespace Engine
 	template<>
 	void Scene::OnComponentAdded<TextRendererComponent>(Entity entity, TextRendererComponent& component)
 	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<AudioSourceComponent>(Entity entity, AudioSourceComponent& component)
+	{
+		if (m_IsRunning)
+		{
+			auto& source = entity.GetComponent<AudioSourceComponent>();
+			if (source.AutoPlayOnStart)
+			{
+				AudioEngine::PlaySound(entity.GetUUID(), component.Clip, component.Params);
+			}
+		}
 	}
 
 	template<>

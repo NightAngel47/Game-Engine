@@ -232,4 +232,40 @@ namespace Engine.Scene
 			InternalCalls.ScriptComponent_InstantiateClass(Entity.ID, className);
 		}
 	}
+
+	public class AudioSourceComponent : Component
+	{
+		public void Play()
+		{
+			InternalCalls.AudioSourceComponent_PlaySound(Entity.ID);
+		}
+		
+		public void Stop()
+		{
+			InternalCalls.AudioSourceComponent_StopSound(Entity.ID);
+		}
+
+		public bool IsPlaying()
+		{
+			return InternalCalls.AudioSourceComponent_IsSoundPlaying(Entity.ID);
+		}
+
+		public bool Looping
+		{
+			get => InternalCalls.AudioSourceComponent_GetSoundLooping(Entity.ID);
+			set => InternalCalls.AudioSourceComponent_SetSoundLooping(Entity.ID, value);
+		}
+
+		public float Volume
+		{
+			get => InternalCalls.AudioSourceComponent_GetSoundVolume(Entity.ID);
+			set => InternalCalls.AudioSourceComponent_SetSoundVolume(Entity.ID, value);
+		}
+
+		public float Pitch
+		{
+			get => InternalCalls.AudioSourceComponent_GetSoundPitch(Entity.ID);
+			set => InternalCalls.AudioSourceComponent_SetSoundPitch(Entity.ID, value);
+		}
+	}
 }

@@ -8,6 +8,7 @@
 #include "Engine/Project/Project.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/UI/UIEngine.h"
+#include "Engine/Audio/AudioEngine.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -105,6 +106,8 @@ namespace Engine
 #pragma region Game Components
 	// Components Available to Entities
 
+	// Rendering
+
 	struct SpriteRendererComponent
 	{
 		AssetHandle Texture = AssetHandle::INVALID();
@@ -191,6 +194,8 @@ namespace Engine
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
 	};
+
+	// Script
 
 	// forward declaration
 	class ScriptFieldDataBase;
@@ -289,6 +294,34 @@ namespace Engine
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
 
+	// Audio
+
+	struct AudioSourceComponent
+	{
+		AssetHandle Clip = AssetHandle::INVALID();
+
+		SoundParams Params;
+
+		bool AutoPlayOnStart = false;
+
+		void AssignAudioClip(AssetHandle handle)
+		{
+			if (AssetManager::IsAssetHandleValid(handle))
+			{
+				Clip = handle;
+				AssetManager::GetAsset<AudioClip>(Clip);
+			}
+		}
+
+		void ClearAudioClip()
+		{
+			Clip = AssetHandle::INVALID();
+		}
+
+		AudioSourceComponent() = default;
+		AudioSourceComponent(const AudioSourceComponent&) = default;
+	};
+
 #pragma endregion GameComponents
 
 #pragma region GameUIComponents
@@ -363,5 +396,6 @@ namespace Engine
 		CameraComponent, 
 		NativeScriptComponent, ScriptComponent, 
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
+		AudioSourceComponent,
 		UILayoutComponent, UIButtonComponent>;
 }

@@ -38,6 +38,8 @@
 
 #include "Engine/Scripting/ScriptEngine.h"
 
+#include "Engine/Audio/AudioEngine.h"
+
 #include "Engine/Asset/Assets.h"
 #include "Engine/Asset/AssetManager.h"
 #include "Engine/Asset/AssetImporter.h"

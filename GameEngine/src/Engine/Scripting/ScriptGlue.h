@@ -214,6 +214,21 @@ namespace InternalCalls
 		static void ScriptComponent_InstantiateClass(Engine::UUID entityID, MonoString* className);
 
 #pragma endregion ScriptComponent
+
+#pragma region AudioSourceComponent
+
+		static void AudioSourceComponent_PlaySound(Engine::UUID entityID);
+		static void AudioSourceComponent_StopSound(Engine::UUID entityID);
+		static bool AudioSourceComponent_IsSoundPlaying(Engine::UUID entityID);
+
+		static bool AudioSourceComponent_GetSoundLooping(Engine::UUID entityID);
+		static void AudioSourceComponent_SetSoundLooping(Engine::UUID entityID, bool state);
+		static float AudioSourceComponent_GetSoundVolume(Engine::UUID entityID);
+		static void AudioSourceComponent_SetSoundVolume(Engine::UUID entityID, float volume);
+		static float AudioSourceComponent_GetSoundPitch(Engine::UUID entityID);
+		static void AudioSourceComponent_SetSoundPitch(Engine::UUID entityID, float pitch);
+
+#pragma endregion AudioSourceComponent
 	};
 
 }
