@@ -270,6 +270,10 @@ namespace Engine
 		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
 
+		bool isVSync = Application::Get().GetWindow().IsVSync();
+		if (ImGui::Checkbox("VSync", &isVSync))
+			Application::Get().GetWindow().SetVSync(isVSync);
+
 		ImGui::Separator();
 		ImGui::Text("Audio");
 		int outputDevice = AudioEngine::GetOutputDevice();
