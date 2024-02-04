@@ -38,6 +38,23 @@ namespace Engine
 
 	static AudioEngineData* s_AudioEngineData = nullptr;
 
+	bool CheckForAudioInstance(UUID entityID)
+	{
+		if (!s_AudioEngineData)
+			return false;
+
+		if (!entityID.IsValid())
+			return false;
+
+		if (s_AudioEngineData->AudioSources.find(entityID) == s_AudioEngineData->AudioSources.end())
+		{
+			ENGINE_CORE_WARN("Audio Source doesn't have instance!");
+			return false;
+		}
+
+		return true;
+	}
+
 	void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 	{
 		(void)pInput;
@@ -336,6 +353,9 @@ namespace Engine
 
 	void AudioEngine::StopSound(UUID entityID)
 	{
+		if (!CheckForAudioInstance(entityID))
+			return;
+
 		for (auto& sound : s_AudioEngineData->AudioSources.at(entityID).SoundInstances)
 			ma_sound_stop(&sound);
 	}
@@ -347,6 +367,9 @@ namespace Engine
 
 	bool AudioEngine::IsSoundPlaying(UUID entityID)
 	{
+		if (!CheckForAudioInstance(entityID))
+			return false;
+
 		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
 		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
 		return ma_sound_is_playing(&soundInstance);
@@ -354,6 +377,9 @@ namespace Engine
 
 	bool AudioEngine::GetSoundLooping(UUID entityID)
 	{
+		if (!CheckForAudioInstance(entityID))
+			return false;
+
 		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
 		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
 		return ma_sound_is_looping(&soundInstance);
@@ -361,12 +387,18 @@ namespace Engine
 
 	void AudioEngine::SetSoundLooping(UUID entityID, bool state)
 	{
+		if (!CheckForAudioInstance(entityID))
+			return;
+
 		for (auto& sound : s_AudioEngineData->AudioSources.at(entityID).SoundInstances)
 			ma_sound_set_looping(&sound, state);
 	}
 
 	float AudioEngine::GetSoundVolume(UUID entityID)
 	{
+		if (!CheckForAudioInstance(entityID))
+			return 0;
+
 		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
 		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
 		return ma_sound_get_volume(&soundInstance);
@@ -374,12 +406,18 @@ namespace Engine
 
 	void AudioEngine::SetSoundVolume(UUID entityID, float volume)
 	{
+		if (!CheckForAudioInstance(entityID))
+			return;
+
 		for (auto& sound : s_AudioEngineData->AudioSources.at(entityID).SoundInstances)
 			ma_sound_set_volume(&sound, volume);
 	}
 
 	float AudioEngine::GetSoundPitch(UUID entityID)
 	{
+		if (!CheckForAudioInstance(entityID))
+			return 0;
+
 		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
 		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
 		return ma_sound_get_pitch(&soundInstance);
@@ -387,6 +425,9 @@ namespace Engine
 
 	void AudioEngine::SetSoundPitch(UUID entityID, float pitch)
 	{
+		if (!CheckForAudioInstance(entityID))
+			return;
+
 		for (auto& sound : s_AudioEngineData->AudioSources.at(entityID).SoundInstances)
 			ma_sound_set_pitch(&sound, pitch);
 	}
