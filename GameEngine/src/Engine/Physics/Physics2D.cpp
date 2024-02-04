@@ -13,9 +13,9 @@ namespace Engine
 
 	struct PhysicsWorldSettings
 	{
-		const float PhysicsTimestep = 1.0f / 60.0f;
-		const uint32_t VelocityIteractions = 20;
-		const uint32_t PositionIteractions = 16;
+		const float PHYSICS_TIMESTEP = 1.0f / 60.0f;
+		const uint32_t VELOCITY_INTERACTIONS = 20;
+		const uint32_t POSITION_INTERACTIONS = 16;
 	};
 
 	struct Physics2DEngineData
@@ -82,6 +82,7 @@ namespace Engine
 		s_physics2DEngineData = new Physics2DEngineData();
 
 		s_physics2DEngineData->PhysicsWorld = new b2World({ 0.0f, -9.8f });
+		s_physics2DEngineData->PhysicsWorld->SetAllowSleeping(true);
 		s_physics2DEngineData->PhysicsWorld->SetAutoClearForces(false);
 
 		auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<Rigidbody2DComponent>();
@@ -115,18 +116,16 @@ namespace Engine
 	// Box2d Specific: https://www.unagames.com/blog/daniele/2010/06/fixed-time-step-implementation-box2d#:~:text=If%20you%20are%20interested%20in,with%20a%20variable%20frame%2Drate.
 	void Physics2DEngine::OnPhysicsUpdate(Timestep ts)
 	{
-		const int maxSteps = 5;
+		const int MAX_STEPS = 5;
 		s_physics2DEngineData->Accumulator += ts;
-		const int nSteps = std::floor(s_physics2DEngineData->Accumulator / s_physics2DEngineData->Settings.PhysicsTimestep);
+		const int nSteps = glm::floor(s_physics2DEngineData->Accumulator / s_physics2DEngineData->Settings.PHYSICS_TIMESTEP);
 		if (nSteps > 0)
-		{
-			s_physics2DEngineData->Accumulator -= nSteps * s_physics2DEngineData->Settings.PhysicsTimestep;
-		}
-		s_physics2DEngineData->AccumulatorRatio = s_physics2DEngineData->Accumulator / s_physics2DEngineData->Settings.PhysicsTimestep;
+			s_physics2DEngineData->Accumulator -= nSteps * s_physics2DEngineData->Settings.PHYSICS_TIMESTEP;
+
+		s_physics2DEngineData->AccumulatorRatio = s_physics2DEngineData->Accumulator / s_physics2DEngineData->Settings.PHYSICS_TIMESTEP;
 
 		auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<Rigidbody2DComponent>();
-
-		const int nStepsClamped = std::min(nSteps, maxSteps);
+		const int nStepsClamped = glm::min(nSteps, MAX_STEPS);
 		for (int i = 0; i < nStepsClamped; ++i)
 		{
 			// reset smoothing
@@ -165,13 +164,17 @@ namespace Engine
 				}
 			}
 
-			s_physics2DEngineData->PhysicsWorld->Step(s_physics2DEngineData->Settings.PhysicsTimestep, s_physics2DEngineData->Settings.VelocityIteractions, s_physics2DEngineData->Settings.PositionIteractions);
+			s_physics2DEngineData->PhysicsWorld->Step(s_physics2DEngineData->Settings.PHYSICS_TIMESTEP, s_physics2DEngineData->Settings.VELOCITY_INTERACTIONS, s_physics2DEngineData->Settings.POSITION_INTERACTIONS);
 			DestroyQueuedBodiesToDestroy();
 			SetPositionQueuedBodiesToPosition();
 			SetRotationQueuedBodiesToRotate();
 		}
 
 		s_physics2DEngineData->PhysicsWorld->ClearForces();
+
+		// Smooth on Physics step only for consistent behavior in regards to framerate
+		if (nStepsClamped <= 0)
+			return;
 
 		// apply smoothing
 		const float oneMinusRatio = 1.0f - s_physics2DEngineData->AccumulatorRatio;
@@ -198,9 +201,10 @@ namespace Engine
 				}
 				case Rigidbody2DComponent::SmoothingType::Extrapolation:
 				{
-					auto& position = body->GetPosition() + ts * body->GetLinearVelocity();
+					float dt = s_physics2DEngineData->AccumulatorRatio * s_physics2DEngineData->Settings.PHYSICS_TIMESTEP;
+					auto& position = body->GetPosition() + dt * body->GetLinearVelocity();
 					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-					transform.Rotation.z = body->GetAngle() + ts * body->GetAngularVelocity();
+					transform.Rotation.z = body->GetAngle() + dt * body->GetAngularVelocity();
 					break;
 				}
 				case Rigidbody2DComponent::SmoothingType::None:
