@@ -276,12 +276,19 @@ namespace Engine
 
 		ImGui::Separator();
 		ImGui::Text("Audio");
+		
 		int outputDevice = AudioEngine::GetOutputDevice();
 		ImGui::Text("Device: %s", AudioEngine::GetDeviceName(outputDevice));
 		if (ImGui::DragInt("Device", &outputDevice, 1.0f, 0, AudioEngine::GetTotalOutputDevices() - 1))
-		{
 			AudioEngine::SetOutputDevice(outputDevice);
-		}
+		
+		bool isMuted = AudioEngine::IsMasterVolumeMuted();
+		if (ImGui::Checkbox("Mute Master Audio", &isMuted))
+			AudioEngine::ToggleMuteMasterVolume();
+
+		float masterVolume = AudioEngine::GetMasterVolume();
+		if (ImGui::DragFloat("Master Volume", &masterVolume, 0.01f, 0.0f, 1.0f))
+			AudioEngine::SetMasterVolume(masterVolume);
 
 		ImGui::End();
 

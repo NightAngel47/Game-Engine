@@ -33,6 +33,9 @@ namespace Engine
 		std::unordered_map<UUID, AudioSource> AudioSources;
 		bool PlaybackPaused;
 
+		float MasterVolume;
+		bool IsMutedMaster;
+
 		uint32_t OutputDevice;
 	};
 
@@ -255,9 +258,43 @@ namespace Engine
 		if (!s_AudioEngineData)
 			return;
 
+		s_AudioEngineData->MasterVolume = linearVolume;
+
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
 			ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engines[i], linearVolume);
+			if (result != MA_SUCCESS)
+				ENGINE_CORE_WARN("Failed to set master volume!");
+		}
+	}
+
+	float AudioEngine::GetMasterVolume()
+	{
+		if (!s_AudioEngineData)
+			return 0;
+
+		return s_AudioEngineData->MasterVolume;
+	}
+
+	bool AudioEngine::IsMasterVolumeMuted()
+	{
+		if (!s_AudioEngineData)
+			return true;
+
+		return s_AudioEngineData->IsMutedMaster;
+	}
+
+	void AudioEngine::ToggleMuteMasterVolume()
+	{
+		if (!s_AudioEngineData)
+			return;
+
+		s_AudioEngineData->IsMutedMaster = !s_AudioEngineData->IsMutedMaster;
+
+		float volume = s_AudioEngineData->IsMutedMaster ? 0 : s_AudioEngineData->MasterVolume;
+		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
+		{
+			ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engines[i], volume);
 			if (result != MA_SUCCESS)
 				ENGINE_CORE_WARN("Failed to set master volume!");
 		}
