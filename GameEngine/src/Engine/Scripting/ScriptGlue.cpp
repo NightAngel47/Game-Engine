@@ -496,8 +496,12 @@ namespace InternalCalls
 	MonoObject* ScriptGlue::Entity_GetScriptInstance(Engine::UUID entityID)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
-		auto& instance = Engine::ScriptEngine::GetEntityInstance(entity);
-		return instance->GetMonoObject();
+		Engine::Ref<Engine::ScriptInstance> instance = Engine::ScriptEngine::GetEntityInstance(entity);
+		if (instance != nullptr)
+			return instance->GetMonoObject();
+
+		ENGINE_CORE_WARN("ScriptInstance was null for {}", entityID);
+		return nullptr;
 	}
 
 	void ScriptGlue::Entity_DestroyEntity(Engine::UUID entityID)

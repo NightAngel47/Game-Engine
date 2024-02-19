@@ -299,7 +299,7 @@ namespace Engine
 		void InvokeOnCollisionEnter2D(Physics2DContact contact2D);
 		void InvokeOnCollisionExit2D(Physics2DContact contact2D);
 
-		MonoObject* GetMonoObject() { return m_Instance; }
+		MonoObject* GetMonoObject();
 
 	private:
 		bool GetFieldValueInternal(const std::string& name, void* buffer);
@@ -308,7 +308,7 @@ namespace Engine
 	private:
 		Ref<ScriptClass> m_ScriptClass;
 
-		MonoObject* m_Instance = nullptr;
+		uint32_t m_GCHandle = 0;
 
 		MonoMethod* m_Constructor = nullptr;
 		OnCreate OnCreateThunk = nullptr;

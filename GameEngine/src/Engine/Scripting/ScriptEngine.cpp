@@ -541,6 +541,12 @@ namespace Engine
 	MonoObject* ScriptEngine::InstantiateClass(MonoClass* monoClass, bool isCore)
 	{
 		MonoObject* instance = mono_object_new(s_ScriptEngineData->AppDomain, monoClass); // check if app domain works
+		if (!instance)
+		{
+			ENGINE_CORE_ERROR("MonoObject Instance was null!");
+			return nullptr;
+		}
+
 		mono_runtime_object_init(instance);
 
 		return instance;
@@ -626,6 +632,7 @@ namespace Engine
 	{
 		if (EntityInstanceExists(entity))
 		{
+			mono_gchandle_free(instance->m_GCHandle);
 			s_ScriptEngineData->EntityInstances.erase(entity.GetUUID());
 			instance = nullptr;
 		}
@@ -818,7 +825,15 @@ namespace Engine
 	{
 		const auto& entityInstances = s_ScriptEngineData->EntityInstances;
 		if (entityInstances.find(entity.GetUUID()) != entityInstances.end())
-			return true;
+		{
+			const auto& instance = entityInstances.at(entity.GetUUID());
+			if (instance->GetMonoObject())
+				return true;
+
+
+			ENGINE_CORE_ERROR("Entity Instance for {}, has null MonoObject!", entity.GetUUID());
+			return false;
+		}
 
 		ENGINE_CORE_ERROR("Entity Instance for {}, does not exists!", entity.GetUUID());
 		return false;
@@ -866,13 +881,16 @@ namespace Engine
 	}
 
 	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
-		: m_ScriptClass(scriptClass), m_Instance(m_ScriptClass->Instantiate())
+		: m_ScriptClass(scriptClass)
 	{
+		MonoObject* instance = m_ScriptClass->Instantiate();
+		m_GCHandle = mono_gchandle_new(instance, false); // avoid pinning if possible
+
 		MonoMethod* constructor = mono_class_get_method_from_name(s_ScriptEngineData->EntityClass->GetMonoClass(), ".ctor", 1);
 		{
 			UUID id = entity.GetUUID();
 			void* param = &id;
-			m_ScriptClass->InvokeMethod(m_Instance, constructor, &param);
+			m_ScriptClass->InvokeMethod(instance, constructor, &param);
 		}
 
 		MonoClass* monoClass = m_ScriptClass->GetMonoClass();
@@ -933,13 +951,16 @@ namespace Engine
 	}
 
 	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, AssetHandle handle)
-		: m_ScriptClass(scriptClass), m_Instance(m_ScriptClass->Instantiate())
+		: m_ScriptClass(scriptClass)
 	{
+		MonoObject* instance = m_ScriptClass->Instantiate();
+		m_GCHandle = mono_gchandle_new(instance, false); // avoid pinning if possible
+
 		MonoMethod* constructor = mono_class_get_method_from_name(s_ScriptEngineData->PrefabClass->GetMonoClass(), ".ctor", 1); // TODO change for asset class later vs prefab class
 		{
 			UUID id = handle;
 			void* param = &id;
-			m_ScriptClass->InvokeMethod(m_Instance, constructor, &param);
+			m_ScriptClass->InvokeMethod(instance, constructor, &param);
 		}
 
 		MonoClass* monoClass = m_ScriptClass->GetMonoClass();
@@ -947,92 +968,122 @@ namespace Engine
 
 	void ScriptInstance::InvokeOnCreate()
 	{
-		if (!OnCreateThunk || !m_Instance) return; // handle script without OnCreate
+		if (!OnCreateThunk) return; // handle script without OnCreate
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return;
 
 		MonoObject* ptrExObject = nullptr;
-		OnCreateThunk(m_Instance, &ptrExObject);
+		OnCreateThunk(instance, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnStart()
 	{
-		if (!OnStartThunk || !m_Instance) return; // handle script without OnStart
+		if (!OnStartThunk) return; // handle script without OnStart
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return;
 
 		MonoObject* ptrExObject = nullptr;
-		OnStartThunk(m_Instance, &ptrExObject);
+		OnStartThunk(instance, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnDestroy()
 	{
-		if (!OnDestroyThunk || !m_Instance) return; // handle script without OnDestroy
+		if (!OnDestroyThunk) return; // handle script without OnDestroy
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return;
 
 		MonoObject* ptrExObject = nullptr;
-		OnDestroyThunk(m_Instance, &ptrExObject);
+		OnDestroyThunk(instance, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnUpdate(float ts)
 	{
-		if (!OnUpdateThunk || !m_Instance) return; // handle script without OnUpdate
+		if (!OnUpdateThunk) return; // handle script without OnUpdate
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return;
 
 		MonoObject* ptrExObject = nullptr;
-		OnUpdateThunk(m_Instance, &ts, &ptrExObject);
+		OnUpdateThunk(instance, &ts, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnLateUpdate(float ts)
 	{
-		if (!OnLateUpdateThunk || !m_Instance) return; // handle script without OnLateUpdate
+		if (!OnLateUpdateThunk) return; // handle script without OnLateUpdate
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return;
 
 		MonoObject* ptrExObject = nullptr;
-		OnLateUpdateThunk(m_Instance, &ts, &ptrExObject);
+		OnLateUpdateThunk(instance, &ts, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnTriggerEnter2D(Physics2DContact contact2D)
 	{
-		if (!OnTriggerEnter2DThunk || !m_Instance) return; // handle script without OnTriggerEnter2D
+		if (!OnTriggerEnter2DThunk) return; // handle script without OnTriggerEnter2D
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return;
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
-		OnTriggerEnter2DThunk(m_Instance, paramBox, &ptrExObject);
+		OnTriggerEnter2DThunk(instance, paramBox, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnTriggerExit2D(Physics2DContact contact2D)
 	{
-		if (!OnTriggerExit2DThunk || !m_Instance) return; // handle script without OnTriggerExit2D
+		if (!OnTriggerExit2DThunk) return; // handle script without OnTriggerExit2D
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return;
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
-		OnTriggerExit2DThunk(m_Instance, paramBox, &ptrExObject);
+		OnTriggerExit2DThunk(instance, paramBox, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnCollisionEnter2D(Physics2DContact contact2D)
 	{
-		if (!OnCollisionEnter2DThunk || !m_Instance) return; // handle script without OnCollisionEnter2D
+		if (!OnCollisionEnter2DThunk) return; // handle script without OnCollisionEnter2D
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return;
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
-		OnCollisionEnter2DThunk(m_Instance, paramBox, &ptrExObject);
+		OnCollisionEnter2DThunk(instance, paramBox, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
 	}
 
 	void ScriptInstance::InvokeOnCollisionExit2D(Physics2DContact contact2D)
 	{
-		if (!OnCollisionExit2DThunk || !m_Instance) return; // handle script without OnCollisionExit2D
+		if (!OnCollisionExit2DThunk) return; // handle script without OnCollisionExit2D
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return;
 
 		MonoObject* ptrExObject = nullptr;
 		MonoObject* paramBox = mono_value_box(s_ScriptEngineData->AppDomain, s_ScriptEngineData->Physics2DContactStruct, &contact2D);
-		OnCollisionExit2DThunk(m_Instance, paramBox, &ptrExObject);
+		OnCollisionExit2DThunk(instance, paramBox, &ptrExObject);
 		ScriptEngine::HandleMonoException(ptrExObject);
+	}
+
+	MonoObject* ScriptInstance::GetMonoObject()
+	{
+		if (m_GCHandle != 0)
+		{
+			return mono_gchandle_get_target(m_GCHandle);
+		}
+
+		ENGINE_CORE_ERROR("Mono GC Handle pointed to Null Ref");
+		return nullptr;
 	}
 
 	bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
 	{
-		if (!m_Instance) return false;
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return false;
 
 		const auto& fields = m_ScriptClass->GetScriptFields();
 		auto it = fields.find(name);
@@ -1040,13 +1091,15 @@ namespace Engine
 			return false;
 
 		const ScriptField& field = it->second;
-		mono_field_get_value(m_Instance, field.ClassField, buffer);
+		mono_field_get_value(instance, field.ClassField, buffer);
 		return true;
 	}
 
 	bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value)
 	{
-		if (!m_Instance) return false;
+
+		MonoObject* instance = GetMonoObject();
+		if (!instance) return false;
 
 		const auto& fields = m_ScriptClass->GetScriptFields();
 		auto it = fields.find(name);
@@ -1054,7 +1107,7 @@ namespace Engine
 			return false;
 
 		const ScriptField& field = it->second;
-		mono_field_set_value(m_Instance, field.ClassField, (void*)value);
+		mono_field_set_value(instance, field.ClassField, (void*)value);
 		return true;
 	}
 
