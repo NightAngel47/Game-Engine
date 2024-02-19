@@ -46,6 +46,9 @@ namespace Engine
 
 	static void DestroyQueuedBodiesToDestroy()
 	{
+		if (s_physics2DEngineData->QueuedBodiesToDestroy.empty())
+			return;
+
 		for (b2Body* body : s_physics2DEngineData->QueuedBodiesToDestroy)
 		{
 			if (body)
@@ -57,6 +60,9 @@ namespace Engine
 
 	static void SetPositionQueuedBodiesToPosition()
 	{
+		if (s_physics2DEngineData->QueuedBodiesToPosition.empty())
+			return;
+
 		for (const auto& [body, position] : s_physics2DEngineData->QueuedBodiesToPosition)
 		{
 			if (body)
@@ -68,6 +74,9 @@ namespace Engine
 
 	static void SetRotationQueuedBodiesToRotate()
 	{
+		if (s_physics2DEngineData->QueuedBodiesToRotate.empty())
+			return;
+
 		for (const auto& [body, angle] : s_physics2DEngineData->QueuedBodiesToRotate)
 		{
 			if (body)
