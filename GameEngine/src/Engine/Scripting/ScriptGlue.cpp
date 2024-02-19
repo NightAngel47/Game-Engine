@@ -84,6 +84,12 @@ namespace InternalCalls
 
 		ENGINE_ADD_INTERNAL_CALL(Physics2DContact_GetEntityByID);
 
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_GetMasterVolume);
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_SetMasterVolume);
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_IsMasterVolumeMuted);
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_SetMasterVolumeMuted);
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_ToggleMuteMasterVolume);
+
 		ENGINE_ADD_INTERNAL_CALL(SceneManager_LoadSceneByHandle);
 		ENGINE_ADD_INTERNAL_CALL(SceneManager_LoadSceneByPath);
 
@@ -389,6 +395,35 @@ namespace InternalCalls
 	}
 
 #pragma endregion Physics2DContact
+
+#pragma region AudioEngine
+
+	float ScriptGlue::AudioEngine_GetMasterVolume()
+	{
+		return Engine::AudioEngine::GetMasterVolume();
+	}
+
+	void ScriptGlue::AudioEngine_SetMasterVolume(float volume)
+	{
+		Engine::AudioEngine::SetMasterVolume(volume);
+	}
+
+	bool ScriptGlue::AudioEngine_IsMasterVolumeMuted()
+	{
+		return Engine::AudioEngine::IsMasterVolumeMuted();
+	}
+
+	void ScriptGlue::AudioEngine_SetMasterVolumeMuted(bool state)
+	{
+		Engine::AudioEngine::SetMasterVolumeMuted(state);
+	}
+
+	void ScriptGlue::AudioEngine_ToggleMuteMasterVolume()
+	{
+		Engine::AudioEngine::ToggleMuteMasterVolume();
+	}
+
+#pragma endregion AudioEngine
 
 #pragma region SceneManager
 

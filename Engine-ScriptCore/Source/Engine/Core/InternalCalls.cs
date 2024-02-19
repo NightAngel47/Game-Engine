@@ -134,6 +134,25 @@ namespace Engine.Core
 
 		#endregion Physics2DContact
 
+		#region AudioEngine
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float AudioEngine_GetMasterVolume();
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioEngine_SetMasterVolume(float volume);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern bool AudioEngine_IsMasterVolumeMuted();
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioEngine_SetMasterVolumeMuted(bool state);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioEngine_ToggleMuteMasterVolume();
+
+		#endregion AudioEngine
+
 		#region SceneManager
 
 		[MethodImpl(MethodImplOptions.InternalCall)]

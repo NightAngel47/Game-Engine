@@ -260,6 +260,9 @@ namespace Engine
 
 		s_AudioEngineData->MasterVolume = linearVolume;
 
+		if (s_AudioEngineData->IsMutedMaster)
+			return;
+
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
 			ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engines[i], linearVolume);
@@ -284,12 +287,12 @@ namespace Engine
 		return s_AudioEngineData->IsMutedMaster;
 	}
 
-	void AudioEngine::ToggleMuteMasterVolume()
+	void AudioEngine::SetMasterVolumeMuted(bool state)
 	{
 		if (!s_AudioEngineData)
 			return;
 
-		s_AudioEngineData->IsMutedMaster = !s_AudioEngineData->IsMutedMaster;
+		s_AudioEngineData->IsMutedMaster = state;
 
 		float volume = s_AudioEngineData->IsMutedMaster ? 0 : s_AudioEngineData->MasterVolume;
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
@@ -298,6 +301,14 @@ namespace Engine
 			if (result != MA_SUCCESS)
 				ENGINE_CORE_WARN("Failed to set master volume!");
 		}
+	}
+
+	void AudioEngine::ToggleMuteMasterVolume()
+	{
+		if (!s_AudioEngineData)
+			return;
+
+		SetMasterVolumeMuted(!s_AudioEngineData->IsMutedMaster);
 	}
 
 	void AudioEngine::LoadSound(const std::filesystem::path& path, AssetHandle handle)

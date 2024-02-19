@@ -31,6 +31,7 @@ namespace Engine
 		static void SetMasterVolume(float linearVolume);
 		static float GetMasterVolume();
 		static bool IsMasterVolumeMuted();
+		static void SetMasterVolumeMuted(bool state);
 		static void ToggleMuteMasterVolume();
 
 		static void LoadSound(const std::filesystem::path& path, AssetHandle handle);

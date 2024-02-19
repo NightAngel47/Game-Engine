@@ -97,6 +97,16 @@ namespace InternalCalls
 
 #pragma endregion Physics2DContact
 
+#pragma region AudioEngine
+
+		static float AudioEngine_GetMasterVolume();
+		static void AudioEngine_SetMasterVolume(float volume);
+		static bool AudioEngine_IsMasterVolumeMuted();
+		static void AudioEngine_SetMasterVolumeMuted(bool state);
+		static void AudioEngine_ToggleMuteMasterVolume();
+
+#pragma endregion AudioEngine
+
 #pragma region SceneManager
 
 		static void SceneManager_LoadSceneByHandle(Engine::AssetHandle handle);

@@ -54,6 +54,7 @@ namespace Engine
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 
 		AudioEngine::SetMasterVolume(0.1f);
+		AudioEngine::SetMasterVolumeMuted(true);
 	}
 
 	void EditorLayer::OnDetach()
@@ -284,7 +285,7 @@ namespace Engine
 		
 		bool isMuted = AudioEngine::IsMasterVolumeMuted();
 		if (ImGui::Checkbox("Mute Master Audio", &isMuted))
-			AudioEngine::ToggleMuteMasterVolume();
+			AudioEngine::SetMasterVolumeMuted(isMuted);
 
 		float masterVolume = AudioEngine::GetMasterVolume();
 		if (ImGui::DragFloat("Master Volume", &masterVolume, 0.01f, 0.0f, 1.0f))
