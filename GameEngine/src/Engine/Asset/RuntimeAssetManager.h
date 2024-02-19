@@ -3,7 +3,6 @@
 
 namespace Engine
 {
-	using AssetPack = std::unordered_map<AssetHandle, AssetMetadata>; // TODO make proper asset pack (using asset registry atm)
 
 	class RuntimeAssetManager : public AssetManagerBase
 	{
@@ -18,10 +17,10 @@ namespace Engine
 		// TODO Remove once asset pack properly implemented
 		const AssetMetadata& GetAssetMetadata(AssetHandle handle) const;
 
-		const AssetPack& GetAssets() const { return m_AssetPack; }
+		const AssetPak& GetAssets() const override { return m_AssetPak; }
 
 	private:
 		AssetMap m_LoadedAssets;
-		AssetPack m_AssetPack;
+		AssetPak m_AssetPak;
 	};
 }
