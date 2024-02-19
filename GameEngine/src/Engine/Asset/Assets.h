@@ -28,6 +28,7 @@ namespace Engine
 	{
 		AssetType Type = AssetType::None;
 		std::filesystem::path Path;
+		bool Compress;
 
 		operator bool() const { return Type != AssetType::None; }
 	};

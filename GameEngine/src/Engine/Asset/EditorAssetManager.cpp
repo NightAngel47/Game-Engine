@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Asset/EditorAssetManager.h"
 #include "Engine/Asset/AssetRegistrySerializer.h"
+#include "Engine/Asset/AssetPakSerializer.h"
 #include "Engine/Project/Project.h"
 
 namespace Engine
@@ -172,6 +173,9 @@ namespace Engine
 
 		AssetRegistrySerializer assetRegistrySerializer = AssetRegistrySerializer();
 		assetRegistrySerializer.Serialize(m_AssetRegistry);
+
+		AssetPakSerializer assetPakSerializer = AssetPakSerializer();
+		assetPakSerializer.Serialize(m_AssetRegistry);
 	}
 
 

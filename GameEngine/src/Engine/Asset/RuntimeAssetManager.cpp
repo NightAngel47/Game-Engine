@@ -7,12 +7,12 @@ namespace Engine
 	RuntimeAssetManager::RuntimeAssetManager()
 	{
 		AssetRegistrySerializer assetRegistrySerializer = AssetRegistrySerializer();
-		if (!assetRegistrySerializer.TryLoadData(m_AssetPack))
+		if (!assetRegistrySerializer.TryLoadData(m_AssetPak))
 		{
 			ENGINE_CORE_WARN("Asset Registry Failed to Load");
 
 			ENGINE_CORE_INFO("Creating Empty Asset Registry");
-			m_AssetPack = AssetRegistry();
+			m_AssetPak = AssetRegistry();
 		}
 
 		m_LoadedAssets = AssetMap();
@@ -41,7 +41,7 @@ namespace Engine
 
 	bool RuntimeAssetManager::IsAssetHandleValid(AssetHandle handle) const
 	{
-		return handle.IsValid() && m_AssetPack.find(handle) != m_AssetPack.end();
+		return handle.IsValid() && m_AssetPak.find(handle) != m_AssetPak.end();
 	}
 
 
@@ -54,8 +54,8 @@ namespace Engine
 	const AssetMetadata& RuntimeAssetManager::GetAssetMetadata(AssetHandle handle) const
 	{
 		static AssetMetadata s_NullMetadata;
-		auto it = m_AssetPack.find(handle);
-		if (it == m_AssetPack.end())
+		auto it = m_AssetPak.find(handle);
+		if (it == m_AssetPak.end())
 			return s_NullMetadata;
 
 		return it->second;
