@@ -101,7 +101,9 @@ namespace Engine.Math
 
 		public static Vector2 operator +(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X + rhs.X, lhs.Y + rhs.Y);
 		public static Vector2 operator -(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X - rhs.X, lhs.Y - rhs.Y);
+		public static Vector2 operator -(Vector2 a) => new Vector2(-a.X, -a.Y);
 		public static Vector2 operator *(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X * rhs.X, lhs.Y * rhs.Y);
 		public static Vector2 operator *(Vector2 lhs, float rhs) => new Vector2(lhs.X * rhs, lhs.Y * rhs);
+		public static Vector2 operator *(float lhs, Vector2 rhs) => new Vector2(rhs * lhs);
 	}
 }

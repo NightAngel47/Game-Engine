@@ -216,6 +216,9 @@ namespace InternalCalls
 		static float CameraComponent_GetOrthographicSize(Engine::UUID entityID);
 		static void CameraComponent_SetOrthographicSize(Engine::UUID entityID, float size);
 
+		static void CameraComponent_ScreenToWorldRay(Engine::UUID entityID, glm::vec3* ray, glm::vec2& screenPos);
+		static void CameraComponent_ScreenToWorldPoint(Engine::UUID entityID, glm::vec3* worldPoint, glm::vec2& screenPos, float depth);
+
 #pragma endregion CameraComponent
 
 #pragma region ScriptComponent

@@ -345,6 +345,12 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void CameraComponent_SetOrthographicSize(ulong entityID, float size);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float CameraComponent_ScreenToWorldRay(ulong entityID, out Vector3 ray, ref Vector2 screenPos);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float CameraComponent_ScreenToWorldPoint(ulong entityID, out Vector3 worldPoint, ref Vector2 screenPos, float depth);
+
 		#endregion CameraComponent
 
 		#region ScriptComponent

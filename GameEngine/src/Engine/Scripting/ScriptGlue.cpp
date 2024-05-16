@@ -151,6 +151,8 @@ namespace InternalCalls
 
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_GetOrthographicSize);
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_SetOrthographicSize);
+		ENGINE_ADD_INTERNAL_CALL(CameraComponent_ScreenToWorldRay);
+		ENGINE_ADD_INTERNAL_CALL(CameraComponent_ScreenToWorldPoint);
 
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_GetClassName);
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_InstantiateClass);
@@ -857,6 +859,20 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		entity.GetComponent<Engine::CameraComponent>().Camera.SetOrthographicSize(size);
+	}
+
+	void ScriptGlue::CameraComponent_ScreenToWorldRay(Engine::UUID entityID, glm::vec3* ray, glm::vec2& screenPos)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*ray = entity.GetComponent<Engine::CameraComponent>().Camera.ScreenToWorldRay(screenPos);
+	}
+
+	void ScriptGlue::CameraComponent_ScreenToWorldPoint(Engine::UUID entityID, glm::vec3* worldPoint, glm::vec2& screenPos, float depth)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		glm::vec3 ray = entity.GetComponent<Engine::CameraComponent>().Camera.ScreenToWorldRay(screenPos);
+		*worldPoint = entity.GetComponent<Engine::TransformComponent>().Position + ray;
+		worldPoint->z = depth;
 	}
 
 #pragma endregion CameraComponent

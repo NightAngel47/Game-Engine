@@ -50,6 +50,7 @@ namespace Engine
 
 		Application& app = Application::Get();
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+		m_Viewport = CreateScope<Viewport>();
 
 		// Setup Platfrom/Renderer bindings
 		ImGui_ImplGlfw_InitForOpenGL(window, true);

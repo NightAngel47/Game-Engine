@@ -218,6 +218,20 @@ namespace Engine.Scene
 			get => InternalCalls.CameraComponent_GetOrthographicSize(Entity.ID);
 			set => InternalCalls.CameraComponent_SetOrthographicSize(Entity.ID, value);
 		}
+
+		public Vector3 ScreenToRay(Vector2 screenPos)
+		{
+			Vector3 ray;
+			InternalCalls.CameraComponent_ScreenToWorldRay(Entity.ID, out ray, ref screenPos);
+			return ray;
+		}
+
+		public Vector3 ScreenToWorldPoint(Vector2 screenPos, float depth = 0.0f)
+		{
+			Vector3 worldPoint;
+			InternalCalls.CameraComponent_ScreenToWorldPoint(Entity.ID, out worldPoint, ref screenPos, depth);
+			return worldPoint;
+		}
 	}
 
 	public class ScriptComponent : Component

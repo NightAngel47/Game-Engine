@@ -69,15 +69,16 @@ namespace Engine
 		auto editorSceneManager = Project::GetActive()->GetEditorSceneManager();
 		auto activeScene = editorSceneManager->GetActiveScene();
 
-		activeScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+		glm::vec2 viewportSize = Application::Get().GetImGuiLayer()->GetViewportSize();
+		activeScene->OnViewportResize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 		
 		// Resize
 		if (FramebufferSpecification spec = m_Framebuffer->GetSpecification(); 
-			m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && 
-			(spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
+			viewportSize.x > 0.0f && viewportSize.y > 0.0f &&
+			(spec.Width != viewportSize.x || spec.Height != viewportSize.y))
 		{
-			m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-			m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+			m_Framebuffer->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+			m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 		}
 		
 		// Render
@@ -128,6 +129,8 @@ namespace Engine
 
 		// Overlay Rendering
 		OnOverlayRender();
+		
+		Renderer2D::EndScene();
 
 		m_Framebuffer->Unbind();
 	}
@@ -266,7 +269,8 @@ namespace Engine
 
 		ImGui::Separator();
 		ImGui::Text("UI");
-		ImGui::DragFloat2("Viewport Size", glm::value_ptr(m_ViewportSize));
+		Viewport* viewport = &Application::Get().GetImGuiLayer()->GetViewport();
+		ImGui::DragFloat2("Viewport Size", glm::value_ptr(viewport->m_ViewportSize));
 
 		glm::vec2 windowSize{ Application::Get().GetWindow().GetWidth(), Application::Get().GetWindow().GetHeight() };
 		ImGui::DragFloat2("Viewport Size", glm::value_ptr(windowSize));
@@ -274,6 +278,10 @@ namespace Engine
 		bool isVSync = Application::Get().GetWindow().IsVSync();
 		if (ImGui::Checkbox("VSync", &isVSync))
 			Application::Get().GetWindow().SetVSync(isVSync);
+
+		float editorCamFOV = m_EditorCamera.GetFOV();
+		if (ImGui::DragFloat("FOV", &editorCamFOV, 1.0f, 0.0f, 179.0f))
+			m_EditorCamera.SetFOV(editorCamFOV);
 
 		ImGui::Separator();
 		ImGui::Text("Audio");
@@ -299,18 +307,18 @@ namespace Engine
 		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
 		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
 		auto viewportOffset = ImGui::GetWindowPos();
-		m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-		m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+		viewport->m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+		viewport->m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 		
-		m_ViewportFocused = ImGui::IsWindowFocused();
-		m_ViewportHovered = ImGui::IsWindowHovered();
-		Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+		viewport->m_ViewportFocused = ImGui::IsWindowFocused();
+		viewport->m_ViewportHovered = ImGui::IsWindowHovered();
+		Application::Get().GetImGuiLayer()->BlockEvents(!viewport->m_ViewportFocused && !viewport->m_ViewportHovered);
 
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-		m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
+		viewport->m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 		
 		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-		ImGui::Image((void*)(uint64_t)textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
+		ImGui::Image((void*)(uint64_t)textureID, ImVec2{ viewport->m_ViewportSize.x, viewport->m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
 
 		if (ImGui::BeginDragDropTarget())
 		{
@@ -344,7 +352,7 @@ namespace Engine
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 			
-			ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
+			ImGuizmo::SetRect(viewport->m_ViewportBounds[0].x, viewport->m_ViewportBounds[0].y, viewport->m_ViewportBounds[1].x - viewport->m_ViewportBounds[0].x, viewport->m_ViewportBounds[1].y - viewport->m_ViewportBounds[0].y);
 
 			// Editor Camera if world otherwise ScreenCamera
 			const glm::mat4& cameraProjection = isEntityUI ? SceneManager::GetActiveScene()->GetScreenCamera().GetProjection() : m_EditorCamera.GetProjection();
@@ -831,7 +839,7 @@ namespace Engine
 	{
 		if (e.GetMouseButton() == Mouse::ButtonLeft)
 		{
-			if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
+			if (Application::Get().GetImGuiLayer()->IsViewportHovered() && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
 				m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntityID);
 		}
 		
@@ -978,7 +986,8 @@ namespace Engine
 		if (Project::GetActive()->GetEditorSceneManager()->GetEditorSceneState() != EditorSceneState::Edit) OnSceneStop();
 
 		m_EditorScene = SceneManager::CreateNewScene();
-        m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,(uint32_t)m_ViewportSize.y);
+		glm::vec2 viewportSize = Application::Get().GetImGuiLayer()->GetViewportSize();
+        m_EditorScene->OnViewportResize((uint32_t)viewportSize.x,(uint32_t)viewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}
 
@@ -1062,9 +1071,10 @@ namespace Engine
 
 		// Mouse picking
 		auto [mx, my] = ImGui::GetMousePos();
-		mx -= m_ViewportBounds[0].x;
-		my -= m_ViewportBounds[0].y;
-		glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+		glm::vec2* viewportBounds = Application::Get().GetImGuiLayer()->GetViewportBounds();
+		mx -= viewportBounds[0].x;
+		my -= viewportBounds[0].y;
+		glm::vec2 viewportSize = viewportBounds[1] - viewportBounds[0];
 		my = viewportSize.y - my;
 
 		int mouseX = (int)mx;
