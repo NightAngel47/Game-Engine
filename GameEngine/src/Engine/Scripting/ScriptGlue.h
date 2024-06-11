@@ -70,6 +70,7 @@ namespace InternalCalls
 		static float Vector2_SqrMagnitude(glm::vec2& vector2);
 		static void Vector2_Normalize(glm::vec2* vector2);
 		static void Vector2_RotateAroundAxis(glm::vec2* vector2, float angle);
+		static float Vector2_Atan2(glm::vec2& vector2);
 
 #pragma endregion Vector2
 
@@ -196,6 +197,9 @@ namespace InternalCalls
 
 		static void Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType);
 		static void Rigidbody2DComponent_SetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType bodyType);
+
+		static void Rigidbody2DComponent_GetPosition(Engine::UUID entityID, glm::vec2* position);
+		static void Rigidbody2DComponent_SetPosition(Engine::UUID entityID, glm::vec2& position);
 
 		static void Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity);
 		static void Rigidbody2DComponent_SetLinearVelocity(Engine::UUID entityID, glm::vec2& velocity);

@@ -163,6 +163,17 @@ namespace Engine.Scene
 			set => InternalCalls.Rigidbody2DComponent_SetType(Entity.ID, (int)value);
 		}
 
+		public Vector2 Position
+		{
+			get
+			{
+				InternalCalls.Rigidbody2DComponent_GetPosition(Entity.ID, out Vector2 position);
+				return position;
+			}
+
+			set => InternalCalls.Rigidbody2DComponent_SetPosition(Entity.ID, ref value);
+		}
+
 		public Vector2 LinearVelocity
 		{
 			get
@@ -221,15 +232,13 @@ namespace Engine.Scene
 
 		public Vector3 ScreenToRay(Vector2 screenPos)
 		{
-			Vector3 ray;
-			InternalCalls.CameraComponent_ScreenToWorldRay(Entity.ID, out ray, ref screenPos);
+			InternalCalls.CameraComponent_ScreenToWorldRay(Entity.ID, out Vector3 ray, ref screenPos);
 			return ray;
 		}
 
 		public Vector3 ScreenToWorldPoint(Vector2 screenPos, float depth = 0.0f)
 		{
-			Vector3 worldPoint;
-			InternalCalls.CameraComponent_ScreenToWorldPoint(Entity.ID, out worldPoint, ref screenPos, depth);
+			InternalCalls.CameraComponent_ScreenToWorldPoint(Entity.ID, out Vector3 worldPoint, ref screenPos, depth);
 			return worldPoint;
 		}
 	}

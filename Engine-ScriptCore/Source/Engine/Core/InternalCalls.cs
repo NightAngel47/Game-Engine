@@ -93,6 +93,9 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Vector2_RotateAroundAxis(out Vector2 vector2, float angle);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector2_Atan2(ref Vector2 vector2);
+
 		#endregion Vector2
 
 		#region Vector3
@@ -310,6 +313,12 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_SetType(ulong entityID, int bodyType);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_GetPosition(ulong entityID, out Vector2 position);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_SetPosition(ulong entityID, ref Vector2 position);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_GetLinearVelocity(ulong entityID, out Vector2 velocity);
