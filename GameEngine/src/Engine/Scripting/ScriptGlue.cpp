@@ -13,6 +13,7 @@
 
 #include <box2d/b2_body.h>
 #include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 namespace InternalCalls
 {
@@ -71,6 +72,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector2_SqrMagnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector2_Normalize);
 		ENGINE_ADD_INTERNAL_CALL(Vector2_RotateAroundAxis);
+		ENGINE_ADD_INTERNAL_CALL(Vector2_Atan2);
 
 		ENGINE_ADD_INTERNAL_CALL(Vector3_Magnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector3_SqrMagnitude);
@@ -140,6 +142,8 @@ namespace InternalCalls
 
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetPosition);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetPosition);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetLinearVelocity);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetGravityScale);
@@ -151,6 +155,8 @@ namespace InternalCalls
 
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_GetOrthographicSize);
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_SetOrthographicSize);
+		ENGINE_ADD_INTERNAL_CALL(CameraComponent_ScreenToWorldRay);
+		ENGINE_ADD_INTERNAL_CALL(CameraComponent_ScreenToWorldPoint);
 
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_GetClassName);
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_InstantiateClass);
@@ -328,6 +334,11 @@ namespace InternalCalls
 	void ScriptGlue::Vector2_RotateAroundAxis(glm::vec2* vector2, float angle)
 	{
 		*vector2 = glm::rotate(*vector2, angle);
+	}
+
+	float ScriptGlue::Vector2_Atan2(glm::vec2& vector2)
+	{
+		return glm::atan(vector2.y, vector2.x);
 	}
 
 #pragma endregion Vector2
@@ -786,6 +797,21 @@ namespace InternalCalls
 		body->SetType(Engine::Utils::Rigidbody2DTypeToBox2DBodyType(bodyType));
 	}
 
+	void ScriptGlue::Rigidbody2DComponent_GetPosition(Engine::UUID entityID, glm::vec2* position)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		const b2Vec2& rb2dPosition = body->GetPosition();
+		*position = { rb2dPosition.x, rb2dPosition.y };
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_SetPosition(Engine::UUID entityID, glm::vec2& position)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		body->SetTransform(b2Vec2(position.x, position.y), body->GetAngle());
+	}
+
 	void ScriptGlue::Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
@@ -857,6 +883,20 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		entity.GetComponent<Engine::CameraComponent>().Camera.SetOrthographicSize(size);
+	}
+
+	void ScriptGlue::CameraComponent_ScreenToWorldRay(Engine::UUID entityID, glm::vec3* ray, glm::vec2& screenPos)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*ray = entity.GetComponent<Engine::CameraComponent>().Camera.ScreenToWorldRay(screenPos);
+	}
+
+	void ScriptGlue::CameraComponent_ScreenToWorldPoint(Engine::UUID entityID, glm::vec3* worldPoint, glm::vec2& screenPos, float depth)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		glm::vec3 ray = entity.GetComponent<Engine::CameraComponent>().Camera.ScreenToWorldRay(screenPos);
+		*worldPoint = entity.GetComponent<Engine::TransformComponent>().Position + ray;
+		worldPoint->z = depth;
 	}
 
 #pragma endregion CameraComponent

@@ -1,13 +1,13 @@
 ﻿using Engine.Core;
-using System;
 using System.Runtime.InteropServices;
 
 namespace Engine.Math
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct Vector2 : IEquatable<Vector2>, IComparable<Vector2>
+	public struct Vector2 : System.IEquatable<Vector2>, System.IComparable<Vector2>
 	{
-		public float X, Y;
+		public float X = 0.0f;
+		public float Y = 0.0f;
 
 		public Vector2()
 		{
@@ -75,6 +75,7 @@ namespace Engine.Math
 			// other is greater than
 			return 1;
 		}
+		public static bool IsNaN(Vector2 v) => float.IsNaN(v.X) || float.IsNaN(v.Y);
 
 		public float Magnitude => InternalCalls.Vector2_Magnitude(ref this);
 		public float SqrMagnitude => InternalCalls.Vector2_SqrMagnitude(ref this);
@@ -96,12 +97,24 @@ namespace Engine.Math
 			return new Vector2(Mathf.Lerp(a.X, b.X, t), Mathf.Lerp(a.Y, b.Y, t));
 		}
 
+		public static float Atan2(Vector2 vector) => InternalCalls.Vector2_Atan2(ref vector);
+		public static float Dot(Vector2 lhs, Vector2 rhs)
+		{
+			return lhs.X * rhs.X + lhs.Y * rhs.Y;
+		}
+		public static float Cross(Vector2 lhs, Vector2 rhs)
+		{
+			return lhs.X * rhs.Y - lhs.Y * rhs.X;
+		}
+
 		public static bool operator ==(Vector2 lhs, Vector2 rhs) => lhs.Equals(rhs);
 		public static bool operator !=(Vector2 lhs, Vector2 rhs) => !lhs.Equals(rhs);
 
 		public static Vector2 operator +(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X + rhs.X, lhs.Y + rhs.Y);
 		public static Vector2 operator -(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X - rhs.X, lhs.Y - rhs.Y);
+		public static Vector2 operator -(Vector2 v) => new Vector2(-v.X, -v.Y);
 		public static Vector2 operator *(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X * rhs.X, lhs.Y * rhs.Y);
 		public static Vector2 operator *(Vector2 lhs, float rhs) => new Vector2(lhs.X * rhs, lhs.Y * rhs);
+		public static Vector2 operator *(float lhs, Vector2 rhs) => new Vector2(rhs * lhs);
 	}
 }

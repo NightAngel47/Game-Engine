@@ -1,11 +1,10 @@
-﻿using System;
-
+﻿
 namespace Engine.Math
 {
 	public static class Mathf
 	{
 		//https://stackoverflow.com/questions/2683442/where-can-i-find-the-clamp-function-in-net
-		public static T Clamp<T>(this T val, T min, T max) where T : IComparable<T>
+		public static T Clamp<T>(this T val, T min, T max) where T : System.IComparable<T>
 		{
 			if (val.CompareTo(min) < 0) return min;
 			else if (val.CompareTo(max) > 0) return max;

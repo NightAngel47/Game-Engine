@@ -1,13 +1,14 @@
 ﻿using Engine.Core;
-using System;
 using System.Runtime.InteropServices;
 
 namespace Engine.Math
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct Vector3 : IEquatable<Vector3>, IComparable<Vector3>
+	public struct Vector3 : System.IEquatable<Vector3>, System.IComparable<Vector3>
 	{
-		public float X, Y, Z;
+		public float X = 0.0f;
+		public float Y = 0.0f;
+		public float Z = 0.0f;
 
 		public Vector3()
 		{
@@ -78,6 +79,8 @@ namespace Engine.Math
 			return 1;
 		}
 
+		public static bool IsNaN(Vector3 v) => float.IsNaN(v.X) || float.IsNaN(v.Y) || float.IsNaN(v.Z);
+
 		public float Magnitude => InternalCalls.Vector3_Magnitude(ref this);
 		public float SqrMagnitude => InternalCalls.Vector3_SqrMagnitude(ref this);
 
@@ -105,6 +108,7 @@ namespace Engine.Math
 		public static Vector3 operator +(Vector3 lhs, Vector2 rhs) => new Vector3(lhs + new Vector3(rhs));
 		public static Vector3 operator -(Vector3 lhs, Vector3 rhs) => new Vector3(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z);
 		public static Vector3 operator -(Vector3 lhs, Vector2 rhs) => new Vector3(lhs - new Vector3(rhs));
+		public static Vector2 operator -(Vector3 v) => new Vector3(-v.X, -v.Y, -v.Z);
 		public static Vector3 operator *(Vector3 lhs, Vector3 rhs) => new Vector3(lhs.X * rhs.X, lhs.Y * rhs.Y, lhs.Z * rhs.Z);
 		public static Vector3 operator *(Vector3 lhs, float rhs) => new Vector3(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs);
 	}

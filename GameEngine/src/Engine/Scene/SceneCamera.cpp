@@ -10,10 +10,10 @@ namespace Engine
 		RecalculateProjection();
 	}
 
-	void SceneCamera::SetViewportSize(uint32_t width, uint32_t height)
+	void SceneCamera::SetViewportSize(float width, float height)
 	{
-		ENGINE_CORE_ASSERT(width > 0 && height > 0, "Width and/or Height is 0 or Negative in SceneCamera::SetViewportSize")
-		m_AspectRatio = (float)width / (float)height;
+		Camera::SetViewportSize(width, height);
+		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
 		RecalculateProjection();
 	}
 
@@ -39,11 +39,22 @@ namespace Engine
 		RecalculateProjection();
 	}
 
+	glm::vec3 SceneCamera::ScreenToWorldRay(glm::vec2 screenPos)
+	{
+		float clipX = (2.0f * screenPos.x) / m_ViewportWidth - 1.0f;
+		float clipY = 1.0f - (2.0f * screenPos.y) / m_ViewportHeight;
+
+		glm::vec4 ray_eye = glm::inverse(m_Projection) * glm::vec4(clipX, clipY, 1.0f, 1.0f);
+		glm::vec3 ray_wor = glm::inverse(m_ViewMatrix) * ray_eye;
+
+		return ray_wor;
+	}
+
 	void SceneCamera::RecalculateProjection()
 	{
 		if(m_ProjectionType == ProjectionType::Perspective)
 		{
-			m_Projection = glm::perspective(m_PerspectiveFOV, m_AspectRatio, m_PerspectiveNear, m_PerspectiveFar);
+			m_Projection = glm::perspective(glm::radians(m_PerspectiveFOV), m_AspectRatio, m_PerspectiveNear, m_PerspectiveFar);
 		}
 		else
 		{
