@@ -5,7 +5,6 @@
 
 namespace Engine
 {
-	static std::vector<PakFileTableEntry> s_FileEntries;
 
 	void AssetPakSerializer::Serialize(const AssetRegistry& assetRegistry)
 	{
@@ -15,7 +14,8 @@ namespace Engine
 		header.PakVersion = 1; // TODO make proper pak version number
 		header.ContentVersion = 1; // TODO make proper content version number
 
-		s_FileEntries.clear();
+		std::vector<PakFileTableEntry> fileEntries;
+		std::vector<char> dataBuffer = {};
 
 		for (const auto& [handle, metadata] : assetRegistry)
 		{
@@ -25,8 +25,10 @@ namespace Engine
 				continue;
 			}
 
-			std::ifstream fileStream(Project::GetActiveAssetFileSystemPath(metadata.Path), std::ios::binary | std::ios::ate);
-			if (!fileStream)
+			//Ref<Asset> asset = AssetManager::GetAsset<Asset>(handle);
+			std::filesystem::path assetPath = Project::GetActiveAssetFileSystemPath(metadata.Path);
+			std::ifstream fileStream(assetPath, std::ios::binary | std::ios::ate);
+			if (fileStream.fail())
 			{
 				// Failed to open the file
 				ENGINE_CORE_ERROR("Failed to open the file!");
@@ -36,7 +38,6 @@ namespace Engine
 			std::streampos end = fileStream.tellg();
 			fileStream.seekg(0, std::ios::beg);
 			uint32_t size = end - fileStream.tellg();
-
 			if (size == 0)
 			{
 				// File is empty
@@ -44,18 +45,18 @@ namespace Engine
 				continue;
 			}
 
-			std::vector<char> dataBuffer = {};
-			dataBuffer.resize(size);
-			fileStream.read(dataBuffer.data(), size);
-
-			//Ref<Asset> asset = AssetManager::GetAsset<Asset>(handle);
+			//std::vector<char> dataBuffer = {};
+			//dataBuffer.resize(size);
+			//fileStream.read(dataBuffer.data(), size);
 
 			// Create the file entry
 			PakFileTableEntry pakFileEntry = {};
-			pakFileEntry.UncompressedSize = fileStream.tellg();
+			pakFileEntry.UncompressedSize = size;//fileStream.tellg();
 			pakFileEntry.OffSet = dataBuffer.size();
 			pakFileEntry.Compressed = metadata.Compress;
 			fileStream.seekg(0);
+
+			//dataBuffer.resize(dataBuffer.size() + pakFileEntry.UncompressedSize);
 
 			// Read file into memory
 			std::vector<char> fileData;
@@ -78,9 +79,23 @@ namespace Engine
 			}
 
 			// Add entry and close file stream
-			s_FileEntries.push_back(pakFileEntry);
+			fileEntries.push_back(pakFileEntry);
 			fileStream.close();
 		}
+
+		std::filesystem::path assetPakDir = Project::GetActiveProjectDirectory().generic_string() + "/Paks";
+		if (!std::filesystem::exists(assetPakDir))
+			std::filesystem::create_directories(assetPakDir);
+
+		ENGINE_CORE_WARN("Writing Pak File to: {}", assetPakDir.generic_string() + "/AssetPak.pak");
+		std::ofstream pakFile(assetPakDir.generic_string() + "/AssetPak.pak", std::ios::binary);
+		if (pakFile.fail())
+		{
+			ENGINE_CORE_ERROR("Failed to open the file!");
+			return;
+		}
+		pakFile.write(dataBuffer.data(), dataBuffer.size());
+		pakFile.close();
 	}
 
 	bool AssetPakSerializer::TryLoadData(AssetPak& assetPak)
