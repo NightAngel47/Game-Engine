@@ -1,11 +1,10 @@
 ﻿using Engine.Core;
-using System;
 using System.Runtime.InteropServices;
 
 namespace Engine.Math
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct Vector2 : IEquatable<Vector2>, IComparable<Vector2>
+	public struct Vector2 : System.IEquatable<Vector2>, System.IComparable<Vector2>
 	{
 		public float X = 0.0f;
 		public float Y = 0.0f;

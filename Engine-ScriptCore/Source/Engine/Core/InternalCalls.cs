@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System;
 using Engine.Math;
 
 namespace Engine.Core
