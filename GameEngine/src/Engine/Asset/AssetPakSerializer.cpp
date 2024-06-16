@@ -81,6 +81,7 @@ namespace Engine
 			// Add entry and close file stream
 			fileEntries.push_back(pakFileEntry);
 			fileStream.close();
+			header.NumEnteries++;
 		}
 
 		std::filesystem::path assetPakDir = Project::GetActiveProjectDirectory().generic_string() + "/Paks";
@@ -94,6 +95,7 @@ namespace Engine
 			ENGINE_CORE_ERROR("Failed to open the file!");
 			return;
 		}
+		pakFile.write(reinterpret_cast<char const*>(&header), sizeof(header));
 		pakFile.write(dataBuffer.data(), dataBuffer.size());
 		pakFile.close();
 	}

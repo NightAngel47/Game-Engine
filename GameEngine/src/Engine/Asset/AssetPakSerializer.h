@@ -10,8 +10,8 @@ namespace Engine
 		char ID[4] = { "PAK" };
 		char PakVersion = 0;
 		uint32_t ContentVersion = 0;
-		char FolderPath[100];
-		char PakName[50];
+		//char FolderPath[100];
+		//char PakName[50];
 		uint32_t NumEnteries = 0;
 	};
 
