@@ -8,12 +8,14 @@ namespace Engine
 	public:
 		virtual void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const = 0;
 		virtual bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const = 0;
+		virtual bool TryLoadData(const PakAssetEntry& pakEntry, Ref<Asset>& asset) const = 0;
 	};
 
 	class AssetImporter
 	{
 	public:
 		static Ref<Asset> ImportAsset(AssetHandle handle, const AssetMetadata& metadata);
+		static Ref<Asset> ImportAsset(AssetHandle handle, const PakAssetEntry& pakEntry);
 
 		static void SaveAsset(const AssetMetadata& metadata, const Ref<Asset>& asset);
 	};

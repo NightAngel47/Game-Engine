@@ -1,19 +1,15 @@
 #include "enginepch.h"
 #include "Engine/Asset/RuntimeAssetManager.h"
-#include "Engine/Asset/AssetRegistrySerializer.h"
+#include "Engine/Asset/AssetPakSerializer.h"
+#include "Engine/Project/Project.h"
 
 namespace Engine
 {
 	RuntimeAssetManager::RuntimeAssetManager()
 	{
-		AssetRegistrySerializer assetRegistrySerializer = AssetRegistrySerializer();
-		if (!assetRegistrySerializer.TryLoadData(m_AssetPak))
-		{
-			ENGINE_CORE_WARN("Asset Registry Failed to Load");
-
-			ENGINE_CORE_INFO("Creating Empty Asset Registry");
-			m_AssetPak = AssetRegistry();
-		}
+		AssetPakSerializer assetPakSerializer = AssetPakSerializer();
+		bool didLoad = assetPakSerializer.TryLoadData(m_AssetPak);
+		ENGINE_CORE_ASSERT(didLoad, "Failed to load Asset Pak!");
 
 		m_LoadedAssets = AssetMap();
 	}
@@ -30,8 +26,7 @@ namespace Engine
 		}
 		else
 		{
-			const AssetMetadata& metadata = GetAssetMetadata(handle);
-			asset = AssetImporter::ImportAsset(handle, metadata);
+			asset = AssetImporter::ImportAsset(handle, m_AssetPak[handle]); //TODO runtime version
 			m_LoadedAssets[handle] = asset;
 		}
 
@@ -50,15 +45,15 @@ namespace Engine
 		return handle.IsValid() && m_LoadedAssets.find(handle) != m_LoadedAssets.end();
 	}
 
-
-	const AssetMetadata& RuntimeAssetManager::GetAssetMetadata(AssetHandle handle) const
+	const AssetMap RuntimeAssetManager::GetAssetsOfType(AssetType type) const
 	{
-		static AssetMetadata s_NullMetadata;
-		auto it = m_AssetPak.find(handle);
-		if (it == m_AssetPak.end())
-			return s_NullMetadata;
+		AssetMap assets = {};
+		for (const auto& [handle, pakEntry] : m_AssetPak)
+		{
+			if (pakEntry.Type == type)
+				assets[handle] = Project().GetActive()->GetRuntimeAssetManager()->GetAsset(handle);
+		}
 
-		return it->second;
+		return assets;
 	}
-
 }

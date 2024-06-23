@@ -21,5 +21,10 @@ namespace Engine
 
 		return true;
 	}
+
+	bool TextureSerializer::TryLoadData(const PakAssetEntry& pakEntry, Ref<Asset>& asset) const
+	{
+		return true;
+	}
 }
 

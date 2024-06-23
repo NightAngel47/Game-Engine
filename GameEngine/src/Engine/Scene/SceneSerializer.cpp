@@ -68,4 +68,58 @@ namespace Engine
 		
 		return true;
 	}
+
+	bool SceneSerializer::TryLoadData(const PakAssetEntry& pakEntry, Ref<Asset>& asset) const
+	{
+		std::filesystem::path assetPakPath = Project::GetActiveAssetPakPath();
+		std::ifstream fileStream(assetPakPath, std::ios::binary);
+		if (fileStream.fail())
+		{
+			ENGINE_CORE_ERROR("Failed to open the file!");
+			return false;
+		}
+
+		uint32_t numberOfEntries = Project::GetActive()->GetRuntimeAssetManager()->GetNumberOfAssetsInAssetPak();
+		fileStream.seekg(sizeof(PakHeader) + sizeof(PakAssetEntry) * numberOfEntries + pakEntry.OffSet);
+
+		std::vector<char> fileData;
+		fileData.resize(pakEntry.UncompressedSize); //TODO change when compression
+		fileStream.read(fileData.data(), pakEntry.UncompressedSize);
+		fileData.insert(fileData.end(), '\n');
+
+		YAML::Node data;
+		try
+		{
+			data = YAML::Load(reinterpret_cast<const char*>(fileData.data()));
+		}
+		catch (YAML::ParserException e)
+		{
+			ENGINE_CORE_ERROR("Failed to load Scene with AssetHandle: '{0}'\n {1}", pakEntry.Handle, e.what());
+			return false;
+		}
+
+		if (!data["Scene"])
+			return false;
+
+		std::string sceneName = data["Scene"].as<std::string>();
+		ENGINE_CORE_TRACE("Deserializing scene '{0}'", sceneName);
+
+		asset = CreateRef<Scene>();
+		Ref<Scene> scene = As<Scene>(asset);
+		scene->SetSceneName(sceneName);
+
+		auto entities = data["Entities"];
+		if (entities)
+		{
+			for (auto entity : entities)
+			{
+				Entity thisEntity{ {}, scene.get() };
+				EntitySerializer entitySerializer = EntitySerializer();
+				entitySerializer.Deserialize(entity, thisEntity, scene);
+			}
+		}
+
+		return true;
+	}
+
 }

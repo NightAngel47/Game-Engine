@@ -71,4 +71,60 @@ namespace Engine
 
 		return true;
 	}
+
+	bool PrefabSerializer::TryLoadData(const PakAssetEntry& pakEntry, Ref<Asset>& asset) const
+	{
+		std::filesystem::path assetPakPath = Project::GetActiveAssetPakPath();
+		std::ifstream fileStream(assetPakPath, std::ios::binary);
+		if (fileStream.fail())
+		{
+			ENGINE_CORE_ERROR("Failed to open the file!");
+			return false;
+		}
+
+		uint32_t numberOfEntries = Project::GetActive()->GetRuntimeAssetManager()->GetNumberOfAssetsInAssetPak();
+		fileStream.seekg(sizeof(PakHeader) + sizeof(PakAssetEntry) * numberOfEntries + pakEntry.OffSet);
+
+		std::vector<char> fileData;
+		fileData.resize(pakEntry.UncompressedSize); //TODO change when compression
+		fileStream.read(fileData.data(), pakEntry.UncompressedSize);
+		fileData.insert(fileData.end(), '\n');
+
+		YAML::Node data;
+		try
+		{
+			data = YAML::Load(reinterpret_cast<const char*>(fileData.data()));
+		}
+		catch (YAML::ParserException e)
+		{
+			ENGINE_CORE_ERROR("Failed to load Prefab with AssetHandle: '{0}'\n {1}", pakEntry.Handle, e.what());
+			return false;
+		}
+
+		if (!data["Prefab"])
+			return false;
+
+		std::string name = data["Prefab"].as<std::string>();
+		ENGINE_CORE_TRACE("Deserializing prefab '{0}'", name);
+
+		asset = CreateRef<Prefab>();
+		Ref<Prefab> prefab = As<Prefab>(asset);
+
+		auto entities = data["Entities"];
+		if (entities)
+		{
+			prefab->m_PrefabScene = CreateRef<Scene>();
+			Entity thisEntity{ {}, prefab->m_PrefabScene.get() };
+			prefab->m_PrefabEntity = thisEntity;
+
+			for (auto entityOut : entities)
+			{
+				EntitySerializer entitySerializer = EntitySerializer();
+				entitySerializer.Deserialize(entityOut, prefab->m_PrefabEntity, prefab->m_PrefabScene, true);
+			}
+		}
+
+		return true;
+	}
+
 }

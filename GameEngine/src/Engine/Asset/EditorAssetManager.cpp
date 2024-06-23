@@ -189,4 +189,16 @@ namespace Engine
 
 		return s_AssetExtensionMap.at(extension);
 	}
+
+	const AssetMap EditorAssetManager::GetAssetsOfType(AssetType type) const
+	{
+		AssetMap assets = {};
+		for (const auto& [handle, metadata] : m_AssetRegistry)
+		{
+			if (metadata.Type == type)
+				assets[handle] = Project().GetActive()->GetEditorAssetManager()->GetAsset(handle);
+		}
+
+		return assets;
+	}
 }

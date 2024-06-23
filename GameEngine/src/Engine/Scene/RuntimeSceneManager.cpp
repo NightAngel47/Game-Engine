@@ -7,12 +7,8 @@ namespace Engine
 
 	RuntimeSceneManager::RuntimeSceneManager()
 	{
-		const auto& pack = Project::GetActive()->GetRuntimeAssetManager()->GetAssets();
-		for (const auto& [handle, metadata] : pack)
-		{
-			if (metadata.Type == AssetType::Scene)
-				m_SceneMap[handle] = metadata.Path.generic_string();
-		}
+		for (const auto& [handle, asset] : AssetManager::GetAssetsOfType(AssetType::Scene))
+			m_SceneMap[handle] = As<Scene>(asset)->GetSceneName();
 	}
 
 	Ref<Scene> RuntimeSceneManager::LoadScene(const AssetHandle handle)

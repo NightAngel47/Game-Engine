@@ -8,16 +8,15 @@ namespace Engine
 	{
 	public:
 		RuntimeAssetManager();
-
+		
 		Ref<Asset> GetAsset(AssetHandle handle) override;
 
 		bool IsAssetHandleValid(AssetHandle handle) const override;
 		bool IsAssetLoaded(AssetHandle handle) const override;
 
-		// TODO Remove once asset pack properly implemented
-		const AssetMetadata& GetAssetMetadata(AssetHandle handle) const;
+		const AssetMap GetAssetsOfType(AssetType type) const override;
 
-		const AssetPak& GetAssets() const override { return m_AssetPak; }
+		const uint32_t GetNumberOfAssetsInAssetPak() const { return m_AssetPak.size(); }
 
 	private:
 		AssetMap m_LoadedAssets;

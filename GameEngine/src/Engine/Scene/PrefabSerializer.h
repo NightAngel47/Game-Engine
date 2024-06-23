@@ -13,5 +13,6 @@ namespace Engine
 
 		//void Deserialize(const std::filesystem::path& filepath, Entity entity, Ref<Scene>& scene);
 		virtual bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		virtual bool TryLoadData(const PakAssetEntry& metadata, Ref<Asset>& asset) const override;
 	};
 }

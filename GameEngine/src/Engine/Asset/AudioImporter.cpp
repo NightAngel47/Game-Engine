@@ -13,6 +13,30 @@ namespace Engine
 		return audioClip;
 	}
 
+	Ref<AudioClip> AudioImporter::ImportAudioClipFromPak(AssetHandle handle, const PakAssetEntry& pakEntry)
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		std::filesystem::path assetPakPath = Project::GetActiveAssetPakPath();
+		std::ifstream fileStream(assetPakPath, std::ios::binary);
+		if (fileStream.fail())
+		{
+			ENGINE_CORE_ERROR("Failed to open the file!");
+			return false;
+		}
+
+		uint32_t numberOfEntries = Project::GetActive()->GetRuntimeAssetManager()->GetNumberOfAssetsInAssetPak();
+		fileStream.seekg(sizeof(PakHeader) + sizeof(PakAssetEntry) * numberOfEntries + pakEntry.OffSet);
+
+		std::vector<char> fileData;
+		fileData.resize(pakEntry.UncompressedSize); //TODO change when compression
+		fileStream.read(fileData.data(), pakEntry.UncompressedSize);
+
+		Ref<AudioClip> audioClip = LoadAudioClip({fileData.data(), fileData.size()}, handle);
+		audioClip->Handle = handle;
+		return audioClip;
+	}
+
 	Ref<AudioClip> AudioImporter::LoadAudioClip(const std::filesystem::path& filepath, AssetHandle handle)
 	{
 		ENGINE_PROFILE_FUNCTION();
@@ -21,6 +45,18 @@ namespace Engine
 		audioClip->Handle = handle.IsValid() ? handle : AssetHandle();
 		
 		AudioEngine::LoadSound(filepath, audioClip->Handle);
+
+		return audioClip;
+	}
+
+	Ref<AudioClip> AudioImporter::LoadAudioClip(const Buffer buffer, AssetHandle handle)
+	{
+		ENGINE_PROFILE_FUNCTION();
+
+		Ref<AudioClip> audioClip = CreateRef<AudioClip>();
+		audioClip->Handle = handle.IsValid() ? handle : AssetHandle();
+
+		AudioEngine::LoadSound(buffer, audioClip->Handle);
 
 		return audioClip;
 	}

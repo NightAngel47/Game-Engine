@@ -342,6 +342,53 @@ namespace Engine
 		}
 	}
 
+	void AudioEngine::LoadSound(const Buffer& buffer, AssetHandle handle)
+	{
+		if (!s_AudioEngineData)
+			return;
+
+		if (!handle.IsValid())
+			return;
+
+		if (s_AudioEngineData->AudioClips.find(handle) != s_AudioEngineData->AudioClips.end())
+		{
+			ENGINE_CORE_WARN("Audio Clip already loaded!");
+			return;
+		}
+
+		ma_audio_buffer_config config = ma_audio_buffer_config_init(
+			ma_format_f32,
+			0,
+			1000,
+			buffer.Data,
+			nullptr);
+
+		ma_audio_buffer audioBuffer;
+		{
+			auto result = ma_audio_buffer_init_copy(&config, &audioBuffer);
+			if (result != MA_SUCCESS) {
+				ENGINE_CORE_WARN("Failed to initialize from memory!");
+				return;
+			}
+		}
+
+		ma_sound& sound = s_AudioEngineData->AudioClips[handle];
+		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
+		{
+			auto result = ma_sound_init_from_data_source(&s_AudioEngineData->Engines[i], &audioBuffer,
+				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE
+				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
+				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM // TODO create stream implementation (only need to stream music or sounds over 2 seconds)
+				, nullptr, &sound);
+
+			if (result != MA_SUCCESS)
+			{
+				ENGINE_CORE_WARN("Failed to initialize sound from audio buffer!");
+				return;
+			}
+		}
+	}
+
 	void AudioEngine::PlaySound(UUID entityID, AssetHandle clip, const SoundParams& params)
 	{
 		if (!s_AudioEngineData)
