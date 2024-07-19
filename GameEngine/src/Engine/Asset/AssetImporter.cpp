@@ -42,6 +42,7 @@ namespace Engine
 
 	Ref<Asset> AssetImporter::ImportAsset(AssetHandle handle, const AssetMetadata& metadata)
 	{
+		ENGINE_CORE_TRACE("Importing Asset: {}", handle);
 		if (s_AssetImportFunctions.find(metadata.Type) == s_AssetImportFunctions.end())
 		{
 			ENGINE_CORE_ERROR("No importer available for asset type: {}", Utils::AssetTypeToString(metadata.Type));
@@ -53,6 +54,7 @@ namespace Engine
 
 	Ref<Asset> AssetImporter::ImportAsset(AssetHandle handle, const PakAssetEntry& pakEntry)
 	{
+		ENGINE_CORE_TRACE("Importing Asset: {}", handle);
 		if (s_AssetImportFromPakFunctions.find(pakEntry.Type) == s_AssetImportFromPakFunctions.end())
 		{
 			ENGINE_CORE_ERROR("No importer available for asset type: {}", Utils::AssetTypeToString(pakEntry.Type));
@@ -64,6 +66,7 @@ namespace Engine
 
 	void AssetImporter::SaveAsset(const AssetMetadata& metadata, const Ref<Asset>& asset)
 	{
+		ENGINE_CORE_TRACE("Saving Asset: {}", asset->Handle);
 		if (s_AssetImportFunctions.find(metadata.Type) == s_AssetImportFunctions.end())
 		{
 			ENGINE_CORE_ERROR("No save available for asset type: {}", Utils::AssetTypeToString(metadata.Type));

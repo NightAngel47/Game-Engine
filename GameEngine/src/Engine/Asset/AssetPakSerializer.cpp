@@ -1,6 +1,9 @@
 #include "enginepch.h"
 #include "Engine/Asset/AssetPakSerializer.h"
 #include "Engine/Asset/AssetManager.h"
+#include "Engine/Scene/SceneSerializer.h"
+#include "Engine/Scene/PrefabSerializer.h"
+#include "Engine/Scene/Prefab.h"
 #include "Engine/Utils/FileSystem.h"
 
 #include <yaml-cpp/yaml.h>
@@ -27,41 +30,71 @@ namespace Engine
 			}
 
 			std::filesystem::path assetPath = Project::GetActiveAssetFileSystemPath(metadata.Path);
-			std::ifstream fileStream(assetPath, std::ios::binary);
-			if (fileStream.fail())
+			bool isTextFile = metadata.Type == AssetType::Scene || metadata.Type == AssetType::Prefab;
+			uint32_t fileSize = 0;
+			std::vector<char> fileData;
+			if (isTextFile)
 			{
-				// Failed to open the file
-				ENGINE_CORE_WARN("Failed to open the file!");
-				continue;
-			}
+				switch (metadata.Type)
+				{
+					case AssetType::Scene:
+					{
+						SceneSerializer serializer = SceneSerializer();
+						fileData = serializer.SerializeForStream(metadata, AssetManager::GetAsset<Scene>(handle));
+						break;
+					}
+					case AssetType::Prefab:
+					{
+						PrefabSerializer serializer = PrefabSerializer();
+						fileData = serializer.SerializeForStream(metadata, AssetManager::GetAsset<Prefab>(handle));
+						break;
+					}
+					default:
+					{
+						ENGINE_CORE_ERROR("Asset is a text file type, but is not setup for binary serialization!");
+						continue;
+					}
+				}
 
-			uint32_t fileSize = std::filesystem::file_size(assetPath);
-			if (fileSize == 0)
+				fileSize = fileData.size();
+				if (fileSize == 0)
+				{
+					// File is empty
+					ENGINE_CORE_WARN("File is empty!");
+					continue;
+				}
+			}
+			else
 			{
-				// File is empty
-				ENGINE_CORE_WARN("File is empty!");
-				continue;
-			}
+				std::ifstream fileStream(assetPath, std::ios::binary);
+				if (fileStream.fail())
+				{
+					// Failed to open the file
+					ENGINE_CORE_WARN("Failed to open the file!");
+					continue;
+				}
 
-			//https://stackoverflow.com/questions/22984956/tellg-function-give-wrong-size-of-file/22986486#22986486
-			fileStream.ignore(std::numeric_limits<std::streamsize>::max());
-			std::streamsize length = fileStream.gcount();
-			fileStream.clear();
-			fileStream.seekg(0, std::ios::beg);
+				fileSize = std::filesystem::file_size(assetPath);
+				if (fileSize == 0)
+				{
+					// File is empty
+					ENGINE_CORE_WARN("File is empty!");
+					continue;
+				}
+
+				// Read file into memory
+				fileData.resize(fileSize);
+				fileStream.read(fileData.data(), fileSize);
+				fileStream.close();
+			}
 
 			// Create the file entry
 			PakAssetEntry pakFileEntry = {};
 			pakFileEntry.Handle = handle;
 			pakFileEntry.Type = metadata.Type;
-			pakFileEntry.UncompressedSize = length;// fileStream.tellg();
+			pakFileEntry.UncompressedSize = fileSize;
 			pakFileEntry.OffSet = dataBuffer.size();
 			pakFileEntry.Compressed = metadata.Compress;
-			fileStream.seekg(0, std::ios::beg);
-
-			// Read file into memory
-			std::vector<char> fileData;
-			fileData.resize(pakFileEntry.UncompressedSize);
-			fileStream.read(fileData.data(), pakFileEntry.UncompressedSize);
 
 			// Compress the data
 			if (pakFileEntry.Compressed)
@@ -80,7 +113,6 @@ namespace Engine
 
 			// Add entry and close file stream
 			fileEntries.push_back(pakFileEntry);
-			fileStream.close();
 			header.NumEnteries++;
 		}
 

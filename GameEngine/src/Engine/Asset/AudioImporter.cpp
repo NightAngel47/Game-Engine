@@ -61,6 +61,7 @@ namespace Engine
 		return audioClip;
 	}
 
+	//TODO: Remove? Reevaluate asset pipeline
 	void AudioImporter::SaveAudioClip(const AssetMetadata& metadata, const Ref<Asset>& asset)
 	{
 		// TODO figure out what saving does

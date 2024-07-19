@@ -10,6 +10,7 @@ namespace Engine
 		const auto& config = m_Project->GetConfig();
 
 		YAML::Emitter out;
+		out << YAML::BeginDoc; // Doc
 		out << YAML::BeginMap; // Root
 		out << YAML::Key << "Project" << YAML::Value;
 		out << YAML::BeginMap; // Project
@@ -25,6 +26,7 @@ namespace Engine
 
 		out << YAML::EndMap; // Project
 		out << YAML::EndMap; // Root
+		out << YAML::EndDoc; // Doc
 
 		std::ofstream fout(filepath);
 		fout << out.c_str();

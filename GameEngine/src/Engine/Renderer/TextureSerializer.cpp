@@ -7,9 +7,16 @@ namespace Engine
 {
 	class OpenGLTexture2D;
 
+	//TODO: Remove? Reevaluate asset pipeline
 	void TextureSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
 	{
 
+	}
+
+	//TODO: Remove? Reevaluate asset pipeline
+	const std::vector<char> TextureSerializer::SerializeForStream(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+	{
+		return {};
 	}
 	
 	bool TextureSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const

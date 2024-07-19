@@ -7,26 +7,39 @@ namespace Engine
 {
 	void SceneSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
 	{
+		std::vector<char> serializedAsset = SerializeForStream(metadata, asset);
+		
+		std::ofstream fout(Project::GetActiveAssetFileSystemPath(metadata.Path).string());
+		fout << serializedAsset.data() << std::endl;
+	}
+
+	const std::vector<char> SceneSerializer::SerializeForStream(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+	{
 		YAML::Emitter out;
+		out << YAML::BeginDoc;
 		out << YAML::BeginMap; // Scene
 		Ref<Scene> scene = As<Scene>(asset);
 		out << YAML::Key << "Scene" << YAML::Value << scene->m_Name;
 		ENGINE_CORE_TRACE("Serializing scene '{0}'", scene->m_Name);
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 		scene->m_Registry.each([&](auto entityID)
-		{
-			Entity entity = { entityID, scene.get() };
-			if(!entity || entity.GetComponent<RelationshipComponent>().Parent.IsValid())
-				return;
+			{
+				Entity entity = { entityID, scene.get() };
+				if (!entity || entity.GetComponent<RelationshipComponent>().Parent.IsValid())
+					return;
 
-			EntitySerializer entitySerializer = EntitySerializer();
-			entitySerializer.Serialize(out, entity, scene);
-		});
+				EntitySerializer entitySerializer = EntitySerializer();
+				entitySerializer.Serialize(out, entity, scene);
+			});
 		out << YAML::EndSeq;
 		out << YAML::EndMap; // Scene
+		out << YAML::EndDoc; // Scene
 		
-		std::ofstream fout(Project::GetActiveAssetFileSystemPath(metadata.Path).string());
-		fout << out.c_str();
+		std::vector<char> buffer;
+		buffer.resize(out.size());
+		for (int i = 0; i < out.size(); i++)
+			buffer[i] = out.c_str()[i];
+		return buffer;
 	}
 
 	bool SceneSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
@@ -85,12 +98,11 @@ namespace Engine
 		std::vector<char> fileData;
 		fileData.resize(pakEntry.UncompressedSize); //TODO change when compression
 		fileStream.read(fileData.data(), pakEntry.UncompressedSize);
-		fileData.insert(fileData.end(), '\n');
 
 		YAML::Node data;
 		try
 		{
-			data = YAML::Load(reinterpret_cast<const char*>(fileData.data()));
+			data = YAML::Load(fileData.data());
 		}
 		catch (YAML::ParserException e)
 		{

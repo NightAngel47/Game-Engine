@@ -55,6 +55,7 @@ namespace Engine
 
 	Ref<Scene> Scene::Copy(Ref<Scene> other)
 	{
+		ENGINE_CORE_TRACE("Coping Scene");
 		Ref<Scene> newScene = CreateRef<Scene>();
 
 		newScene->m_ViewportWidth = other->m_ViewportWidth;
@@ -264,6 +265,7 @@ namespace Engine
 
 	void Scene::OnRuntimeStart()
 	{
+		ENGINE_CORE_TRACE("Scene Runtime Start: {}", Handle);
 		m_IsRunning = true;
 
 		// Start UI
@@ -291,11 +293,13 @@ namespace Engine
 
 	void Scene::OnSimulationStart()
 	{
+		ENGINE_CORE_TRACE("Scene Simulation Start: {}", Handle);
 		OnPhysics2DStart();
 	}
 
 	void Scene::OnRuntimeStop()
 	{
+		ENGINE_CORE_TRACE("Scene Runtime Stop: {}", Handle);
 		m_IsRunning = false;
 
 		// UI Stop
@@ -317,6 +321,7 @@ namespace Engine
 
 	void Scene::OnSimulationStop()
 	{
+		ENGINE_CORE_TRACE("Scene Simulation Stop: {}", Handle);
 		OnPhysics2DStop();
 	}
 

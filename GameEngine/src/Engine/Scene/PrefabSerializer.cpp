@@ -14,7 +14,16 @@ namespace Engine
 
 	void PrefabSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
 	{
+		std::vector<char> serializedAsset = SerializeForStream(metadata, asset);
+
+		std::ofstream fout(Project::GetActiveAssetFileSystemPath(metadata.Path).string());
+		fout << serializedAsset.data() << std::endl;
+	}
+
+	const std::vector<char> PrefabSerializer::SerializeForStream(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+	{
 		YAML::Emitter out;
+		out << YAML::BeginDoc; // Prefab
 		out << YAML::BeginMap; // Prefab
 		Ref<Prefab> prefab = As<Prefab>(asset);
 		Entity entity = prefab->m_PrefabEntity;
@@ -25,9 +34,13 @@ namespace Engine
 		entitySerializer.Serialize(out, entity, prefab->m_PrefabScene);
 		out << YAML::EndSeq;
 		out << YAML::EndMap; // Prefab
+		out << YAML::EndDoc; // Prefab
 
-		std::ofstream fout(Project::GetActiveAssetFileSystemPath(metadata.Path).string());
-		fout << out.c_str();
+		std::vector<char> buffer;
+		buffer.resize(out.size());
+		for (int i = 0; i < out.size(); i++)
+			buffer[i] = out.c_str()[i];
+		return buffer;
 	}
 
 	bool PrefabSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
@@ -88,12 +101,11 @@ namespace Engine
 		std::vector<char> fileData;
 		fileData.resize(pakEntry.UncompressedSize); //TODO change when compression
 		fileStream.read(fileData.data(), pakEntry.UncompressedSize);
-		fileData.insert(fileData.end(), '\n');
 
 		YAML::Node data;
 		try
 		{
-			data = YAML::Load(reinterpret_cast<const char*>(fileData.data()));
+			data = YAML::Load(fileData.data());
 		}
 		catch (YAML::ParserException e)
 		{

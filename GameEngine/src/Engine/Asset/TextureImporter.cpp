@@ -37,6 +37,7 @@ namespace Engine
 
 		Ref<Texture2D> texture = LoadTexture2D({fileData.data(), fileData.size()});
 		texture->Handle = handle;
+
 		return texture;
 	}
 
@@ -85,6 +86,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
+
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(true);
 		Buffer data;
@@ -122,6 +124,7 @@ namespace Engine
 		return texture;
 	}
 
+	//TODO: Remove? Reevaluate asset pipeline
 	void TextureImporter::SaveTexture2D(const AssetMetadata& metadata, const Ref<Asset>& asset)
 	{
 		TextureSerializer serializer = TextureSerializer();
