@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Asset/AssetManager.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Renderer/Texture.h"
 #include "Engine/Renderer/SubTexture2D.h"
@@ -7,6 +8,7 @@
 #include "Engine/Project/Project.h"
 #include "Engine/Utils/PlatformUtils.h"
 #include "Engine/UI/UIEngine.h"
+#include "Engine/Audio/AudioEngine.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -71,6 +73,32 @@ namespace Engine
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
+
+		glm::vec3 Up() const
+		{
+			glm::mat4 transform = GetTransform();
+			return {transform[1][0], transform[1][1], transform[1][2]};
+		}
+
+		glm::vec3 Right() const
+		{
+			glm::mat4 transform = GetTransform();
+			return {transform[0][0], transform[0][1], transform[0][2]};
+		}
+
+		glm::vec3 Forward() const
+		{
+			glm::mat4 transform = GetTransform();
+			return {transform[2][0], transform[2][0], transform[2][2]};
+		}
+	};
+
+	struct PrefabComponent
+	{
+		AssetHandle PrefabHandle = AssetHandle::INVALID();
+
+		PrefabComponent() = default;
+		PrefabComponent(const PrefabComponent&) = default;
 	};
 
 #pragma endregion Entity Components
@@ -78,12 +106,13 @@ namespace Engine
 #pragma region Game Components
 	// Components Available to Entities
 
+	// Rendering
+
 	struct SpriteRendererComponent
 	{
+		AssetHandle Texture = AssetHandle::INVALID();
 		glm::vec4 Color{ 1.0f };
-		Ref<Texture2D> Texture = nullptr;
 		float Tiling = 1.0f;
-		std::filesystem::path Path = "";
 
 		//Sub Texture
 		bool IsSubTexture = false;
@@ -97,12 +126,11 @@ namespace Engine
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
 
-		void LoadTexture(const std::filesystem::path& path)
+		void AssignTexture(AssetHandle handle)
 		{
-			if (!path.empty())
+			if (AssetManager::IsAssetHandleValid(handle))
 			{
-				Path = path;
-				Texture = Texture2D::Create(Project::GetAssetFileSystemPath(path).string());
+				Texture = handle;
 
 				GenerateSubTexture();
 			}
@@ -110,7 +138,7 @@ namespace Engine
 
 		void GenerateSubTexture()
 		{
-			if (IsSubTexture)
+			if (IsSubTexture && Texture)
 			{
 				SubTexture = SubTexture2D::CreateFromCoords(Texture, SubCoords, SubCellSize, SubSpriteSize);
 			}
@@ -118,8 +146,15 @@ namespace Engine
 
 		void ClearTexture()
 		{
-			Path.clear();
-			Texture = nullptr;
+			Texture = AssetHandle::INVALID();
+		}
+
+		const Ref<Texture2D> GetTexture2D()
+		{
+			if (!AssetManager::IsAssetHandleValid(Texture))
+				return nullptr;
+
+			return AssetManager::GetAsset<Texture2D>(Texture);
 		}
 	};
 
@@ -159,6 +194,8 @@ namespace Engine
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
 	};
+
+	// Script
 
 	// forward declaration
 	class ScriptFieldDataBase;
@@ -204,8 +241,11 @@ namespace Engine
 			None = 0, Interpolation, Extrapolation
 		};
 		SmoothingType Smoothing = SmoothingType::Interpolation;
-		glm::vec2 previousPosition;
-		float previousAngle;
+
+		float GravityScale = 1.0f;
+
+		glm::vec2 PreviousPosition;
+		float PreviousAngle;
 
 		// Storage for runtime
 		void* RuntimeBody = nullptr;
@@ -252,6 +292,34 @@ namespace Engine
 
 		CircleCollider2DComponent() = default;
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
+	};
+
+	// Audio
+
+	struct AudioSourceComponent
+	{
+		AssetHandle Clip = AssetHandle::INVALID();
+
+		SoundParams Params;
+
+		bool AutoPlayOnStart = false;
+
+		void AssignAudioClip(AssetHandle handle)
+		{
+			if (AssetManager::IsAssetHandleValid(handle))
+			{
+				Clip = handle;
+				AssetManager::GetAsset<AudioClip>(Clip);
+			}
+		}
+
+		void ClearAudioClip()
+		{
+			Clip = AssetHandle::INVALID();
+		}
+
+		AudioSourceComponent() = default;
+		AudioSourceComponent(const AudioSourceComponent&) = default;
 	};
 
 #pragma endregion GameComponents
@@ -323,10 +391,11 @@ namespace Engine
 	};
 
 	using AllComponents = ComponentGroup<
-		TransformComponent, 
+		TransformComponent, PrefabComponent, 
 		SpriteRendererComponent, CircleRendererComponent, TextRendererComponent,
 		CameraComponent, 
 		NativeScriptComponent, ScriptComponent, 
 		Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
+		AudioSourceComponent,
 		UILayoutComponent, UIButtonComponent>;
 }

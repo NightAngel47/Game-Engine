@@ -22,9 +22,9 @@ namespace Engine.Scene
 		public override int GetHashCode() => base.GetHashCode();
 
 		public override bool Equals(object obj)
-		{
+		{ 
 			//Check for null and compare run-time types.
-			if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+			if ((obj == null) || !GetType().Equals(obj.GetType()))
 			{
 				return false;
 			}
@@ -80,20 +80,14 @@ namespace Engine.Scene
 		/// <returns>The Entity for the given name.</returns>
 		public Entity FindEntityByName(string name)
 		{
-			ulong entityID = InternalCalls.Entity_FindEntityByName(name);
-			if (entityID == 0)
-				return null;
-
-			return new Entity(entityID);
+			var entityID = InternalCalls.Entity_FindEntityByName(name);
+			return InternalCalls.Entity_GetScriptInstance(entityID) as Entity;
 		}
 
 		public Entity CreateEntity(string name = "Entity")
 		{
-			ulong entityID = InternalCalls.Entity_CreateEntity(name);
-			if (entityID == 0)
-				return null;
-
-			return new Entity(entityID);
+			var entityID = InternalCalls.Entity_CreateEntity(name);
+			return InternalCalls.Entity_GetScriptInstance(entityID) as Entity;
 		}
 
 		public Entity CreateEntity(string name, Vector3 position, Vector3 rotation, Vector3 scale)
@@ -111,15 +105,42 @@ namespace Engine.Scene
 			return entity;
 		}
 
+		public Entity InstantiatePrefab(Prefab prefab)
+		{
+			var entityID = InternalCalls.Entity_InstantiatePrefab(prefab.ID);
+			return InternalCalls.Entity_GetScriptInstance(entityID) as Entity;
+		}
+
 		public T As<T>() where T : Entity, new()
 		{
-			object instance = InternalCalls.Entity_GetScriptInstance(ID);
-			return instance as T;
+			return InternalCalls.Entity_GetScriptInstance(ID) as T;
 		}
 
 		public void DestroyEntity()
 		{
 			InternalCalls.Entity_DestroyEntity(ID);
+		}
+
+		public Entity Parent
+		{
+			get => InternalCalls.Entity_GetScriptInstance(InternalCalls.Entity_GetParent(ID)) as Entity;
+			set => InternalCalls.Entity_SetParent(ID, value.ID);
+		}
+
+		public Entity[] Children
+		{
+			get
+			{
+				ulong[] childrenIDs = InternalCalls.Entity_GetChildren(ID);
+				if (childrenIDs == null)
+					return null;
+
+				Entity[] children = new Entity[childrenIDs.Length];
+				for (int i = 0; i < children.Length; i++)
+					children[i] = InternalCalls.Entity_GetScriptInstance(childrenIDs[i]) as Entity;
+
+				return children;
+			}
 		}
 
 		public Vector3 Position
@@ -129,10 +150,20 @@ namespace Engine.Scene
 				InternalCalls.TransformComponent_GetPosition(ID, out Vector3 result);
 				return result;
 			}
-			set
-			{
-				InternalCalls.TransformComponent_SetPosition(ID, ref value);
-			}
+
+			set => InternalCalls.TransformComponent_SetPosition(ID, ref value);
+		}
+
+		public Vector3 GetWorldPosition()
+		{
+			InternalCalls.Entity_GetWorldTransformPosition(ID, out Vector3 result);
+			return result;
+		}
+
+		public Vector3 GetUIPosition()
+		{
+			InternalCalls.Entity_GetUITransformPosition(ID, out Vector3 result);
+			return result;
 		}
 	}
 }

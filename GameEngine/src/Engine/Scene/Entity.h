@@ -40,13 +40,16 @@ namespace Engine
 		T& GetComponent()
 		{
 			ENGINE_CORE_ASSERT(HasComponent<T>(), "Entity does not have componenet!");
-			
+
 			return m_Scene->m_Registry.get<T>(m_EntityHandle);
 		}
 		
 		template<typename T>
 		bool HasComponent()
 		{
+			if (!m_Scene->IsEntityHandleValid(m_EntityHandle))
+				return false;
+
 			return m_Scene->m_Registry.has<T>(m_EntityHandle);
 		}
 
@@ -94,7 +97,7 @@ namespace Engine
 				glm::vec2 anchored = glm::clamp(ui.AnchorMax + ui.AnchorMin, -1.0f, 1.0f) / glm::vec2(2.0f);
 				anchored *= glm::vec2(m_Scene->m_ViewportWidth, m_Scene->m_ViewportHeight);
 				
-				transform = Math::GenRectTransform(glm::vec3(anchored, 0.0f) + worldPosition, worldRotation.z, glm::vec2(worldScale.x * ui.Size.x, worldScale.y * ui.Size.y));
+				transform = Math::GenRectTransform(glm::vec3(anchored, 0.0f) + worldPosition + glm::vec3(0.0f, 0.0f, 1.0f), worldRotation.z, glm::vec2(worldScale.x * ui.Size.x, worldScale.y * ui.Size.y));
 			}
 
 			return transform;
@@ -220,12 +223,11 @@ namespace Engine
 				return {};
 
 			auto& relationship = GetComponent<RelationshipComponent>();
-			std::vector<Entity> childEntities = std::vector<Entity>();
-
 			if (!relationship.HasChildren())
-				return childEntities;
+				return {};
 
 			UUID childIterator = relationship.FirstChild;
+			std::vector<Entity> childEntities = std::vector<Entity>();
 			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
 			{
 				if (!childIterator.IsValid())
@@ -246,5 +248,7 @@ namespace Engine
 	private:
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
+
+		friend class Scene;
 	};
 }

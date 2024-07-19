@@ -21,10 +21,7 @@ namespace Engine
 		inline float GetDistance() const { return m_Distance; }
 		inline void SetDistance(float distance) { m_Distance = distance; }
 
-		inline void SetViewportSize(float width, float height) { m_ViewportWidth = width; m_ViewportHeight = height; UpdateProjection(); }
-
-		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
-		glm::mat4 GetViewProjection() const { return m_Projection * m_ViewMatrix; }
+		virtual inline void SetViewportSize(float width, float height) override { Camera::SetViewportSize(width, height); UpdateProjection(); }
 
 		glm::vec3 GetUpDirection() const;
 		glm::vec3 GetRightDirection() const;
@@ -34,6 +31,11 @@ namespace Engine
 
 		float GetPitch() const { return m_Pitch; }
 		float GetYaw() const { return m_Yaw; }
+
+		float GetFOV() const { return m_FOV; }
+		void SetFOV(float fov) { m_FOV = fov; UpdateProjection(); }
+
+		void SetFocusTarget(const glm::vec3& targetPos, const float distance);
 	private:
 		void UpdateProjection();
 		void UpdateView();
@@ -52,15 +54,12 @@ namespace Engine
 	private:
 		float m_FOV = 45.0f, m_AspectRatio = 1.778f, m_NearClip = 0.1f, m_FarClip = 1000.0f;
 		
-		glm::mat4 m_ViewMatrix;
-		glm::vec3 m_Position = {0.0f, 0.0f, 0.0f};
-		glm::vec3 m_FocalPoint = {0.0f, 0.0f, 0.0f};
+		glm::vec3 m_Position{0.0f};
+		glm::vec3 m_FocalPoint{0.0f};
 
 		glm::vec2 m_InitialMousePosition;
 		
 		float m_Distance = 10.0f;
 		float m_Pitch = 0.0f, m_Yaw = 0.0f;
-
-		float m_ViewportWidth = 1280, m_ViewportHeight = 720;
 	};
 }

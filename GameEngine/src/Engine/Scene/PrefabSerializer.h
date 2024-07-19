@@ -1,19 +1,19 @@
 #pragma once
-#include "Engine/Scene/Entity.h"
+#include "Engine/Asset/AssetImporter.h"
 
 namespace Engine
 {
-	class PrefabSerializer
+	class PrefabSerializer : public AssetSerializer
 	{
 	public:
-		PrefabSerializer(Entity entity, const Ref<Scene>& scene)
-			:m_Entity(entity), m_Scene(scene) {}
+		PrefabSerializer() = default;
 
-		void Serialize(const std::filesystem::path& filepath);
+		//void Serialize(const std::filesystem::path& filepath, Entity entity, const Ref<Scene>& scene);
+		virtual void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
+		virtual const std::vector<char> SerializeForStream(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
 
-		Entity Deserialize(const std::filesystem::path& filepath);
-	private:
-		Entity m_Entity;
-		Ref<Scene> m_Scene;
+		//void Deserialize(const std::filesystem::path& filepath, Entity entity, Ref<Scene>& scene);
+		virtual bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		virtual bool TryLoadData(const PakAssetEntry& metadata, Ref<Asset>& asset) const override;
 	};
 }

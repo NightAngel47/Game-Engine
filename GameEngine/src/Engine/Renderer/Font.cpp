@@ -26,8 +26,7 @@ namespace Engine
 		fontTextureSpec.Format = ImageFormat::RGB8;
 		fontTextureSpec.GenerateMips = false;
 
-		Ref<Texture2D> texture = Texture2D::Create(fontTextureSpec);
-		texture->SetData((void*)bitmap.pixels, bitmap.width * bitmap.height * 3);
+		Ref<Texture2D> texture = Texture2D::Create(fontTextureSpec, Buffer((void*)bitmap.pixels, bitmap.width * bitmap.height * 3));
 		return texture;
 	}
 
@@ -145,6 +144,7 @@ namespace Engine
 
 	Ref<Font> Font::GetDefault()
 	{
+		ENGINE_CORE_TRACE("Engine Startup - Getting Default Font");
 		static Ref<Font> DefaultFont;
 		if (!DefaultFont)
 			DefaultFont = CreateRef<Font>("assets/fonts/OpenSans/OpenSans-Regular.ttf");

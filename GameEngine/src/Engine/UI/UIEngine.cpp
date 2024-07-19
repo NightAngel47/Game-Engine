@@ -1,34 +1,37 @@
 #include "enginepch.h"
 #include "Engine/UI/UIEngine.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scene/SceneManager.h"
+
+#include <cstring>
 
 namespace Engine
 {
 	struct UIEngineData
 	{
-		Scene* SceneContext = nullptr;
-
 		glm::vec2 ViewportMousePos{ 0.0f };
 	};
 
 	static UIEngineData* s_UIEngineData = nullptr;
 
-	void UIEngine::OnUIStart(Scene* scene)
+	void UIEngine::OnUIStart()
 	{
 		ENGINE_PROFILE_FUNCTION();
 
 		s_UIEngineData = new UIEngineData();
-		s_UIEngineData->SceneContext = scene;
 	}
 
 	void UIEngine::OnUIUpdate(Timestep ts, float viewportWidth, float viewportHeight)
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		auto view = s_UIEngineData->SceneContext->GetAllEntitiesWith<UILayoutComponent>();
+		auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<UILayoutComponent>();
 		for (auto e : view)
 		{
-			Entity entity = { e, s_UIEngineData->SceneContext };
+			if (!SceneManager::GetActiveScene()->IsEntityHandleValid(e))
+				continue;
+			
+			Entity entity = { e, SceneManager::GetActiveScene().get() };
 			bool isOver = UIEngine::IsOverElement(entity, viewportWidth, viewportHeight);
 
 			if (entity.HasComponent<UIButtonComponent>())
@@ -63,6 +66,9 @@ namespace Engine
 
 	bool UIEngine::IsOverElement(Entity entity, float viewportWidth, float viewportHeight)
 	{
+		if (!entity.HasComponent<UILayoutComponent>())
+			return false;
+
 		auto& layout = entity.GetComponent<UILayoutComponent>();
 
 		glm::mat4 transform = entity.GetUISpaceTransform();
@@ -137,7 +143,7 @@ namespace Engine
 		if (!InteractedEntityID.IsValid())
 			return;
 
-		Entity interactedEntity = s_UIEngineData->SceneContext->GetEntityWithUUID(InteractedEntityID);
+		Entity interactedEntity = SceneManager::GetActiveScene()->GetEntityWithUUID(InteractedEntityID);
 		ScriptComponent sc = interactedEntity.GetComponent<ScriptComponent>();
 		auto scriptMethod = ScriptEngine::GetScriptMethodMap(sc.ClassName).at(InteractedFunction);
 
@@ -148,8 +154,26 @@ namespace Engine
 		auto paramType = Params[i]->Field.Type;
 		while (i < 8 && paramType != ScriptFieldType::None)
 		{
-			void* val = Params[i]->GetValue<void*>();
-			m_FunctionParams[i] = &val;
+			if (paramType == ScriptFieldType::Char)
+			{
+				char val[2];
+				memset(val, 0, sizeof(val));
+				val[0] = Params[i]->GetValue<char>();
+
+				auto monoString = ScriptEngine::StringToMonoString(val);
+				m_FunctionParams[i] = monoString;
+			}
+			else if (paramType == ScriptFieldType::String)
+			{
+				std::string val = Params[i]->GetValue<std::string>();
+				auto monoString = ScriptEngine::StringToMonoString(val);
+				m_FunctionParams[i] = monoString;
+			}
+			else
+			{
+				void* val = Params[i]->GetValue<void*>();
+				m_FunctionParams[i] = &val;
+			}
 
 			++i;
 			paramType = Params[i]->Field.Type;

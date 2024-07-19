@@ -5,6 +5,7 @@
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/Components.h"
 #include "Engine/Scene/ScriptableEntity.h"
+#include "Engine/Scene/Prefab.h"
 #include "Engine/Renderer/Renderer2D.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scripting/ScriptEngine.h"
@@ -54,6 +55,7 @@ namespace Engine
 
 	Ref<Scene> Scene::Copy(Ref<Scene> other)
 	{
+		ENGINE_CORE_TRACE("Coping Scene");
 		Ref<Scene> newScene = CreateRef<Scene>();
 
 		newScene->m_ViewportWidth = other->m_ViewportWidth;
@@ -98,6 +100,21 @@ namespace Engine
 
 		m_EntityMap[uuid] = entity;
 
+		if (m_IsRunning)
+			ScriptEngine::InstantiateEntity(entity);
+
+		return entity;
+	}
+
+	Entity Scene::CreateEntityFromPrefab(AssetHandle prefabHandle)
+	{
+		Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabHandle);
+
+		Entity entity = CopyEntityFromOtherScene(prefab->m_PrefabEntity);
+
+		if (m_IsRunning)
+			ScriptEngine::InstantiateEntity(entity);
+
 		return entity;
 	}
 
@@ -106,6 +123,7 @@ namespace Engine
 		if (m_IsRunning)
 		{
 			Physics2DEngine::DestroyBody(entity);
+			AudioEngine::StopSound(entity.GetUUID());
 		}
 
 		if (entity.GetComponent<RelationshipComponent>().Parent.IsValid())
@@ -194,27 +212,60 @@ namespace Engine
 		return m_EntityMap.find(uuid) != m_EntityMap.end();
 	}
 
+	bool Scene::IsEntityHandleValid(entt::entity handle)
+	{
+		return m_Registry.valid(handle);
+	}
+
 	Entity Scene::GetEntityWithUUID(UUID uuid)
 	{
-		ENGINE_CORE_ASSERT(m_EntityMap.find(uuid) != m_EntityMap.end(), "Could not find Entity with UUID: " + std::to_string(uuid) + " in Scene: " + m_Name);
+		ENGINE_CORE_ASSERT(DoesEntityExist(uuid), "Could not find Entity with UUID: " + std::to_string(uuid) + " in Scene: " + m_Name);
 		return { m_EntityMap.at(uuid), this };
 	}
 
 	Entity Scene::FindEntityByName(const std::string_view& entityName)
 	{
 		auto view = m_Registry.view<TagComponent>();
-		for (auto entity : view)
+		for (auto e : view)
 		{
-			const TagComponent& tc = view.get<TagComponent>(entity);
+			const TagComponent& tc = view.get<TagComponent>(e);
 			if (tc.Tag == entityName)
-				return Entity{ entity, this };
+				return Entity{ e, this };
 		}
 
 		return {};
 	}
 
+	Entity Scene::CopyEntityFromOtherScene(Entity otherEntity)
+	{
+		std::string name = otherEntity.GetName();
+		Entity newEntity = CreateEntity(name);
+		CopyComponentIfExists(AllComponents{}, newEntity, otherEntity);
+
+		auto& relationship = otherEntity.GetComponent<RelationshipComponent>();
+
+		if (relationship.HasChildren())
+		{
+			UUID childIterator = relationship.FirstChild;
+			Scene* otherScene = otherEntity.m_Scene;
+			for (uint64_t i = 0; i < relationship.ChildrenCount; ++i)
+			{
+				Entity childEntity = otherScene->GetEntityWithUUID(childIterator);
+				Entity newChildEntity = CopyEntityFromOtherScene(childEntity);
+				newEntity.AddChild(newChildEntity);
+
+				childIterator = childEntity.GetComponent<RelationshipComponent>().NextChild;
+				if (!childIterator.IsValid())
+					break;
+			}
+		}
+
+		return newEntity;
+	}
+
 	void Scene::OnRuntimeStart()
 	{
+		ENGINE_CORE_TRACE("Scene Runtime Start: {}", Handle);
 		m_IsRunning = true;
 
 		// Start UI
@@ -228,15 +279,27 @@ namespace Engine
 
 		// Scripts OnStart
 		OnScriptsStart();
+
+		// Start Audio on Start
+		m_Registry.view<AudioSourceComponent>().each([=](auto e, const auto& source)
+		{
+			Entity entity = { e, this };
+			if (source.AutoPlayOnStart)
+			{
+				AudioEngine::PlaySound(entity.GetUUID(), source.Clip, source.Params);
+			}
+		});
 	}
 
 	void Scene::OnSimulationStart()
 	{
+		ENGINE_CORE_TRACE("Scene Simulation Start: {}", Handle);
 		OnPhysics2DStart();
 	}
 
 	void Scene::OnRuntimeStop()
 	{
+		ENGINE_CORE_TRACE("Scene Runtime Stop: {}", Handle);
 		m_IsRunning = false;
 
 		// UI Stop
@@ -247,10 +310,18 @@ namespace Engine
 
 		// Destroy Physics Objects
 		OnPhysics2DStop();
+
+		// Stop Audio
+		m_Registry.view<AudioSourceComponent>().each([=](auto e, const auto& source)
+		{
+			Entity entity = { e, this };
+			AudioEngine::StopSound(entity.GetUUID());
+		});
 	}
 
 	void Scene::OnSimulationStop()
 	{
+		ENGINE_CORE_TRACE("Scene Simulation Stop: {}", Handle);
 		OnPhysics2DStop();
 	}
 
@@ -270,7 +341,7 @@ namespace Engine
 			// Late Update scripts
 			OnScriptsLateUpdate(ts);
 		}
-		
+
 		// Render 2D
 		Camera* mainCamera = nullptr;
 		glm::mat4 cameraTransform;
@@ -305,6 +376,9 @@ namespace Engine
 		OnRenderUIUpdate();
 
 		Renderer2D::EndScene();
+
+		// Pause Audio Playback
+		AudioEngine::PausePlayback(m_IsPaused);
 	}
 
 	void Scene::OnUpdateSimulation(Timestep ts, EditorCamera& camera)
@@ -342,36 +416,43 @@ namespace Engine
 
 	void Scene::OnUIStart()
 	{
-		UIEngine::OnUIStart(this);
+		UIEngine::OnUIStart();
 	}
 
 	void Scene::OnPhysics2DStart()
 	{
-		Physics2DEngine::OnPhysicsStart(this);
+		Physics2DEngine::OnPhysicsStart();
 	}
 
 	void Scene::OnScriptsCreate()
 	{
-		ScriptEngine::OnRuntimeStart(this);
+		for (const auto& [handle, metadata] : AssetManager::GetAssetsOfType(AssetType::Prefab))
+			ScriptEngine::InstantiateAsset(handle);  // TODO remove once all asset types can work
 
-		// Instantiate Script Entities
-		auto view = m_Registry.view<ScriptComponent>();
+		// Instantiate Entities in Script Engine
+		auto view = m_Registry.view<TransformComponent>();
 		for (auto e : view)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnCreateEntity(entity);
+			ScriptEngine::InstantiateEntity(entity);
 		}
+
+		// Script OnCreate
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
+		{
+			Entity entity = { e, this };
+			ScriptEngine::OnCreateEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnScriptsStart()
 	{
 		// Scripts OnStart
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnStartEntity(entity);
-		}
+			ScriptEngine::OnStartEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnUIStop()
@@ -386,14 +467,11 @@ namespace Engine
 
 	void Scene::OnScriptsStop()
 	{
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnDestroyEntity(entity);
-		}
-
-		ScriptEngine::OnRuntimeStop();
+			ScriptEngine::OnDestroyEntity(entity, sc);
+		});
 	}
 
 	void Scene::OnUIUpdate(Timestep ts)
@@ -404,12 +482,11 @@ namespace Engine
 	void Scene::OnScriptsUpdate(Timestep ts)
 	{
 		// Update Scripts
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnUpdateEntity(entity, ts);
-		}
+			ScriptEngine::OnUpdateEntity(entity, sc, ts);
+		});
 
 		// Update Native Scripts
 		m_Registry.view<NativeScriptComponent>().each([=](auto e, auto& nsc)
@@ -433,45 +510,35 @@ namespace Engine
 	void Scene::OnScriptsLateUpdate(Timestep ts)
 	{
 		// Late Update Scripts
-		auto view = m_Registry.view<ScriptComponent>();
-		for (auto e : view)
+		m_Registry.view<ScriptComponent>().each([=](auto e, const auto& sc)
 		{
 			Entity entity = { e, this };
-			ScriptEngine::OnLateUpdateEntity(entity, ts);
-		}
+			ScriptEngine::OnLateUpdateEntity(entity, sc, ts);
+		});
 	}
 
 	void Scene::OnRender2DUpdate()
 	{
-		{ // Draw Sprites
-			auto view = m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				SpriteRendererComponent sprite = entity.GetComponent<SpriteRendererComponent>();
-				Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
-			}
-		}
+		// Draw Sprites
+		m_Registry.view<SpriteRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& sprite)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawSprite(entity.GetWorldSpaceTransform(), sprite, (int)e);
+		});
 
-		{ // Draw Circles
-			auto view = m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				CircleRendererComponent circle = entity.GetComponent<CircleRendererComponent>();
-				Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
-			}
-		}
+		// Draw Circles
+		m_Registry.view<CircleRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& circle)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawCircle(entity.GetWorldSpaceTransform(), circle.Color, circle.Thickness, circle.Fade, (int)e);
+		});
 
-		{ // Draw Text
-			auto view = m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>);
-			for (auto e : view)
-			{
-				Entity entity = { e, this };
-				TextRendererComponent trc = entity.GetComponent<TextRendererComponent>();
-				Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
-			}
-		}
+		// Draw Text
+		m_Registry.view<TextRendererComponent>(entt::exclude<UILayoutComponent>).each([=](auto e, auto& trc)
+		{
+			Entity entity = { e, this };
+			Renderer2D::DrawString(trc.TextString, entity.GetWorldSpaceTransform(), trc, (int)e);
+		});
 	}
 
 	void Scene::OnRenderUIUpdate()
@@ -532,6 +599,11 @@ namespace Engine
 	}
 
 	template<>
+	void Scene::OnComponentAdded<PrefabComponent>(Entity entity, PrefabComponent& component)
+	{
+	}
+
+	template<>
 	void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
 	{
 	}
@@ -562,9 +634,7 @@ namespace Engine
 	void Scene::OnComponentAdded<Rigidbody2DComponent>(Entity entity, Rigidbody2DComponent& component)
 	{
 		if (m_IsRunning)
-		{
 			component.RuntimeBody = Physics2DEngine::CreateRigidbody(entity);
-		}
 	}
 
 	template<>
@@ -602,6 +672,19 @@ namespace Engine
 	template<>
 	void Scene::OnComponentAdded<TextRendererComponent>(Entity entity, TextRendererComponent& component)
 	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<AudioSourceComponent>(Entity entity, AudioSourceComponent& component)
+	{
+		if (m_IsRunning)
+		{
+			auto& source = entity.GetComponent<AudioSourceComponent>();
+			if (source.AutoPlayOnStart)
+			{
+				AudioEngine::PlaySound(entity.GetUUID(), component.Clip, component.Params);
+			}
+		}
 	}
 
 	template<>

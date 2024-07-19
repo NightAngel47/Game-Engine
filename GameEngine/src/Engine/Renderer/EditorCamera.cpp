@@ -11,7 +11,7 @@
 namespace Engine
 {
 	EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
-		: Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip)), m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip)
+		: Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip), 1280, 720), m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip)
 	{
 		UpdateView();
 	}
@@ -137,5 +137,11 @@ namespace Engine
 	glm::quat EditorCamera::GetOrientation() const
 	{
 		return glm::quat(glm::vec3(-m_Pitch, -m_Yaw, 0.0f));
+	}
+
+	void EditorCamera::SetFocusTarget(const glm::vec3& targetPos, const float distance)
+	{
+		m_FocalPoint = targetPos;
+		m_Distance = distance;
 	}
 }

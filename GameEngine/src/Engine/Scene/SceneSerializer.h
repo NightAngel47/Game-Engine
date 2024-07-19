@@ -1,20 +1,14 @@
 #pragma once
-#include "Engine/Scene/Scene.h"
+#include "Engine/Asset/AssetImporter.h"
 
 namespace Engine
 {
-	class SceneSerializer
+	class SceneSerializer : public AssetSerializer
 	{
 	public:
-		SceneSerializer(const Ref<Scene>& scene)
-			: m_Scene(scene) {}
-
-		void Serialize(const std::filesystem::path& filepath);
-		void SerializeRuntime(const std::filesystem::path& filepath);
-		
-		bool Deserialize(const std::filesystem::path& filepath);
-		bool DeserializeRuntime(const std::filesystem::path& filepath);
-	private:
-		Ref<Scene> m_Scene;
+		virtual void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
+		virtual const std::vector<char> SerializeForStream(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
+		virtual bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		virtual bool TryLoadData(const PakAssetEntry& metadata, Ref<Asset>& asset) const override;
 	};
 }

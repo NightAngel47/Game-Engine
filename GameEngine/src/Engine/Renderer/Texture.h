@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Engine/Core/Base.h"
+#include "Engine/Core/Buffer.h"
+#include "Engine/Asset/Assets.h"
 
 namespace Engine
 {
@@ -21,18 +23,16 @@ namespace Engine
 		bool GenerateMips = true;
 	};
 
-	class Texture
+	class Texture : public Asset
 	{
 	public:
 		virtual ~Texture() = default;
-		
-		virtual const TextureSpecification& GetSpecification() const = 0;
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
 		virtual uint32_t GetRendererID() const = 0;
 
-		virtual void SetData(void* data, uint32_t size) = 0;
+		virtual void SetData(Buffer data) = 0;
 		
 		virtual void Bind(uint32_t slot = 0) const = 0;
 		
@@ -42,8 +42,14 @@ namespace Engine
 	class Texture2D : public Texture
 	{
 	public:
-		static Ref<Texture2D> Create(const TextureSpecification& specification);
-		static Ref<Texture2D> Create(const std::filesystem::path& path);
+		Texture2D() = default;
+
+		static Ref<Texture2D> Create(const TextureSpecification& specification, Buffer data = Buffer());
+
+		virtual void ChangeSize(uint32_t newWidth, uint32_t newHeight) = 0;
+
+		static AssetType GetStaticType() { return AssetType::Texture2D; }
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 	};
 	
 }

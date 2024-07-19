@@ -43,8 +43,35 @@ namespace Engine.Scene
 
 			set => InternalCalls.TransformComponent_SetScale(Entity.ID, ref value);
 		}
-	}
 
+		public Vector3 Up
+		{
+			get
+			{
+				InternalCalls.TransformComponent_GetUp(Entity.ID, out Vector3 up);
+				return up;
+			}
+		}
+
+		public Vector3 Right
+		{
+			get
+			{
+				InternalCalls.TransformComponent_GetRight(Entity.ID, out Vector3 right);
+				return right;
+			}
+		}
+
+		public Vector3 Forward
+		{
+			get
+			{
+				InternalCalls.TransformComponent_GetForward(Entity.ID, out Vector3 forward);
+				return forward;
+			}
+		}
+	}
+	
 	public class SpriteRendererComponent : Component
 	{
 		public Vector4 Color
@@ -125,17 +152,6 @@ namespace Engine.Scene
 
 	public class Rigidbody2DComponent : Component
 	{
-		public Vector2 LinearVelocity
-		{
-			get
-			{
-				InternalCalls.Rigidbody2DComponent_GetLinearVelocity(Entity.ID, out Vector2 velocity);
-				return velocity;
-			}
-
-			set => InternalCalls.Rigidbody2DComponent_SetLinearVelocity(Entity.ID, ref value);
-		}
-
 		public BodyType Type
 		{
 			get
@@ -147,22 +163,50 @@ namespace Engine.Scene
 			set => InternalCalls.Rigidbody2DComponent_SetType(Entity.ID, (int)value);
 		}
 
-		public void ApplyLinearImpulse(Vector2 impulse, Vector2 worldPosition, bool wake)
+		public Vector2 Position
+		{
+			get
+			{
+				InternalCalls.Rigidbody2DComponent_GetPosition(Entity.ID, out Vector2 position);
+				return position;
+			}
+
+			set => InternalCalls.Rigidbody2DComponent_SetPosition(Entity.ID, ref value);
+		}
+
+		public Vector2 LinearVelocity
+		{
+			get
+			{
+				InternalCalls.Rigidbody2DComponent_GetLinearVelocity(Entity.ID, out Vector2 velocity);
+				return velocity;
+			}
+
+			set => InternalCalls.Rigidbody2DComponent_SetLinearVelocity(Entity.ID, ref value);
+		}
+
+		public float GravityScale
+		{
+			get => InternalCalls.Rigidbody2DComponent_GetGravityScale(Entity.ID);
+			set => InternalCalls.Rigidbody2DComponent_SetGravityScale(Entity.ID, value);
+		}
+
+		public void ApplyLinearImpulse(Vector2 impulse, Vector2 worldPosition, bool wake = true)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulse(Entity.ID, ref impulse, ref worldPosition, wake);
 		}
 
-		public void ApplyLinearImpulse(Vector2 impulse, bool wake)
+		public void ApplyLinearImpulse(Vector2 impulse, bool wake = true)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
 		}
 
-		public void ApplyForce(Vector2 force, Vector2 worldPosition, bool wake)
+		public void ApplyForce(Vector2 force, Vector2 worldPosition, bool wake = true)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyForce(Entity.ID, ref force, ref worldPosition, wake);
 		}
 
-		public void ApplyForce(Vector2 force, bool wake)
+		public void ApplyForce(Vector2 force, bool wake = true)
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyForceToCenter(Entity.ID, ref force, wake);
 		}
@@ -176,5 +220,75 @@ namespace Engine.Scene
 	public class CircleCollider2DComponent : Component
 	{
 
+	}
+
+	public class CameraComponent : Component
+	{
+		public float OrthographicSize
+		{
+			get => InternalCalls.CameraComponent_GetOrthographicSize(Entity.ID);
+			set => InternalCalls.CameraComponent_SetOrthographicSize(Entity.ID, value);
+		}
+
+		public Vector3 ScreenToRay(Vector2 screenPos)
+		{
+			InternalCalls.CameraComponent_ScreenToWorldRay(Entity.ID, out Vector3 ray, ref screenPos);
+			return ray;
+		}
+
+		public Vector3 ScreenToWorldPoint(Vector2 screenPos, float depth = 0.0f)
+		{
+			InternalCalls.CameraComponent_ScreenToWorldPoint(Entity.ID, out Vector3 worldPoint, ref screenPos, depth);
+			return worldPoint;
+		}
+	}
+
+	public class ScriptComponent : Component
+	{
+		public string ClassName
+		{
+			get => InternalCalls.ScriptComponent_GetClassName(Entity.ID);
+		}
+
+		public void InstantiateClass(string className)
+		{
+			InternalCalls.ScriptComponent_InstantiateClass(Entity.ID, className);
+		}
+	}
+
+	public class AudioSourceComponent : Component
+	{
+		public void Play()
+		{
+			InternalCalls.AudioSourceComponent_PlaySound(Entity.ID);
+		}
+		
+		public void Stop()
+		{
+			InternalCalls.AudioSourceComponent_StopSound(Entity.ID);
+		}
+
+		public bool IsPlaying()
+		{
+			return InternalCalls.AudioSourceComponent_IsSoundPlaying(Entity.ID);
+		}
+
+		public bool Looping
+		{
+			get => InternalCalls.AudioSourceComponent_GetSoundLooping(Entity.ID);
+			set => InternalCalls.AudioSourceComponent_SetSoundLooping(Entity.ID, value);
+		}
+
+		public float Volume
+		{
+			get => InternalCalls.AudioSourceComponent_GetSoundVolume(Entity.ID);
+			set => InternalCalls.AudioSourceComponent_SetSoundVolume(Entity.ID, value);
+		}
+
+		public float Pitch
+		{
+			get => InternalCalls.AudioSourceComponent_GetSoundPitch(Entity.ID);
+			set => InternalCalls.AudioSourceComponent_SetSoundPitch(Entity.ID, value);
+		}
 	}
 }

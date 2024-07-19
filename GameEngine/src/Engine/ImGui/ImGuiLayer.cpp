@@ -30,9 +30,10 @@ namespace Engine
 //		io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;	
 //		io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;	
 
+#ifndef ENGINE_DIST
 		io.Fonts->AddFontFromFileTTF("assets/fonts/jetbrainsmono/JetBrainsMonoNL-Bold.ttf", Window::s_HighDPIScaleFactor * 16.0f);
 		io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/jetbrainsmono/JetBrainsMonoNL-Regular.ttf", Window::s_HighDPIScaleFactor * 16.0f);
-		
+#endif
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
 //		ImGui::StyleColorsClassic();
@@ -50,6 +51,7 @@ namespace Engine
 
 		Application& app = Application::Get();
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+		m_Viewport = CreateScope<Viewport>();
 
 		// Setup Platfrom/Renderer bindings
 		ImGui_ImplGlfw_InitForOpenGL(window, true);

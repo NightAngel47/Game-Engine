@@ -31,12 +31,22 @@
 #include "Engine/Scene/Entity.h"
 #include "Engine/Scene/ScriptableEntity.h"
 #include "Engine/Scene/Components.h"
+#include "Engine/Scene/SceneManager.h"
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Scene/PrefabSerializer.h"
+#include "Engine/Scene/Prefab.h"
 
 #include "Engine/Scripting/ScriptEngine.h"
 
+#include "Engine/Audio/AudioEngine.h"
+
+#include "Engine/Asset/Assets.h"
+#include "Engine/Asset/AssetManager.h"
+#include "Engine/Asset/AssetImporter.h"
+
 #include "Engine/Project/Project.h"
+
+#include "Engine/UI/UIEngine.h"
 
 // ---Renderer------------------------------
 #include "Engine/Renderer/Renderer.h"

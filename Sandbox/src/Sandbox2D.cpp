@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Engine/Debug/Instrumentor.h"
+#include "Engine/Asset/TextureImporter.h"
 
 
 static const uint32_t s_MapWidth = 24;
@@ -35,20 +36,20 @@ void Sandbox2D::OnAttach()
 {
 	ENGINE_PROFILE_FUNCTION();
 	
-	m_CheckerboardTexture = Engine::Texture2D::Create("assets/textures/Checkerboard.png");
-	m_TempleTexture = Engine::Texture2D::Create("assets/textures/temple.png");
-	m_ShipTexture = Engine::Texture2D::Create("assets/textures/shipGreen_manned.png");
-	m_SpriteSheet = Engine::Texture2D::Create("assets/game/textures/RPGpack_sheet_2X.png");
+	m_CheckerboardTexture = Engine::TextureImporter::LoadTexture2D("assets/textures/Checkerboard.png");
+	m_TempleTexture = Engine::TextureImporter::LoadTexture2D("assets/textures/temple.png");
+	m_ShipTexture = Engine::TextureImporter::LoadTexture2D("assets/textures/shipGreen_manned.png");
+	m_SpriteSheet = Engine::TextureImporter::LoadTexture2D("assets/game/textures/RPGpack_sheet_2X.png");
 
-	m_TextureBarrel = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 8, 2 }, { 128, 128 });
-	m_TextureStairs = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 7, 6 }, { 128, 128 });
-	m_TextureTree = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 2, 1 }, { 128, 128 }, { 1, 2 });
+	m_TextureBarrel = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet->Handle, { 8, 2 }, { 128, 128 });
+	m_TextureStairs = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet->Handle, { 7, 6 }, { 128, 128 });
+	m_TextureTree = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet->Handle, { 2, 1 }, { 128, 128 }, { 1, 2 });
 
 	m_MapWidth = s_MapWidth;
 	m_MapHeight = strlen(s_MapTiles) / s_MapWidth;
 
-	s_TextureMap['D'] = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 6, 11 }, { 128, 128 });
-	s_TextureMap['W'] = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 11, 11 }, { 128, 128 });
+	s_TextureMap['D'] = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet->Handle, { 6, 11 }, { 128, 128 });
+	s_TextureMap['W'] = Engine::SubTexture2D::CreateFromCoords(m_SpriteSheet->Handle, { 11, 11 }, { 128, 128 });
 
 	m_Particle.ColorBegin = { 254 / 255.0f, 212 / 255.0f, 123 / 255.0f, 1.0f };
 	m_Particle.ColorEnd = { 254 / 255.0f, 109 / 255.0f, 41 / 255.0f, 1.0f };

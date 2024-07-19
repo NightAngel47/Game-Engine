@@ -1,8 +1,10 @@
 #include "enginepch.h"
 #include "Engine/Core/Application.h"
 
+#include "Engine/Asset/AssetManager.h"
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Audio/AudioEngine.h"
 #include "Engine/UI/UIEngine.h"
 
 #include "Engine/Utils/PlatformUtils.h"
@@ -37,7 +39,8 @@ namespace Engine
 	Application::~Application()
 	{
 		ENGINE_PROFILE_FUNCTION();
-		
+
+		AudioEngine::Shutdown();
 		ScriptEngine::Shutdown();
 		Renderer::Shutdown();
 	}
@@ -60,7 +63,10 @@ namespace Engine
 
 	void Application::Close()
 	{
-		m_Running = false;
+		if (m_Specification.Runtime)
+			m_Running = false;
+		else
+			ENGINE_CORE_TRACE("\"Application Close\"");
 	}
 
 	void Application::SubmitToMainThread(const std::function<void()>& function)
@@ -89,6 +95,7 @@ namespace Engine
 	void Application::Run()
 	{	
 		ENGINE_PROFILE_FUNCTION();
+		ENGINE_CORE_TRACE("Begin Running Application");
 		
 		while (m_Running)
 		{
@@ -104,7 +111,7 @@ namespace Engine
 			{
 				{
 					ENGINE_PROFILE_SCOPE("LayerStack OnUpdate");
-					
+
 					for (Layer* layer : m_LayerStack)
 						layer->OnUpdate(timestep);
 				}

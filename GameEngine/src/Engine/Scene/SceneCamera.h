@@ -12,7 +12,7 @@ namespace Engine
 		SceneCamera();
 		virtual ~SceneCamera() = default;
 		
-		void SetViewportSize(uint32_t width, uint32_t height);
+		virtual inline void SetViewportSize(float width, float height) override;
 
 		void SetPerspective(float verticalFov, float nearClip, float farClip);
 		void SetOrthographic(float size, float nearClip, float farClip);
@@ -28,11 +28,13 @@ namespace Engine
 		void SetOrthographicSize(float size) { m_OrthographicSize = size; RecalculateProjection(); }
 		float GetOrthographicNearClip() const { return m_OrthographicNear; }
 		void SetOrthographicNearClip(float nearClip) { m_OrthographicNear = nearClip; RecalculateProjection(); }
-		float GetOrthographicFarClip() const { return m_OrthographicFar; }	
+		float GetOrthographicFarClip() const { return m_OrthographicFar; }
 		void SetOrthographicFarClip(float farClip) { m_OrthographicFar = farClip; RecalculateProjection(); }
 		
 		ProjectionType GetProjectionType() const { return m_ProjectionType; }
 		void SetProjectionType(ProjectionType type) { m_ProjectionType = type; RecalculateProjection(); }
+
+		glm::vec3 ScreenToWorldRay(glm::vec2 screenPos);
 	private:
 		void RecalculateProjection();
 	private:

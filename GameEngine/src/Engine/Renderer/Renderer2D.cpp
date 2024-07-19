@@ -132,8 +132,8 @@ namespace Engine
 			{ ShaderDataType::Float3,	"a_Position"		},
 			{ ShaderDataType::Float4,	"a_Color"			},
 			{ ShaderDataType::Float2,	"a_TexCoord"		},
-			{ ShaderDataType::Float,	"a_TexIndex"		},
 			{ ShaderDataType::Float,	"a_TilingFactor"	},
+			{ ShaderDataType::Float,	"a_TexIndex"		},
 			{ ShaderDataType::Int,		"a_EntityID"		}
 		});
 		s_Renderer2DData.QuadVertexArray->AddVertexBuffer(s_Renderer2DData.QuadVertexBuffer);
@@ -200,9 +200,8 @@ namespace Engine
 		s_Renderer2DData.TextVertexBufferBase = new TextVertex[s_Renderer2DData.MaxVertices];
 		s_Renderer2DData.TextVertexArray->SetIndexBuffer(quadIB); // Use quad IB (identical implementation otherwise)
 
-		s_Renderer2DData.WhiteTexture = Texture2D::Create(TextureSpecification());
 		uint32_t whiteTextureData = 0xffffffff;
-		s_Renderer2DData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
+		s_Renderer2DData.WhiteTexture = Texture2D::Create(TextureSpecification(), Buffer(&whiteTextureData, sizeof(uint32_t)));
 
 		int32_t samplers[s_Renderer2DData.MaxTextureSlots];
 		for (uint32_t i = 0; i < s_Renderer2DData.MaxTextureSlots; i++)
@@ -243,7 +242,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
-		s_Renderer2DData.CameraBuffer.ViewProjection = camera.GetViewProjection();
+		s_Renderer2DData.CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
 		s_Renderer2DData.CameraUniformBuffer->SetData(&s_Renderer2DData.CameraBuffer, sizeof(Render2DData::CameraData));
 		
 		StartBatch();
@@ -383,7 +382,7 @@ namespace Engine
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_Renderer2DData.TextureSlotIndex; i++)
 		{
-			if (*s_Renderer2DData.TextureSlots[i].get() == *texture.get())
+			if (s_Renderer2DData.TextureSlots[i] == texture)
 			{
 				textureIndex = (float)i;
 				break;
@@ -396,6 +395,7 @@ namespace Engine
 				Flush();
 			
 			textureIndex = (float)s_Renderer2DData.TextureSlotIndex;
+			ENGINE_CORE_VERIFY(texture);
 			s_Renderer2DData.TextureSlots[s_Renderer2DData.TextureSlotIndex] = texture;
 			s_Renderer2DData.TextureSlotIndex++;
 		}
@@ -413,7 +413,7 @@ namespace Engine
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_Renderer2DData.TextureSlotIndex; i++)
 		{
-			if (*s_Renderer2DData.TextureSlots[i] == *texture)
+			if (s_Renderer2DData.TextureSlots[i] == texture)
 			{
 				textureIndex = (float)i;
 				break;
@@ -480,7 +480,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 
-		if(src.Texture)
+		if (src.Texture.IsValid())
 		{
 			if (src.IsSubTexture)
 			{
@@ -488,17 +488,19 @@ namespace Engine
 			}
 			else
 			{
-				DrawQuad(transform, src.Texture, src.Tiling, src.Color, entityID);
+				DrawQuad(transform, src.GetTexture2D(), src.Tiling, src.Color, entityID);
 			}
-
-			return;
 		}
-		
-		DrawQuad(transform, src.Color, entityID);
+		else
+		{
+			DrawQuad(transform, src.Color, entityID);
+		}
 	}
 
 	void Renderer2D::DrawString(const std::string& string, const glm::mat4& transform, const TextParams& textParams, int entityID)
 	{
+		ENGINE_PROFILE_FUNCTION();
+
 		const auto& fontGeo = textParams.Font->GetMSDFData()->FontGeo;
 		const auto& metrics = fontGeo.getMetrics();
 		s_Renderer2DData.FontAtlasTexture = textParams.Font->GetAtlasTexture();

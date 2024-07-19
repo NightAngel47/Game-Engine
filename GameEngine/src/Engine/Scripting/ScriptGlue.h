@@ -21,6 +21,12 @@ namespace InternalCalls
 		static void RegisterComponentTypes();
 
 	private:
+#pragma region Application
+
+		static void Application_Quit();
+
+#pragma endregion Application
+
 #pragma region Log
 
 		static void Log_Trace(MonoString* message);
@@ -63,6 +69,8 @@ namespace InternalCalls
 		static float Vector2_Magnitude(glm::vec2& vector2);
 		static float Vector2_SqrMagnitude(glm::vec2& vector2);
 		static void Vector2_Normalize(glm::vec2* vector2);
+		static void Vector2_RotateAroundAxis(glm::vec2* vector2, float angle);
+		static float Vector2_Atan2(glm::vec2& vector2);
 
 #pragma endregion Vector2
 
@@ -71,6 +79,7 @@ namespace InternalCalls
 		static float Vector3_Magnitude(glm::vec3& vector3);
 		static float Vector3_SqrMagnitude(glm::vec3& vector3);
 		static void Vector3_Normalize(glm::vec3* vector3);
+		static void Vector3_RotateAroundAxis(glm::vec3* vector3, float angle, glm::vec3& axis);
 
 #pragma endregion Vector3
 
@@ -79,6 +88,7 @@ namespace InternalCalls
 		static float Vector4_Magnitude(glm::vec4& vector4);
 		static float Vector4_SqrMagnitude(glm::vec4& vector4);
 		static void Vector4_Normalize(glm::vec4* vector4);
+		static void Vector4_RotateAroundAxis(glm::vec4* vector4, float angle, glm::vec3& axis);
 
 #pragma endregion Vector4
 
@@ -87,6 +97,23 @@ namespace InternalCalls
 		static uint64_t Physics2DContact_GetEntityByID(Engine::UUID entityID);
 
 #pragma endregion Physics2DContact
+
+#pragma region AudioEngine
+
+		static float AudioEngine_GetMasterVolume();
+		static void AudioEngine_SetMasterVolume(float volume);
+		static bool AudioEngine_IsMasterVolumeMuted();
+		static void AudioEngine_SetMasterVolumeMuted(bool state);
+		static void AudioEngine_ToggleMuteMasterVolume();
+
+#pragma endregion AudioEngine
+
+#pragma region SceneManager
+
+		static void SceneManager_LoadSceneByHandle(Engine::AssetHandle handle);
+		static void SceneManager_LoadSceneByPath(MonoString* path);
+
+#pragma endregion SceneManager
 
 #pragma region Entity
 
@@ -97,8 +124,16 @@ namespace InternalCalls
 
 		static uint64_t Entity_FindEntityByName(MonoString* name);
 		static uint64_t Entity_CreateEntity(MonoString* name);
+		static uint64_t Entity_InstantiatePrefab(Engine::AssetHandle prefabID);
 		static MonoObject* Entity_GetScriptInstance(Engine::UUID entityID);
 		static void Entity_DestroyEntity(Engine::UUID entityID);
+
+		static uint64_t Entity_GetParent(Engine::UUID entityID);
+		static void Entity_SetParent(Engine::UUID entityID, Engine::UUID parentID);
+		static MonoArray* Entity_GetChildren(Engine::UUID entityID);
+
+		static void Entity_GetWorldTransformPosition(Engine::UUID entityID, glm::vec3* position);
+		static void Entity_GetUITransformPosition(Engine::UUID entityID, glm::vec3* position);
 
 #pragma endregion Entity
 
@@ -112,6 +147,10 @@ namespace InternalCalls
 
 		static void TransformComponent_GetScale(Engine::UUID entityID, glm::vec3* scale);
 		static void TransformComponent_SetScale(Engine::UUID entityID, glm::vec3& scale);
+
+		static void TransformComponent_GetUp(Engine::UUID entityID, glm::vec3* up);
+		static void TransformComponent_GetRight(Engine::UUID entityID, glm::vec3* right);
+		static void TransformComponent_GetForward(Engine::UUID entityID, glm::vec3* forward);
 
 #pragma endregion TransformComponent
 
@@ -159,8 +198,14 @@ namespace InternalCalls
 		static void Rigidbody2DComponent_GetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType* bodyType);
 		static void Rigidbody2DComponent_SetType(Engine::UUID entityID, Engine::Rigidbody2DComponent::BodyType bodyType);
 
+		static void Rigidbody2DComponent_GetPosition(Engine::UUID entityID, glm::vec2* position);
+		static void Rigidbody2DComponent_SetPosition(Engine::UUID entityID, glm::vec2& position);
+
 		static void Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity);
 		static void Rigidbody2DComponent_SetLinearVelocity(Engine::UUID entityID, glm::vec2& velocity);
+
+		static float Rigidbody2DComponent_GetGravityScale(Engine::UUID entityID);
+		static void Rigidbody2DComponent_SetGravityScale(Engine::UUID entityID, float gravityScale);
 
 		static void Rigidbody2DComponent_ApplyLinearImpulse(Engine::UUID entityID, glm::vec2& impulse, glm::vec2& worldPosition, bool wake);
 		static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(Engine::UUID entityID, glm::vec2& impulse, bool wake);
@@ -169,6 +214,38 @@ namespace InternalCalls
 		static void Rigidbody2DComponent_ApplyForceToCenter(Engine::UUID entityID, glm::vec2& force, bool wake);
 
 #pragma endregion Rigidbody2DComponent
+
+#pragma region CameraComponent
+
+		static float CameraComponent_GetOrthographicSize(Engine::UUID entityID);
+		static void CameraComponent_SetOrthographicSize(Engine::UUID entityID, float size);
+
+		static void CameraComponent_ScreenToWorldRay(Engine::UUID entityID, glm::vec3* ray, glm::vec2& screenPos);
+		static void CameraComponent_ScreenToWorldPoint(Engine::UUID entityID, glm::vec3* worldPoint, glm::vec2& screenPos, float depth);
+
+#pragma endregion CameraComponent
+
+#pragma region ScriptComponent
+
+		static MonoString* ScriptComponent_GetClassName(Engine::UUID entityID);
+		static void ScriptComponent_InstantiateClass(Engine::UUID entityID, MonoString* className);
+
+#pragma endregion ScriptComponent
+
+#pragma region AudioSourceComponent
+
+		static void AudioSourceComponent_PlaySound(Engine::UUID entityID);
+		static void AudioSourceComponent_StopSound(Engine::UUID entityID);
+		static bool AudioSourceComponent_IsSoundPlaying(Engine::UUID entityID);
+
+		static bool AudioSourceComponent_GetSoundLooping(Engine::UUID entityID);
+		static void AudioSourceComponent_SetSoundLooping(Engine::UUID entityID, bool state);
+		static float AudioSourceComponent_GetSoundVolume(Engine::UUID entityID);
+		static void AudioSourceComponent_SetSoundVolume(Engine::UUID entityID, float volume);
+		static float AudioSourceComponent_GetSoundPitch(Engine::UUID entityID);
+		static void AudioSourceComponent_SetSoundPitch(Engine::UUID entityID, float pitch);
+
+#pragma endregion AudioSourceComponent
 	};
 
 }

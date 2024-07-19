@@ -10,7 +10,8 @@ from urllib.request import urlopen
 
 class VulkanConfiguration:
     requiredVulkanVersion = "1.3."
-    installVulkanVersion = "1.3.216.0" #latest as of 07/09/22
+    #installVulkanVersion = "1.3.216.0" #latest as of 07/09/22
+    installVulkanVersion = "1.3.261.1" #latest as of 10/21/23
     vulkanDirectory = "./GameEngine/vendor/VulkanSDK"
 
     @classmethod

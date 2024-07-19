@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Physics/Physics2D.h"
 #include "Engine/Scripting/ScriptEngine.h"
+#include "Engine/Scene/SceneManager.h"
 
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_polygon_shape.h>
@@ -12,21 +13,21 @@ namespace Engine
 
 	struct PhysicsWorldSettings
 	{
-		const float PhysicsTimestep = 1.0f / 60.0f;
-		const uint32_t VelocityIteractions = 20;
-		const uint32_t PositionIteractions = 16;
+		const float PHYSICS_TIMESTEP = 1.0f / 60.0f;
+		const uint32_t VELOCITY_INTERACTIONS = 20;
+		const uint32_t POSITION_INTERACTIONS = 16;
 	};
 
-	static struct Physics2DEngineData
+	struct Physics2DEngineData
 	{
-		Scene* SceneContext = nullptr;
-
 		b2World* PhysicsWorld = nullptr;
 		float Accumulator = 0.0f;
 		float AccumulatorRatio = 0.0f;
 		PhysicsWorldSettings Settings;
 
 		std::vector<b2Body*> QueuedBodiesToDestroy = std::vector<b2Body*>();
+		std::unordered_map<b2Body*, glm::vec2> QueuedBodiesToPosition = std::unordered_map<b2Body*, glm::vec2>();
+		std::unordered_map<b2Body*, float> QueuedBodiesToRotate = std::unordered_map<b2Body*, float>();
 	};
 
 	static Physics2DEngineData* s_physics2DEngineData = nullptr;
@@ -45,26 +46,58 @@ namespace Engine
 
 	static void DestroyQueuedBodiesToDestroy()
 	{
+		if (s_physics2DEngineData->QueuedBodiesToDestroy.empty())
+			return;
+
 		for (b2Body* body : s_physics2DEngineData->QueuedBodiesToDestroy)
 		{
-			s_physics2DEngineData->PhysicsWorld->DestroyBody(body);
+			if (body)
+				s_physics2DEngineData->PhysicsWorld->DestroyBody(body);
 		}
 
 		s_physics2DEngineData->QueuedBodiesToDestroy.clear();
 	}
 
-	void Physics2DEngine::OnPhysicsStart(Scene* gameScene)
+	static void SetPositionQueuedBodiesToPosition()
+	{
+		if (s_physics2DEngineData->QueuedBodiesToPosition.empty())
+			return;
+
+		for (const auto& [body, position] : s_physics2DEngineData->QueuedBodiesToPosition)
+		{
+			if (body)
+				body->SetTransform({ position.x, position.y }, body->GetAngle());
+		}
+
+		s_physics2DEngineData->QueuedBodiesToPosition.clear();
+	}
+
+	static void SetRotationQueuedBodiesToRotate()
+	{
+		if (s_physics2DEngineData->QueuedBodiesToRotate.empty())
+			return;
+
+		for (const auto& [body, angle] : s_physics2DEngineData->QueuedBodiesToRotate)
+		{
+			if (body)
+				body->SetTransform(body->GetPosition(), angle);
+		}
+
+		s_physics2DEngineData->QueuedBodiesToRotate.clear();
+	}
+
+	void Physics2DEngine::OnPhysicsStart()
 	{
 		s_physics2DEngineData = new Physics2DEngineData();
-		s_physics2DEngineData->SceneContext = gameScene;
 
 		s_physics2DEngineData->PhysicsWorld = new b2World({ 0.0f, -9.8f });
+		s_physics2DEngineData->PhysicsWorld->SetAllowSleeping(true);
 		s_physics2DEngineData->PhysicsWorld->SetAutoClearForces(false);
 
-		auto view = s_physics2DEngineData->SceneContext->GetAllEntitiesWith<Rigidbody2DComponent>();
+		auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<Rigidbody2DComponent>();
 		for (auto e : view)
 		{
-			Entity entity = { e, s_physics2DEngineData->SceneContext };
+			Entity entity = { e, SceneManager::GetActiveScene().get() };
 			auto& transform = entity.GetComponent<TransformComponent>();
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
@@ -83,7 +116,7 @@ namespace Engine
 			}
 		}
 
-		if (s_physics2DEngineData->SceneContext->IsRunning())
+		if (SceneManager::GetActiveScene()->IsRunning())
 			s_physics2DEngineData->PhysicsWorld->SetContactListener(&g_ContactListener);
 	}
 
@@ -92,24 +125,22 @@ namespace Engine
 	// Box2d Specific: https://www.unagames.com/blog/daniele/2010/06/fixed-time-step-implementation-box2d#:~:text=If%20you%20are%20interested%20in,with%20a%20variable%20frame%2Drate.
 	void Physics2DEngine::OnPhysicsUpdate(Timestep ts)
 	{
-		const int maxSteps = 5;
+		const int MAX_STEPS = 5;
 		s_physics2DEngineData->Accumulator += ts;
-		const int nSteps = std::floor(s_physics2DEngineData->Accumulator / s_physics2DEngineData->Settings.PhysicsTimestep);
+		const int nSteps = glm::floor(s_physics2DEngineData->Accumulator / s_physics2DEngineData->Settings.PHYSICS_TIMESTEP);
 		if (nSteps > 0)
-		{
-			s_physics2DEngineData->Accumulator -= nSteps * s_physics2DEngineData->Settings.PhysicsTimestep;
-		}
-		s_physics2DEngineData->AccumulatorRatio = s_physics2DEngineData->Accumulator / s_physics2DEngineData->Settings.PhysicsTimestep;
+			s_physics2DEngineData->Accumulator -= nSteps * s_physics2DEngineData->Settings.PHYSICS_TIMESTEP;
 
-		auto view = s_physics2DEngineData->SceneContext->GetAllEntitiesWith<Rigidbody2DComponent>();
+		s_physics2DEngineData->AccumulatorRatio = s_physics2DEngineData->Accumulator / s_physics2DEngineData->Settings.PHYSICS_TIMESTEP;
 
-		const int nStepsClamped = std::min(nSteps, maxSteps);
+		auto view = SceneManager::GetActiveScene()->GetAllEntitiesWith<Rigidbody2DComponent>();
+		const int nStepsClamped = glm::min(nSteps, MAX_STEPS);
 		for (int i = 0; i < nStepsClamped; ++i)
 		{
 			// reset smoothing
 			for (auto e : view)
 			{
-				Entity entity = { e, s_physics2DEngineData->SceneContext };
+				Entity entity = { e, SceneManager::GetActiveScene().get() };
 				auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
 				b2Body* body = (b2Body*)rb2d.RuntimeBody;
@@ -126,8 +157,8 @@ namespace Engine
 				{
 					auto& position = body->GetPosition();
 					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-					rb2d.previousPosition = glm::vec2(position.x, position.y);
-					transform.Rotation.z = rb2d.previousAngle = body->GetAngle();
+					rb2d.PreviousPosition = glm::vec2(position.x, position.y);
+					transform.Rotation.z = rb2d.PreviousAngle = body->GetAngle();
 					break;
 				}
 				case Rigidbody2DComponent::SmoothingType::Extrapolation:
@@ -142,62 +173,65 @@ namespace Engine
 				}
 			}
 
-			s_physics2DEngineData->PhysicsWorld->Step(s_physics2DEngineData->Settings.PhysicsTimestep, s_physics2DEngineData->Settings.VelocityIteractions, s_physics2DEngineData->Settings.PositionIteractions);
+			s_physics2DEngineData->PhysicsWorld->Step(s_physics2DEngineData->Settings.PHYSICS_TIMESTEP, s_physics2DEngineData->Settings.VELOCITY_INTERACTIONS, s_physics2DEngineData->Settings.POSITION_INTERACTIONS);
 			DestroyQueuedBodiesToDestroy();
+			SetPositionQueuedBodiesToPosition();
+			SetRotationQueuedBodiesToRotate();
 		}
 
 		s_physics2DEngineData->PhysicsWorld->ClearForces();
+
+		// Smooth on Physics step only for consistent behavior in regards to framerate
+		if (nStepsClamped <= 0)
+			return;
 
 		// apply smoothing
 		const float oneMinusRatio = 1.0f - s_physics2DEngineData->AccumulatorRatio;
 
 		for (auto e : view)
 		{
-			Entity entity = { e, s_physics2DEngineData->SceneContext };
+			Entity entity = { e, SceneManager::GetActiveScene().get() };
 			auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
 
 			b2Body* body = (b2Body*)rb2d.RuntimeBody;
 			ENGINE_CORE_ASSERT(body, "Entiy has Rigidbody2DComponent, but no b2Body!");
 			if (body->GetType() == b2_staticBody)
-			{
 				continue;
-			}
 
 			auto& transform = entity.GetComponent<TransformComponent>();
 			switch (rb2d.Smoothing)
 			{
-			case Rigidbody2DComponent::SmoothingType::Interpolation:
-			{
-				auto& position = s_physics2DEngineData->AccumulatorRatio * body->GetPosition() + oneMinusRatio * b2Vec2(rb2d.previousPosition.x, rb2d.previousPosition.y);
-				transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-				transform.Rotation.z = s_physics2DEngineData->AccumulatorRatio * body->GetAngle() + oneMinusRatio * rb2d.previousAngle;
-				break;
-			}
-			case Rigidbody2DComponent::SmoothingType::Extrapolation:
-			{
-				auto& position = body->GetPosition() + ts * body->GetLinearVelocity();
-				transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-				transform.Rotation.z = body->GetAngle() + ts * body->GetAngularVelocity();
-				break;
-			}
-			case Rigidbody2DComponent::SmoothingType::None:
-			default:
-			{
-				auto& position = body->GetPosition();
-				transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
-				transform.Rotation.z = body->GetAngle();
-				break;
-			}
+				case Rigidbody2DComponent::SmoothingType::Interpolation:
+				{
+					auto& position = s_physics2DEngineData->AccumulatorRatio * body->GetPosition() + oneMinusRatio * b2Vec2(rb2d.PreviousPosition.x, rb2d.PreviousPosition.y);
+					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+					transform.Rotation.z = s_physics2DEngineData->AccumulatorRatio * body->GetAngle() + oneMinusRatio * rb2d.PreviousAngle;
+					break;
+				}
+				case Rigidbody2DComponent::SmoothingType::Extrapolation:
+				{
+					float dt = s_physics2DEngineData->AccumulatorRatio * s_physics2DEngineData->Settings.PHYSICS_TIMESTEP;
+					auto& position = body->GetPosition() + dt * body->GetLinearVelocity();
+					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+					transform.Rotation.z = body->GetAngle() + dt * body->GetAngularVelocity();
+					break;
+				}
+				case Rigidbody2DComponent::SmoothingType::None:
+				default:
+				{
+					auto& position = body->GetPosition();
+					transform.Position = glm::vec3(position.x, position.y, transform.Position.z);
+					transform.Rotation.z = body->GetAngle();
+					break;
+				}
 			}
 		}
 	}
 
 	void Physics2DEngine::OnPhysicsStop()
 	{
-		s_physics2DEngineData->SceneContext = nullptr;
+		delete s_physics2DEngineData->PhysicsWorld;
 		s_physics2DEngineData->PhysicsWorld = nullptr;
-
-		DestroyQueuedBodiesToDestroy();
 
 		delete s_physics2DEngineData;
 	}
@@ -211,12 +245,13 @@ namespace Engine
 		bodyDef.type = Utils::Rigidbody2DTypeToBox2DBodyType(rb2d.Type);
 		bodyDef.position.Set(transform.Position.x, transform.Position.y);
 		bodyDef.angle = transform.Rotation.z;
+		bodyDef.gravityScale = rb2d.GravityScale;
 		
 		UUID entityID = entity.GetUUID();
 		bodyDef.userData.pointer = entityID; // check if this needs to be cleared if not a pointer
 
-		rb2d.previousPosition = transform.Position;
-		rb2d.previousAngle = transform.Rotation.z;
+		rb2d.PreviousPosition = transform.Position;
+		rb2d.PreviousAngle = transform.Rotation.z;
 
 		b2Body* body = s_physics2DEngineData->PhysicsWorld->CreateBody(&bodyDef);
 
@@ -231,17 +266,43 @@ namespace Engine
 			return;
 
 		b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
-		if (body)
-		{
-			if (s_physics2DEngineData->PhysicsWorld->IsLocked())
-			{
-				s_physics2DEngineData->QueuedBodiesToDestroy.emplace_back(body);
-			}
-			else
-			{
-				s_physics2DEngineData->PhysicsWorld->DestroyBody(body);
-			}
-		}
+		if (!body)
+			return;
+
+		if (s_physics2DEngineData->PhysicsWorld->IsLocked())
+			s_physics2DEngineData->QueuedBodiesToDestroy.emplace_back(body);
+		else
+			s_physics2DEngineData->PhysicsWorld->DestroyBody(body);
+	}
+
+	void Physics2DEngine::SetRigidbodyPosition(Entity entity, glm::vec2 position)
+	{
+		if (!entity.HasComponent<Rigidbody2DComponent>())
+			return;
+
+		b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+		if (!body)
+			return;
+
+		if (s_physics2DEngineData->PhysicsWorld->IsLocked())
+			s_physics2DEngineData->QueuedBodiesToPosition[body] = position;
+		else
+			body->SetTransform({ position.x, position.y }, body->GetAngle());
+	}
+
+	void Physics2DEngine::SetRigidbodyRotation(Entity entity, float angle)
+	{
+		if (!entity.HasComponent<Rigidbody2DComponent>())
+			return;
+
+		b2Body* body = (b2Body*)entity.GetComponent<Rigidbody2DComponent>().RuntimeBody;
+		if (!body)
+			return;
+
+		if (s_physics2DEngineData->PhysicsWorld->IsLocked())
+			s_physics2DEngineData->QueuedBodiesToRotate[body] = angle;
+		else
+			body->SetTransform(body->GetPosition(), angle);
 	}
 
 	b2Fixture* Physics2DEngine::CreateCollider(const TransformComponent& transform, const Rigidbody2DComponent& rb2d, const BoxCollider2DComponent& bc2d)
@@ -274,7 +335,7 @@ namespace Engine
 		UUID fixtureAEntityID = (UUID)fixtureA->GetBody()->GetUserData().pointer;
 		UUID fixtureBEntityID = (UUID)fixtureB->GetBody()->GetUserData().pointer;
 
-		if (!s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && !s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID))
+		if (!SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && !SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID))
 			return;
 
 		for (b2Body* body : s_physics2DEngineData->QueuedBodiesToDestroy)
@@ -285,23 +346,23 @@ namespace Engine
 			}
 		}
 
-		Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID(fixtureAEntityID);
-		Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID(fixtureBEntityID);
+		Entity entityA = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureAEntityID);
+		Entity entityB = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureBEntityID);
 
-		if (fixtureA->IsSensor() && s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
+		if (fixtureA->IsSensor() && entityB.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerEnter2D(entityB, Physics2DContact{ fixtureAEntityID, fixtureBEntityID });
 		}
-		else if(fixtureB->IsSensor() && s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
+		else if(fixtureB->IsSensor() && entityA.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerEnter2D(entityA, Physics2DContact{ fixtureBEntityID, fixtureAEntityID });
 		}
 		else
 		{
-			if (s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
+			if (SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
 				ScriptEngine::OnCollisionEnter2D(entityB, Physics2DContact{ fixtureAEntityID, fixtureBEntityID });
 			
-			if (s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
+			if (SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
 				ScriptEngine::OnCollisionEnter2D(entityA, Physics2DContact{ fixtureBEntityID, fixtureAEntityID });
 		}
 	}
@@ -314,7 +375,7 @@ namespace Engine
 		UUID fixtureAEntityID = (UUID)fixtureA->GetBody()->GetUserData().pointer;
 		UUID fixtureBEntityID = (UUID)fixtureB->GetBody()->GetUserData().pointer;
 
-		if (!s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && !s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID))
+		if (!SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && !SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID))
 			return;
 
 		for (b2Body* body : s_physics2DEngineData->QueuedBodiesToDestroy)
@@ -325,23 +386,23 @@ namespace Engine
 			}
 		}
 
-		Entity entityA = s_physics2DEngineData->SceneContext->GetEntityWithUUID(fixtureAEntityID);
-		Entity entityB = s_physics2DEngineData->SceneContext->GetEntityWithUUID(fixtureBEntityID);
+		Entity entityA = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureAEntityID);
+		Entity entityB = SceneManager::GetActiveScene()->GetEntityWithUUID(fixtureBEntityID);
 
-		if (fixtureA->IsSensor() && s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
+		if (fixtureA->IsSensor() && SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerExit2D(entityB, Physics2DContact{ fixtureAEntityID, fixtureBEntityID });
 		}
-		else if (fixtureB->IsSensor() && s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
+		else if (fixtureB->IsSensor() && SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::OnTriggerExit2D(entityA, Physics2DContact{ fixtureBEntityID, fixtureAEntityID });
 		}
 		else
 		{
-			if (s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
+			if (SceneManager::GetActiveScene()->DoesEntityExist(fixtureBEntityID) && entityB.HasComponent<ScriptComponent>())
 				ScriptEngine::OnCollisionExit2D(entityB, Physics2DContact{ fixtureAEntityID, fixtureBEntityID });
 
-			if (s_physics2DEngineData->SceneContext->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
+			if (SceneManager::GetActiveScene()->DoesEntityExist(fixtureAEntityID) && entityA.HasComponent<ScriptComponent>())
 				ScriptEngine::OnCollisionExit2D(entityA, Physics2DContact{ fixtureBEntityID, fixtureAEntityID });
 		}
 	}
