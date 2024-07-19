@@ -5,9 +5,11 @@ static Engine::Ref<Engine::Font> s_Font;
 
 void Standalone::OnAttach()
 {
+	ENGINE_CORE_TRACE("Engine Startup - OnAttach - Standalone");
 	s_Font = Engine::Font::GetDefault();
-	std::filesystem::path projectFilePath;
 
+	ENGINE_CORE_TRACE("Engine Startup - Getting Project Path");
+	std::filesystem::path projectFilePath;
 #if ENGINE_DIST
 	projectFilePath = "SpaceGame.gameproj";
 #else
@@ -26,6 +28,7 @@ void Standalone::OnAttach()
 	if (Engine::Project::Load(projectFilePath))
 	{
 		Engine::AssetHandle handle = Engine::Project::GetActive()->GetConfig().RuntimeStartScene;
+		ENGINE_CORE_TRACE("Engine Startup - Getting Runtime Start Scene: {}", handle);
 		Engine::SceneManager::LoadScene(handle);
 	}
 	else

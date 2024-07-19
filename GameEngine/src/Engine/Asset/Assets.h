@@ -28,8 +28,33 @@ namespace Engine
 	{
 		AssetType Type = AssetType::None;
 		std::filesystem::path Path;
+		bool Compress;
 
 		operator bool() const { return Type != AssetType::None; }
+	};
+
+	//TODO Find proper home for pak stuff
+	constexpr char PAK_VERSION = 1;
+
+	struct PakHeader
+	{
+		char ID[4] = { "GPK" };
+		char PakVersion = 0;
+		uint32_t ContentVersion = 0;
+		//char FolderPath[100];
+		//char PakName[50];
+		uint32_t NumEnteries = 0;
+	};
+
+	struct PakAssetEntry
+	{
+		//char FilePath[255];
+		AssetHandle Handle = AssetHandle::INVALID();
+		AssetType Type = AssetType::None;
+		bool Compressed = false;
+		uint32_t UncompressedSize = 0;
+		uint32_t CompressedSize = 0;
+		uint32_t OffSet = 0;
 	};
 
 	namespace Utils

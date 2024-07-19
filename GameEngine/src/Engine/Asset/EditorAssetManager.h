@@ -3,8 +3,6 @@
 
 namespace Engine
 {
-	using AssetRegistry = std::unordered_map<AssetHandle, AssetMetadata>;
-
 	class EditorAssetManager : public AssetManagerBase
 	{
 	public:
@@ -27,10 +25,13 @@ namespace Engine
 
 		void SaveAssetToRegistry(AssetHandle handle, const AssetMetadata& metadata);
 
-		const AssetRegistry& GetAssets() const { return m_AssetRegistry; }
+		const AssetRegistry& GetAssetRegistry() const { return m_AssetRegistry; }
 		const AssetMap& GetLoadedAssets() const { return m_LoadedAssets; }
 
 		const AssetType GetAssetTypeFromFileExtension(const std::filesystem::path& extension);
+
+		const AssetMap GetAssetsOfType(AssetType type) const override;
+
 	private:
 		AssetMap m_LoadedAssets;
 		AssetRegistry m_AssetRegistry;

@@ -7,16 +7,21 @@ namespace Engine
 
 	RuntimeSceneManager::RuntimeSceneManager()
 	{
-		const auto& pack = Project::GetActive()->GetRuntimeAssetManager()->GetAssets();
-		for (const auto& [handle, metadata] : pack)
+		for (const auto& [handle, asset] : AssetManager::GetAssetsOfType(AssetType::Scene))
 		{
-			if (metadata.Type == AssetType::Scene)
-				m_SceneMap[handle] = metadata.Path.generic_string();
+			if (asset.get() == nullptr || !asset->Handle.IsValid())
+			{
+				ENGINE_CORE_WARN("Scene Asset: {}, Invalid!", handle);
+				continue;
+			}
+
+			m_SceneMap[handle] = As<Scene>(asset)->GetSceneName();
 		}
 	}
 
 	Ref<Scene> RuntimeSceneManager::LoadScene(const AssetHandle handle)
 	{
+		ENGINE_CORE_TRACE("Loading Scene: {}", handle);
 		if (m_ActiveScene->Handle.IsValid() && m_ActiveScene->IsRunning())
 			m_ActiveScene->OnRuntimeStop();
 

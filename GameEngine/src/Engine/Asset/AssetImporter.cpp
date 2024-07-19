@@ -31,8 +31,18 @@ namespace Engine
 		{ AssetType::AudioClip,	AudioImporter::ImportAudioClip}
 	};
 
+	using AssetImportFromPakFunction = std::function<Ref<Asset>(AssetHandle, const PakAssetEntry&)>;
+	static std::unordered_map<AssetType, AssetImportFromPakFunction> s_AssetImportFromPakFunctions =
+	{
+		{ AssetType::Scene,		SceneImporter::ImportSceneFromPak},
+		{ AssetType::Texture2D,	TextureImporter::ImportTexture2DFromPak},
+		{ AssetType::Prefab,	PrefabImporter::ImportPrefabFromPak},
+		{ AssetType::AudioClip,	AudioImporter::ImportAudioClipFromPak}
+	};
+
 	Ref<Asset> AssetImporter::ImportAsset(AssetHandle handle, const AssetMetadata& metadata)
 	{
+		ENGINE_CORE_TRACE("Importing Asset: {}", handle);
 		if (s_AssetImportFunctions.find(metadata.Type) == s_AssetImportFunctions.end())
 		{
 			ENGINE_CORE_ERROR("No importer available for asset type: {}", Utils::AssetTypeToString(metadata.Type));
@@ -42,8 +52,21 @@ namespace Engine
 		return s_AssetImportFunctions.at(metadata.Type)(handle, metadata);
 	}
 
+	Ref<Asset> AssetImporter::ImportAsset(AssetHandle handle, const PakAssetEntry& pakEntry)
+	{
+		ENGINE_CORE_TRACE("Importing Asset: {}", handle);
+		if (s_AssetImportFromPakFunctions.find(pakEntry.Type) == s_AssetImportFromPakFunctions.end())
+		{
+			ENGINE_CORE_ERROR("No importer available for asset type: {}", Utils::AssetTypeToString(pakEntry.Type));
+			return nullptr;
+		}
+
+		return s_AssetImportFromPakFunctions.at(pakEntry.Type)(handle, pakEntry);
+	}
+
 	void AssetImporter::SaveAsset(const AssetMetadata& metadata, const Ref<Asset>& asset)
 	{
+		ENGINE_CORE_TRACE("Saving Asset: {}", asset->Handle);
 		if (s_AssetImportFunctions.find(metadata.Type) == s_AssetImportFunctions.end())
 		{
 			ENGINE_CORE_ERROR("No save available for asset type: {}", Utils::AssetTypeToString(metadata.Type));

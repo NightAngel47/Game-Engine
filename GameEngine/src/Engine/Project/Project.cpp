@@ -15,6 +15,7 @@ namespace Engine
 
 	Ref<Project> Project::Load(const std::filesystem::path& path)
 	{
+		ENGINE_CORE_TRACE("Engine Startup - Loading Project: {}", path.generic_string());
 		Ref<Project> project = CreateRef<Project>();
 		ProjectSerializer serializer(project);
 		if (serializer.Deserialize(path))
@@ -22,24 +23,27 @@ namespace Engine
 			project->m_ProjectDirectory = path.parent_path();
 			s_ActiveProject = project;
 
+			ScriptEngine::Init();
+
 			if (Application::Get().GetSpecification().Runtime)
 			{
+				ENGINE_CORE_TRACE("Engine Startup - Initializing Runtime App");
 				project->m_AssetManager = CreateRef<RuntimeAssetManager>();
 				project->m_SceneManager = CreateRef<RuntimeSceneManager>();
 			}
 			else
 			{
+				ENGINE_CORE_TRACE("Engine Startup - Initializing Editor App");
 				project->m_AssetManager = CreateRef<EditorAssetManager>();
 				project->m_SceneManager = CreateRef<EditorSceneManager>();
 			}
 			
-			ScriptEngine::Init();
-
 			AudioEngine::Init();
 
 			return s_ActiveProject;
 		}
 
+		ENGINE_CORE_WARN("No Project Loaded!");
 		return nullptr;
 	}
 

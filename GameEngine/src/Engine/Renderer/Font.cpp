@@ -144,6 +144,7 @@ namespace Engine
 
 	Ref<Font> Font::GetDefault()
 	{
+		ENGINE_CORE_TRACE("Engine Startup - Getting Default Font");
 		static Ref<Font> DefaultFont;
 		if (!DefaultFont)
 			DefaultFont = CreateRef<Font>("assets/fonts/OpenSans/OpenSans-Regular.ttf");

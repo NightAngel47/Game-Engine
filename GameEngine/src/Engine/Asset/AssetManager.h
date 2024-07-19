@@ -27,9 +27,9 @@ namespace Engine
 			return handle.IsValid() && Project::GetActive()->GetAssetManager()->IsAssetLoaded(handle);
 		}
 
-		static const std::unordered_map<AssetHandle, AssetMetadata>& GetAssets()
+		static const AssetMap GetAssetsOfType(AssetType type)
 		{
-			return Project::GetActive()->GetAssetManager()->GetAssets();
+			return Project::GetActive()->GetAssetManager()->GetAssetsOfType(type);
 		}
 	};
 }

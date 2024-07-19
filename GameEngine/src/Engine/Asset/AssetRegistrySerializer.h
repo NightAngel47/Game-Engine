@@ -1,7 +1,5 @@
 #pragma once
-#include "Engine/Asset/EditorAssetManager.h"
-
-#include <filesystem>
+#include "Engine/Asset/AssetManagerBase.h"
 
 namespace Engine
 {

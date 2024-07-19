@@ -208,6 +208,7 @@ namespace Engine
 	void ScriptEngine::Init()
 	{
 		ENGINE_PROFILE_FUNCTION();
+		ENGINE_CORE_TRACE("Engine Startup - Script Engine Init");
 
 		s_ScriptEngineData = new ScriptEngineData();
 
@@ -244,6 +245,7 @@ namespace Engine
 
 	void ScriptEngine::InitMono()
 	{
+		ENGINE_CORE_TRACE("Engine Startup - Mono Init");
 		// Mono
 #if ENGINE_DIST
 		mono_set_assemblies_path("mono/lib");
@@ -279,6 +281,7 @@ namespace Engine
 
 	bool ScriptEngine::LoadCoreAssembly(const std::filesystem::path& assemblyPath)
 	{
+		ENGINE_CORE_TRACE("Engine Startup - Loading Core Assembly {}", assemblyPath.generic_string());
 		s_ScriptEngineData->AppDomain = mono_domain_create_appdomain("EngineScriptRuntime", nullptr);
 		ENGINE_CORE_ASSERT(s_ScriptEngineData->AppDomain, "App Domain could not be initialized!");
 		mono_domain_set(s_ScriptEngineData->AppDomain, true);
@@ -432,6 +435,7 @@ namespace Engine
 
 	void ScriptEngine::LoadEntityClasses(MonoAssembly* assembly)
 	{
+		ENGINE_CORE_TRACE("Engine Startup - Loading Entity Classes");
 		s_ScriptEngineData->EntityClasses.clear();
 		s_ScriptEngineData->ScriptFieldsDefaults.clear();
 		s_ScriptEngineData->ScriptMethodMap.clear();

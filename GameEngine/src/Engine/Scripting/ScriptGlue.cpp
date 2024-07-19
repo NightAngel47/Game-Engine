@@ -38,11 +38,14 @@ namespace InternalCalls
 		return entity;
 	}
 
-#define ENGINE_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Engine.Core.InternalCalls::" #Name, Name)
+#define ENGINE_ADD_INTERNAL_CALL(Name)									\
+	ENGINE_CORE_TRACE("\tEngine.Core.InternalCalls::" #Name);			\
+	mono_add_internal_call("Engine.Core.InternalCalls::" #Name, Name)	\
 
 	void ScriptGlue::RegisterInternalCalls()
 	{
 		ENGINE_PROFILE_FUNCTION();
+		ENGINE_CORE_TRACE("Engine Startup - Registering Internal Calls:");
 
 		// Add internal calls
 		ENGINE_ADD_INTERNAL_CALL(Application_Quit);
@@ -201,6 +204,7 @@ namespace InternalCalls
 
 	void ScriptGlue::RegisterComponentTypes()
 	{
+		ENGINE_CORE_TRACE("Engine Startup - Registering Component Types");
 		RegisterComponent(Engine::AllComponents{});
 	}
 #pragma region Application

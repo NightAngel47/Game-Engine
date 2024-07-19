@@ -17,6 +17,19 @@ namespace Engine
 		return nullptr;
 	}
 
+	Ref<Scene> SceneImporter::ImportSceneFromPak(AssetHandle handle, const PakAssetEntry& pakEntry)
+	{
+		Ref<Asset> scene = CreateRef<Scene>();
+		SceneSerializer serializer = SceneSerializer();
+		if (serializer.TryLoadData(pakEntry, scene))
+		{
+			scene->Handle = handle;
+			return As<Scene>(scene);
+		}
+
+		return nullptr;
+	}
+
 	void SceneImporter::SaveScene(const AssetMetadata& metadata, const Ref<Asset>& asset)
 	{
 		SceneSerializer serializer = SceneSerializer();

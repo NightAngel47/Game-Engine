@@ -1,6 +1,7 @@
 #include "enginepch.h"
 #include "Engine/Asset/EditorAssetManager.h"
 #include "Engine/Asset/AssetRegistrySerializer.h"
+#include "Engine/Asset/AssetPakSerializer.h"
 #include "Engine/Project/Project.h"
 
 namespace Engine
@@ -172,6 +173,9 @@ namespace Engine
 
 		AssetRegistrySerializer assetRegistrySerializer = AssetRegistrySerializer();
 		assetRegistrySerializer.Serialize(m_AssetRegistry);
+
+		AssetPakSerializer assetPakSerializer = AssetPakSerializer();
+		assetPakSerializer.Serialize(m_AssetRegistry);
 	}
 
 
@@ -184,5 +188,17 @@ namespace Engine
 		}
 
 		return s_AssetExtensionMap.at(extension);
+	}
+
+	const AssetMap EditorAssetManager::GetAssetsOfType(AssetType type) const
+	{
+		AssetMap assets = {};
+		for (const auto& [handle, metadata] : m_AssetRegistry)
+		{
+			if (metadata.Type == type)
+				assets[handle] = Project().GetActive()->GetEditorAssetManager()->GetAsset(handle);
+		}
+
+		return assets;
 	}
 }

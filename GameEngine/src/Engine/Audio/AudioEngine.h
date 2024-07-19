@@ -35,6 +35,7 @@ namespace Engine
 		static void ToggleMuteMasterVolume();
 
 		static void LoadSound(const std::filesystem::path& path, AssetHandle handle);
+		static void LoadSound(const Buffer& buffer, AssetHandle handle);
 
 		static void PlaySound(UUID entityID, AssetHandle clip, const SoundParams& params = {});
 		static void StopSound(UUID entityID);
