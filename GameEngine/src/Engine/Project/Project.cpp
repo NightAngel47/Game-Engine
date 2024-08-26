@@ -23,6 +23,7 @@ namespace Engine
 			project->m_ProjectDirectory = path.parent_path();
 			s_ActiveProject = project;
 
+			AudioEngine::Init();
 			ScriptEngine::Init();
 
 			if (Application::Get().GetSpecification().Runtime)
@@ -37,8 +38,6 @@ namespace Engine
 				project->m_AssetManager = CreateRef<EditorAssetManager>();
 				project->m_SceneManager = CreateRef<EditorSceneManager>();
 			}
-			
-			AudioEngine::Init();
 
 			return s_ActiveProject;
 		}
