@@ -12,7 +12,7 @@ namespace Engine
 		SceneCamera();
 		virtual ~SceneCamera() = default;
 		
-		void SetViewportSize(uint32_t width, uint32_t height);
+		virtual inline void SetViewportSize(float width, float height) override;
 
 		void SetPerspective(float verticalFov, float nearClip, float farClip);
 		void SetOrthographic(float size, float nearClip, float farClip);
@@ -33,6 +33,8 @@ namespace Engine
 		
 		ProjectionType GetProjectionType() const { return m_ProjectionType; }
 		void SetProjectionType(ProjectionType type) { m_ProjectionType = type; RecalculateProjection(); }
+
+		glm::vec3 ScreenToWorldRay(glm::vec2 screenPos);
 	private:
 		void RecalculateProjection();
 	private:

@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System;
 using Engine.Math;
 
 namespace Engine.Core
@@ -93,6 +92,9 @@ namespace Engine.Core
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Vector2_RotateAroundAxis(out Vector2 vector2, float angle);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float Vector2_Atan2(ref Vector2 vector2);
+
 		#endregion Vector2
 
 		#region Vector3
@@ -133,6 +135,25 @@ namespace Engine.Core
 		internal static extern ulong Physics2DContact_GetEntityByID(ulong entityID);
 
 		#endregion Physics2DContact
+
+		#region AudioEngine
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float AudioEngine_GetMasterVolume();
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioEngine_SetMasterVolume(float volume);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern bool AudioEngine_IsMasterVolumeMuted();
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioEngine_SetMasterVolumeMuted(bool state);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void AudioEngine_ToggleMuteMasterVolume();
+
+		#endregion AudioEngine
 
 		#region SceneManager
 
@@ -293,6 +314,12 @@ namespace Engine.Core
 		internal static extern void Rigidbody2DComponent_SetType(ulong entityID, int bodyType);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_GetPosition(ulong entityID, out Vector2 position);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern void Rigidbody2DComponent_SetPosition(ulong entityID, ref Vector2 position);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void Rigidbody2DComponent_GetLinearVelocity(ulong entityID, out Vector2 velocity);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -325,6 +352,12 @@ namespace Engine.Core
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal static extern void CameraComponent_SetOrthographicSize(ulong entityID, float size);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float CameraComponent_ScreenToWorldRay(ulong entityID, out Vector3 ray, ref Vector2 screenPos);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal static extern float CameraComponent_ScreenToWorldPoint(ulong entityID, out Vector3 worldPoint, ref Vector2 screenPos, float depth);
 
 		#endregion CameraComponent
 

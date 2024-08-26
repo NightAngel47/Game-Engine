@@ -12,6 +12,7 @@ public:
 		: Engine::Application(specification)
 	{
 		ENGINE_PROFILE_FUNCTION();
+		ENGINE_CORE_TRACE("Engine Startup - Creating Layers");
 		
 		//PushLayer(new ExampleLayer());
 		//PushLayer(new Sandbox2D());
@@ -26,6 +27,7 @@ public:
 
 Engine::Application* Engine::CreateApplication(Engine::ApplicationCommandLineArgs args)
 {
+	ENGINE_CORE_TRACE("Engine Startup - Creating App");
 	ApplicationSpecification spec;
 	spec.Name = "Sandbox";
 #if ENGINE_DIST

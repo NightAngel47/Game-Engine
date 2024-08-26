@@ -29,8 +29,13 @@ namespace Engine
 
 		// Set master volume to 0 for silence, 1 for 100% volume, and above 1 for amplified
 		static void SetMasterVolume(float linearVolume);
+		static float GetMasterVolume();
+		static bool IsMasterVolumeMuted();
+		static void SetMasterVolumeMuted(bool state);
+		static void ToggleMuteMasterVolume();
 
 		static void LoadSound(const std::filesystem::path& path, AssetHandle handle);
+		static void LoadSound(const Buffer& buffer, AssetHandle handle);
 
 		static void PlaySound(UUID entityID, AssetHandle clip, const SoundParams& params = {});
 		static void StopSound(UUID entityID);

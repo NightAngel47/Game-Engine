@@ -7,6 +7,8 @@ namespace Engine
 	{
 	public:
 		virtual void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
+		virtual const std::vector<char> SerializeForStream(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
 		virtual bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		virtual bool TryLoadData(const PakAssetEntry& metadata, Ref<Asset>& asset) const override;
 	};
 }

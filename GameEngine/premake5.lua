@@ -2,7 +2,7 @@ project "GameEngine"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "off"
+	staticruntime "on"
 
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -41,6 +41,7 @@ project "GameEngine"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.box2d}",
 		"%{IncludeDir.miniaudio}",
@@ -84,6 +85,7 @@ project "GameEngine"
 		defines "ENGINE_DEBUG"
 		runtime "Debug"
 		symbols "on"
+		optimize "off"
 
 		links
 		{
@@ -95,6 +97,7 @@ project "GameEngine"
 	filter "configurations:Release"
 		defines "ENGINE_RELEASE"
 		runtime "Release"
+		symbols "off"
 		optimize "off" -- HACK: Bug with Optimization On and Mono
 
 		links
@@ -107,6 +110,7 @@ project "GameEngine"
 	filter "configurations:Dist"
 		defines "ENGINE_DIST"
 		runtime "Release"
+		symbols "off"
 		optimize "off" -- HACK: Bug with Optimization On and Mono
 
 		links

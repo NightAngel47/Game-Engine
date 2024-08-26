@@ -46,6 +46,8 @@ namespace Engine
 
 		static Ref<Texture2D> Create(const TextureSpecification& specification, Buffer data = Buffer());
 
+		virtual void ChangeSize(uint32_t newWidth, uint32_t newHeight) = 0;
+
 		static AssetType GetStaticType() { return AssetType::Texture2D; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 	};

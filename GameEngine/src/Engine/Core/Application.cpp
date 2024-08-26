@@ -95,6 +95,7 @@ namespace Engine
 	void Application::Run()
 	{	
 		ENGINE_PROFILE_FUNCTION();
+		ENGINE_CORE_TRACE("Begin Running Application");
 		
 		while (m_Running)
 		{
@@ -110,7 +111,7 @@ namespace Engine
 			{
 				{
 					ENGINE_PROFILE_SCOPE("LayerStack OnUpdate");
-					
+
 					for (Layer* layer : m_LayerStack)
 						layer->OnUpdate(timestep);
 				}

@@ -13,6 +13,7 @@
 
 #include <box2d/b2_body.h>
 #include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 namespace InternalCalls
 {
@@ -37,11 +38,14 @@ namespace InternalCalls
 		return entity;
 	}
 
-#define ENGINE_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Engine.Core.InternalCalls::" #Name, Name)
+#define ENGINE_ADD_INTERNAL_CALL(Name)									\
+	ENGINE_CORE_TRACE("\tEngine.Core.InternalCalls::" #Name);			\
+	mono_add_internal_call("Engine.Core.InternalCalls::" #Name, Name)	\
 
 	void ScriptGlue::RegisterInternalCalls()
 	{
 		ENGINE_PROFILE_FUNCTION();
+		ENGINE_CORE_TRACE("Engine Startup - Registering Internal Calls:");
 
 		// Add internal calls
 		ENGINE_ADD_INTERNAL_CALL(Application_Quit);
@@ -71,6 +75,7 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector2_SqrMagnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector2_Normalize);
 		ENGINE_ADD_INTERNAL_CALL(Vector2_RotateAroundAxis);
+		ENGINE_ADD_INTERNAL_CALL(Vector2_Atan2);
 
 		ENGINE_ADD_INTERNAL_CALL(Vector3_Magnitude);
 		ENGINE_ADD_INTERNAL_CALL(Vector3_SqrMagnitude);
@@ -83,6 +88,12 @@ namespace InternalCalls
 		ENGINE_ADD_INTERNAL_CALL(Vector4_RotateAroundAxis);
 
 		ENGINE_ADD_INTERNAL_CALL(Physics2DContact_GetEntityByID);
+
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_GetMasterVolume);
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_SetMasterVolume);
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_IsMasterVolumeMuted);
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_SetMasterVolumeMuted);
+		ENGINE_ADD_INTERNAL_CALL(AudioEngine_ToggleMuteMasterVolume);
 
 		ENGINE_ADD_INTERNAL_CALL(SceneManager_LoadSceneByHandle);
 		ENGINE_ADD_INTERNAL_CALL(SceneManager_LoadSceneByPath);
@@ -134,6 +145,8 @@ namespace InternalCalls
 
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetPosition);
+		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetPosition);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetLinearVelocity);
 		ENGINE_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetGravityScale);
@@ -145,6 +158,8 @@ namespace InternalCalls
 
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_GetOrthographicSize);
 		ENGINE_ADD_INTERNAL_CALL(CameraComponent_SetOrthographicSize);
+		ENGINE_ADD_INTERNAL_CALL(CameraComponent_ScreenToWorldRay);
+		ENGINE_ADD_INTERNAL_CALL(CameraComponent_ScreenToWorldPoint);
 
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_GetClassName);
 		ENGINE_ADD_INTERNAL_CALL(ScriptComponent_InstantiateClass);
@@ -189,6 +204,7 @@ namespace InternalCalls
 
 	void ScriptGlue::RegisterComponentTypes()
 	{
+		ENGINE_CORE_TRACE("Engine Startup - Registering Component Types");
 		RegisterComponent(Engine::AllComponents{});
 	}
 #pragma region Application
@@ -324,6 +340,11 @@ namespace InternalCalls
 		*vector2 = glm::rotate(*vector2, angle);
 	}
 
+	float ScriptGlue::Vector2_Atan2(glm::vec2& vector2)
+	{
+		return glm::atan(vector2.y, vector2.x);
+	}
+
 #pragma endregion Vector2
 	
 #pragma region Vector3
@@ -389,6 +410,35 @@ namespace InternalCalls
 	}
 
 #pragma endregion Physics2DContact
+
+#pragma region AudioEngine
+
+	float ScriptGlue::AudioEngine_GetMasterVolume()
+	{
+		return Engine::AudioEngine::GetMasterVolume();
+	}
+
+	void ScriptGlue::AudioEngine_SetMasterVolume(float volume)
+	{
+		Engine::AudioEngine::SetMasterVolume(volume);
+	}
+
+	bool ScriptGlue::AudioEngine_IsMasterVolumeMuted()
+	{
+		return Engine::AudioEngine::IsMasterVolumeMuted();
+	}
+
+	void ScriptGlue::AudioEngine_SetMasterVolumeMuted(bool state)
+	{
+		Engine::AudioEngine::SetMasterVolumeMuted(state);
+	}
+
+	void ScriptGlue::AudioEngine_ToggleMuteMasterVolume()
+	{
+		Engine::AudioEngine::ToggleMuteMasterVolume();
+	}
+
+#pragma endregion AudioEngine
 
 #pragma region SceneManager
 
@@ -496,8 +546,12 @@ namespace InternalCalls
 	MonoObject* ScriptGlue::Entity_GetScriptInstance(Engine::UUID entityID)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
-		auto& instance = Engine::ScriptEngine::GetEntityInstance(entity);
-		return instance->GetMonoObject();
+		Engine::Ref<Engine::ScriptInstance> instance = Engine::ScriptEngine::GetEntityInstance(entity);
+		if (instance != nullptr)
+			return instance->GetMonoObject();
+
+		ENGINE_CORE_WARN("ScriptInstance was null for {}", entityID);
+		return nullptr;
 	}
 
 	void ScriptGlue::Entity_DestroyEntity(Engine::UUID entityID)
@@ -747,6 +801,21 @@ namespace InternalCalls
 		body->SetType(Engine::Utils::Rigidbody2DTypeToBox2DBodyType(bodyType));
 	}
 
+	void ScriptGlue::Rigidbody2DComponent_GetPosition(Engine::UUID entityID, glm::vec2* position)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		const b2Vec2& rb2dPosition = body->GetPosition();
+		*position = { rb2dPosition.x, rb2dPosition.y };
+	}
+
+	void ScriptGlue::Rigidbody2DComponent_SetPosition(Engine::UUID entityID, glm::vec2& position)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		b2Body* body = (b2Body*)entity.GetComponent<Engine::Rigidbody2DComponent>().RuntimeBody;
+		body->SetTransform(b2Vec2(position.x, position.y), body->GetAngle());
+	}
+
 	void ScriptGlue::Rigidbody2DComponent_GetLinearVelocity(Engine::UUID entityID, glm::vec2* velocity)
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
@@ -818,6 +887,20 @@ namespace InternalCalls
 	{
 		Engine::Entity entity = GetEntityFromScene(entityID);
 		entity.GetComponent<Engine::CameraComponent>().Camera.SetOrthographicSize(size);
+	}
+
+	void ScriptGlue::CameraComponent_ScreenToWorldRay(Engine::UUID entityID, glm::vec3* ray, glm::vec2& screenPos)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		*ray = entity.GetComponent<Engine::CameraComponent>().Camera.ScreenToWorldRay(screenPos);
+	}
+
+	void ScriptGlue::CameraComponent_ScreenToWorldPoint(Engine::UUID entityID, glm::vec3* worldPoint, glm::vec2& screenPos, float depth)
+	{
+		Engine::Entity entity = GetEntityFromScene(entityID);
+		glm::vec3 ray = entity.GetComponent<Engine::CameraComponent>().Camera.ScreenToWorldRay(screenPos);
+		*worldPoint = entity.GetComponent<Engine::TransformComponent>().Position + ray;
+		worldPoint->z = depth;
 	}
 
 #pragma endregion CameraComponent

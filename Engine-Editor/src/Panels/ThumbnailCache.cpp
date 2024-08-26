@@ -55,6 +55,8 @@ namespace Engine
 			case AssetType::Texture2D:
 			{
 				thumbnail = TextureImporter::LoadTexture2D(info.FullPath);
+				float thumbnailHeight = m_ThumbnailSize * ((float)thumbnail->GetHeight() / (float)thumbnail->GetWidth());
+				thumbnail->ChangeSize(m_ThumbnailSize, thumbnailHeight);
 				break;
 			}
 			case AssetType::Scene:

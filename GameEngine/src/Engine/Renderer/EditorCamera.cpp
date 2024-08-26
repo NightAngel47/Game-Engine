@@ -11,7 +11,7 @@
 namespace Engine
 {
 	EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
-		: Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip)), m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip)
+		: Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip), 1280, 720), m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip)
 	{
 		UpdateView();
 	}
@@ -144,5 +144,4 @@ namespace Engine
 		m_FocalPoint = targetPos;
 		m_Distance = distance;
 	}
-
 }

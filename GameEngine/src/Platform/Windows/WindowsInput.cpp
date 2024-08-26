@@ -3,9 +3,7 @@
 
 #include "Engine/Core/Application.h"
 #include <GLFW/glfw3.h>
-
-#include <glm/vec2.hpp>
-
+#include <imgui.h>
 
 namespace Engine
 {
@@ -25,10 +23,19 @@ namespace Engine
 
 	glm::vec2 Input::GetMousePosition()
 	{
+		if (!Application::Get().GetSpecification().Runtime)
+		{
+			auto [mx, my] = ImGui::GetMousePos();
+			glm::vec2 viewportBoundsOrigin = Application::Get().GetImGuiLayer()->GetViewportBounds()[0];
+			mx -= viewportBoundsOrigin.x;
+			my -= viewportBoundsOrigin.y;
+			return { mx, my };
+		}
+
 		auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
-		return {xpos, ypos};
+		return { xpos, ypos };
 	}
 
 	float Input::GetMouseX()

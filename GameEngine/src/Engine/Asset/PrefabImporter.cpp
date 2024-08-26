@@ -17,6 +17,19 @@ namespace Engine
 		return nullptr;
 	}
 
+	Ref<Prefab> PrefabImporter::ImportPrefabFromPak(AssetHandle handle, const PakAssetEntry& pakEntry)
+	{
+		Ref<Asset> prefabEntity = CreateRef<Prefab>();
+		PrefabSerializer serializer = PrefabSerializer();
+		if (serializer.TryLoadData(pakEntry, prefabEntity))
+		{
+			prefabEntity->Handle = handle;
+			return As<Prefab>(prefabEntity);
+		}
+
+		return nullptr;
+	}
+
 	void PrefabImporter::SavePrefab(const AssetMetadata& metadata, const Ref<Asset>& asset)
 	{
 		PrefabSerializer serializer = PrefabSerializer();

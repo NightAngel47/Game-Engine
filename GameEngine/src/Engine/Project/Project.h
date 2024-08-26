@@ -20,6 +20,7 @@ namespace Engine
 
 		std::filesystem::path AssetDirectory;
 		std::filesystem::path AssetRegistryPath;
+		std::filesystem::path AssetPakPath;
 		std::filesystem::path ScriptModulePath;
 	};
 
@@ -52,6 +53,12 @@ namespace Engine
 			return s_ActiveProject->GetAssetRegistryPath();
 		}
 
+		static std::filesystem::path GetActiveAssetPakPath()
+		{
+			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
+			return s_ActiveProject->GetAssetPakPath();
+		}
+
 		static std::filesystem::path GetActiveAssetFileSystemPath(const std::filesystem::path& path)
 		{
 			ENGINE_CORE_ASSERT(s_ActiveProject, "No active project!");
@@ -61,6 +68,7 @@ namespace Engine
 		const std::filesystem::path GetProjectDirectory() { return m_ProjectDirectory; }
 		std::filesystem::path GetAssetDirectory() { return (GetProjectDirectory() / m_Config.AssetDirectory); }
 		std::filesystem::path GetAssetRegistryPath() { return (GetAssetDirectory() / m_Config.AssetRegistryPath); }
+		std::filesystem::path GetAssetPakPath() { return (GetAssetDirectory() / m_Config.AssetPakPath); }
 		std::filesystem::path GetAssetFileSystemPath(const std::filesystem::path& path) { return (GetAssetDirectory() / path); }
 
 		Ref<AssetManagerBase> GetAssetManager() { return m_AssetManager; }

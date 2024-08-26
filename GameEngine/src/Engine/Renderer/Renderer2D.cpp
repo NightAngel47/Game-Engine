@@ -242,7 +242,7 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
-		s_Renderer2DData.CameraBuffer.ViewProjection = camera.GetViewProjection();
+		s_Renderer2DData.CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
 		s_Renderer2DData.CameraUniformBuffer->SetData(&s_Renderer2DData.CameraBuffer, sizeof(Render2DData::CameraData));
 		
 		StartBatch();
