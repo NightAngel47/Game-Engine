@@ -39,6 +39,8 @@ namespace Engine
 
 		static void PlaySound(UUID entityID, AssetHandle handle, const SoundParams& params = {});
 		static void StopSound(UUID entityID);
+		static void UninitSound(UUID entityID);
+		static void EraseAudioSource(UUID entityID);
 
 		static void PausePlayback(bool pause);
 
