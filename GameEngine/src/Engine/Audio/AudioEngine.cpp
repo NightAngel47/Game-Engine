@@ -16,6 +16,11 @@ namespace Engine
 		const uint32_t MAX_SOUND_INSTANCES = 8;
 	};
 
+	struct AudioBufferConfig
+	{
+		std::vector<ma_audio_buffer_config> Configs;
+	};
+
 	struct AudioEngineData
 	{
 		ma_resource_manager ResourceManager;
@@ -31,7 +36,7 @@ namespace Engine
 		uint32_t OutputDevice;
 
 		std::unordered_map<AssetHandle, ma_sound*> AudioClips;
-		std::unordered_map<AssetHandle, ma_audio_buffer_config> AudioBufferConfigs;
+		std::unordered_map<AssetHandle, AudioBufferConfig> AudioBufferConfigs;
 		std::unordered_map<UUID, ma_audio_buffer*> AudioBuffers;
 		std::unordered_map<UUID, AudioSource> AudioSources;
 		bool PlaybackPaused;
@@ -81,7 +86,8 @@ namespace Engine
 		ma_resource_manager_config resourceManagerConfig = ma_resource_manager_config_init();
 		resourceManagerConfig.decodedFormat = ma_format_f32;
 		resourceManagerConfig.decodedChannels = 0;
-		resourceManagerConfig.decodedSampleRate = 48000;
+		//resourceManagerConfig.decodedSampleRate = 48000;
+		resourceManagerConfig.decodedSampleRate = 0;
 
 		resourceManagerConfig.jobThreadCount = 4;
 
@@ -363,13 +369,16 @@ namespace Engine
 			return;
 		}
 
+		Ref<ma_engine> engine;
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			ma_uint64 _size_in_frames = 0;
-			void* _frames_out = nullptr;
+			engine = s_AudioEngineData->Engines[i];
+			ma_uint64 size_in_frames = 0;
+			void* frames_out = nullptr;
+			uint32_t sampleRate = engine->sampleRate;
 
-			ma_decoder_config _decoder_config = ma_decoder_config_init(ma_format_f32, ma_engine_get_channels(s_AudioEngineData->Engines[i].get()), 48000);
-			auto result = ma_decode_memory(buffer.Data, buffer.Size, &_decoder_config, &_size_in_frames, &_frames_out);
+			ma_decoder_config decoder_config = ma_decoder_config_init(ma_format_f32, ma_engine_get_channels(engine.get()), sampleRate);
+			auto result = ma_decode_memory(buffer.Data, buffer.Size, &decoder_config, &size_in_frames, &frames_out);
 			if (result != MA_SUCCESS)
 			{
 				ENGINE_CORE_WARN("Failed to decode sound from memory!");
@@ -378,12 +387,12 @@ namespace Engine
 
 			ma_audio_buffer_config config = ma_audio_buffer_config_init(
 				ma_format_f32,
-				ma_engine_get_channels(s_AudioEngineData->Engines[i].get()),
-				_size_in_frames,
-				_frames_out,
+				ma_engine_get_channels(engine.get()),
+				size_in_frames,
+				frames_out,
 				nullptr);
-			config.sampleRate = s_AudioEngineData->Engines[i]->sampleRate;
-			s_AudioEngineData->AudioBufferConfigs[handle] = config;
+			config.sampleRate = sampleRate;
+			s_AudioEngineData->AudioBufferConfigs[handle].Configs.emplace_back(config);
 		}
 	}
 
@@ -414,7 +423,7 @@ namespace Engine
 				ma_result result = MA_SUCCESS;
 				if (s_AudioEngineData->AudioBuffers.find(entityID) == s_AudioEngineData->AudioBuffers.end())
 				{
-					result = ma_audio_buffer_alloc_and_init(&s_AudioEngineData->AudioBufferConfigs[handle], &audioBuffer);
+					result = ma_audio_buffer_alloc_and_init(&s_AudioEngineData->AudioBufferConfigs[handle].Configs.at(i), &audioBuffer);
 					if (result != MA_SUCCESS)
 					{
 						ENGINE_CORE_WARN("Failed to allocate and initalize audio buffer based on config during playback!");
