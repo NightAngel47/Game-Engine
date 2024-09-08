@@ -24,10 +24,11 @@ namespace Engine
 		ma_device_info* PlaybackDeviceInfos;
 		uint32_t PlaybackDeviceCount;
 
-		ma_engine Engines[4]; // TODO change to dynamic
-		ma_device Devices[4]; // TODO change to dynamic
+		std::vector<Ref<ma_engine>> Engines;
+		std::vector<Ref<ma_device>> Devices;
 
 		uint32_t EngineCount;
+		uint32_t OutputDevice;
 
 		std::unordered_map<AssetHandle, ma_sound*> AudioClips;
 		std::unordered_map<AssetHandle, ma_audio_buffer_config> AudioBufferConfigs;
@@ -37,8 +38,6 @@ namespace Engine
 
 		float MasterVolume;
 		bool IsMutedMaster;
-
-		uint32_t OutputDevice;
 	};
 
 	static AudioEngineData* s_AudioEngineData = nullptr;
@@ -78,8 +77,6 @@ namespace Engine
 		ENGINE_CORE_TRACE("Engine Startup - Audio Engine Init");
 		s_AudioEngineData = new AudioEngineData();
 
-		ma_result result;
-
 		// Config Resource Manager
 		ma_resource_manager_config resourceManagerConfig = ma_resource_manager_config_init();
 		resourceManagerConfig.decodedFormat = ma_format_f32;
@@ -88,7 +85,7 @@ namespace Engine
 
 		resourceManagerConfig.jobThreadCount = 4;
 
-		result = ma_resource_manager_init(&resourceManagerConfig, &s_AudioEngineData->ResourceManager);
+		auto result = ma_resource_manager_init(&resourceManagerConfig, &s_AudioEngineData->ResourceManager);
 		if (result != MA_SUCCESS)
 		{
 			ENGINE_CORE_ERROR("Failed to initialize Resource Manager!");
@@ -118,6 +115,8 @@ namespace Engine
 			ENGINE_CORE_INFO("Initializing {}: {}", i, s_AudioEngineData->PlaybackDeviceInfos[i].name);
 			ma_device_config deviceConfig;
 			ma_engine_config engineConfig;
+			Ref<ma_engine> engine = s_AudioEngineData->Engines.emplace_back(CreateRef<ma_engine>());
+			Ref<ma_device> device = s_AudioEngineData->Devices.emplace_back(CreateRef<ma_device>());
 
 			// Config Device
 			deviceConfig = ma_device_config_init(ma_device_type_playback);
@@ -126,9 +125,9 @@ namespace Engine
 			deviceConfig.playback.channels = 0;
 			deviceConfig.sampleRate = s_AudioEngineData->ResourceManager.config.decodedSampleRate;
 			deviceConfig.dataCallback = data_callback;
-			deviceConfig.pUserData = &s_AudioEngineData->Engines[s_AudioEngineData->EngineCount]; // engine count?
+			deviceConfig.pUserData = engine.get(); // engine count?
 
-			result = ma_device_init(&s_AudioEngineData->Context, &deviceConfig, &s_AudioEngineData->Devices[s_AudioEngineData->EngineCount]); // engine count?
+			result = ma_device_init(&s_AudioEngineData->Context, &deviceConfig, device.get()); // engine count?
 			if (result != MA_SUCCESS)
 			{
 				ENGINE_CORE_ERROR("Failed to initialize device for {}.", s_AudioEngineData->PlaybackDeviceInfos[i].name); // chosen device ?
@@ -137,15 +136,15 @@ namespace Engine
 
 			// Config Engine
 			engineConfig = ma_engine_config_init();
-			engineConfig.pDevice = &s_AudioEngineData->Devices[s_AudioEngineData->EngineCount]; // engine count?
+			engineConfig.pDevice = device.get(); // engine count?
 			engineConfig.pResourceManager = &s_AudioEngineData->ResourceManager;
 			engineConfig.noAutoStart = MA_TRUE;
 
-			result = ma_engine_init(&engineConfig, &s_AudioEngineData->Engines[s_AudioEngineData->EngineCount]); // engine count?
+			result = ma_engine_init(&engineConfig, engine.get()); // engine count?
 			if (result != MA_SUCCESS)
 			{
 				ENGINE_CORE_ERROR("Failed to initialize engine for {}.", s_AudioEngineData->PlaybackDeviceInfos[i].name);  // chosen device ?
-				ma_device_uninit(&s_AudioEngineData->Devices[s_AudioEngineData->EngineCount]); // engine count?
+				ma_device_uninit(device.get()); // engine count?
 				continue;
 			}
 
@@ -156,7 +155,7 @@ namespace Engine
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
 			ENGINE_CORE_TRACE("Starting Engine: {}", i);
-			result = ma_engine_start(&s_AudioEngineData->Engines[i]);
+			result = ma_engine_start(s_AudioEngineData->Engines[i].get());
 			if (result != MA_SUCCESS)
 			{
 				ENGINE_CORE_WARN("Failed to start engine {}", i);
@@ -167,7 +166,7 @@ namespace Engine
 		for (uint32_t i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
 		{
 			ENGINE_CORE_TRACE("Stopping Device: {}", i);
-			result = ma_device_stop(&s_AudioEngineData->Devices[i]);
+			result = ma_device_stop(s_AudioEngineData->Devices[i].get());
 			if (result != MA_SUCCESS)
 			{
 				ENGINE_CORE_WARN("Failed to stop device {}", i);
@@ -178,7 +177,7 @@ namespace Engine
 			{
 				ENGINE_CORE_TRACE("Starting Device: {}", i);
 				s_AudioEngineData->OutputDevice = i;
-				result = ma_device_start(&s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice]);
+				result = ma_device_start(s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice].get());
 				if (result != MA_SUCCESS)
 				{
 					ENGINE_CORE_WARN("Failed to start device {}", i);
@@ -202,8 +201,8 @@ namespace Engine
 
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			ma_engine_uninit(&s_AudioEngineData->Engines[i]);
-			ma_device_uninit(&s_AudioEngineData->Devices[i]);
+			ma_engine_uninit(s_AudioEngineData->Engines[i].get());
+			ma_device_uninit(s_AudioEngineData->Devices[i].get());
 		}
 
 		ma_context_uninit(&s_AudioEngineData->Context);
@@ -224,10 +223,10 @@ namespace Engine
 			return;
 		}
 
-		ma_device_stop(&s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice]);
+		ma_device_stop(s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice].get());
 
 		s_AudioEngineData->OutputDevice = deviceNumber;
-		ma_device_start(&s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice]);
+		ma_device_start(s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice].get());
 	}
 
 	uint32_t AudioEngine::GetOutputDevice()
@@ -272,7 +271,7 @@ namespace Engine
 
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engines[i], linearVolume);
+			ma_result result = ma_engine_set_volume(s_AudioEngineData->Engines[i].get(), linearVolume);
 			if (result != MA_SUCCESS)
 				ENGINE_CORE_WARN("Failed to set master volume!");
 		}
@@ -304,7 +303,7 @@ namespace Engine
 		float volume = s_AudioEngineData->IsMutedMaster ? 0 : s_AudioEngineData->MasterVolume;
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engines[i], volume);
+			ma_result result = ma_engine_set_volume(s_AudioEngineData->Engines[i].get(), volume);
 			if (result != MA_SUCCESS)
 				ENGINE_CORE_WARN("Failed to set master volume!");
 		}
@@ -335,7 +334,7 @@ namespace Engine
 		ma_sound* sound = new ma_sound();
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			auto result = ma_sound_init_from_file(&s_AudioEngineData->Engines[i], path.generic_string().c_str(),
+			auto result = ma_sound_init_from_file(s_AudioEngineData->Engines[i].get(), path.generic_string().c_str(),
 				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE 
 				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
 				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM // TODO create stream implementation (only need to stream music or sounds over 2 seconds)
@@ -369,7 +368,7 @@ namespace Engine
 			ma_uint64 _size_in_frames = 0;
 			void* _frames_out = nullptr;
 
-			ma_decoder_config _decoder_config = ma_decoder_config_init(ma_format_f32, ma_engine_get_channels(&s_AudioEngineData->Engines[i]), 48000);
+			ma_decoder_config _decoder_config = ma_decoder_config_init(ma_format_f32, ma_engine_get_channels(s_AudioEngineData->Engines[i].get()), 48000);
 			auto result = ma_decode_memory(buffer.Data, buffer.Size, &_decoder_config, &_size_in_frames, &_frames_out);
 			if (result != MA_SUCCESS)
 			{
@@ -379,11 +378,11 @@ namespace Engine
 
 			ma_audio_buffer_config config = ma_audio_buffer_config_init(
 				ma_format_f32,
-				ma_engine_get_channels(&s_AudioEngineData->Engines[i]),
+				ma_engine_get_channels(s_AudioEngineData->Engines[i].get()),
 				_size_in_frames,
 				_frames_out,
 				nullptr);
-			config.sampleRate = s_AudioEngineData->Engines[i].sampleRate;
+			config.sampleRate = s_AudioEngineData->Engines[i]->sampleRate;
 			s_AudioEngineData->AudioBufferConfigs[handle] = config;
 		}
 	}
@@ -431,14 +430,14 @@ namespace Engine
 					result = ma_audio_buffer_init(&s_AudioEngineData->AudioBufferConfigs[handle], audioBuffer);
 					if (result != MA_SUCCESS)
 					{
-						ENGINE_CORE_WARN("Failed to initalize audio buffer based on config during playback!");
+						ENGINE_CORE_WARN("Failed to initialize audio buffer based on config during playback!");
 						ma_audio_buffer_uninit(audioBuffer);
 						return;
 					}
 					*/
 				}
 
-				result = ma_sound_init_from_data_source(&s_AudioEngineData->Engines[i], audioBuffer,
+				result = ma_sound_init_from_data_source(s_AudioEngineData->Engines[i].get(), audioBuffer,
 					MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
 					, nullptr, soundInstance);
 
@@ -457,7 +456,7 @@ namespace Engine
 				}
 
 				// Get Original Sound and Copy to Instance
-				auto result = ma_sound_init_copy(&s_AudioEngineData->Engines[i], s_AudioEngineData->AudioClips.at(handle),
+				auto result = ma_sound_init_copy(s_AudioEngineData->Engines[i].get(), s_AudioEngineData->AudioClips.at(handle),
 					MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE
 					| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
 					, nullptr, soundInstance);
