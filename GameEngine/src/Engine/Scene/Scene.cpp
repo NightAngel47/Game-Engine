@@ -124,6 +124,7 @@ namespace Engine
 		{
 			Physics2DEngine::DestroyBody(entity);
 			AudioEngine::StopSound(entity.GetUUID());
+			AudioEngine::EraseAudioSource(entity.GetUUID());
 		}
 
 		if (entity.GetComponent<RelationshipComponent>().Parent.IsValid())

@@ -11,9 +11,14 @@ namespace Engine
 
 	struct AudioSource
 	{
-		ma_sound SoundInstances[4];
+		ma_sound* SoundInstances;
 		uint32_t SoundInstancesIndex = 0;
-		const uint32_t MAX_SOUND_INSTANCES = 4;
+		const uint32_t MAX_SOUND_INSTANCES = 8;
+	};
+
+	struct AudioBufferConfig
+	{
+		std::vector<ma_audio_buffer_config> Configs;
 	};
 
 	struct AudioEngineData
@@ -24,19 +29,20 @@ namespace Engine
 		ma_device_info* PlaybackDeviceInfos;
 		uint32_t PlaybackDeviceCount;
 
-		ma_engine Engines[2];
-		ma_device Devices[2];
+		std::vector<Ref<ma_engine>> Engines;
+		std::vector<Ref<ma_device>> Devices;
 
 		uint32_t EngineCount;
+		uint32_t OutputDevice;
 
-		std::unordered_map<AssetHandle, ma_sound> AudioClips;
+		std::unordered_map<AssetHandle, ma_sound*> AudioClips;
+		std::unordered_map<AssetHandle, AudioBufferConfig> AudioBufferConfigs;
+		std::unordered_map<UUID, ma_audio_buffer*> AudioBuffers;
 		std::unordered_map<UUID, AudioSource> AudioSources;
 		bool PlaybackPaused;
 
 		float MasterVolume;
 		bool IsMutedMaster;
-
-		uint32_t OutputDevice;
 	};
 
 	static AudioEngineData* s_AudioEngineData = nullptr;
@@ -55,6 +61,9 @@ namespace Engine
 			return false;
 		}
 
+		if (!s_AudioEngineData->AudioSources.at(entityID).SoundInstances)
+			return false;
+
 		return true;
 	}
 
@@ -62,37 +71,27 @@ namespace Engine
 	{
 		(void)pInput;
 
-#if ENGINE_DIST
-		ENGINE_CORE_TRACE("Data Callback - Audio Engine DISABLED!");
-		return;
-#else
 		if (!s_AudioEngineData->PlaybackPaused)
 		{
 			ma_engine_read_pcm_frames((ma_engine*)pDevice->pUserData, pOutput, frameCount, nullptr);
 		}
-#endif
 	}
 
 	void AudioEngine::Init()
 	{
-#if ENGINE_DIST
-		ENGINE_CORE_TRACE("Engine Startup - Audio Engine DISABLED!");
-		return;
-#else
 		ENGINE_CORE_TRACE("Engine Startup - Audio Engine Init");
 		s_AudioEngineData = new AudioEngineData();
-
-		ma_result result;
 
 		// Config Resource Manager
 		ma_resource_manager_config resourceManagerConfig = ma_resource_manager_config_init();
 		resourceManagerConfig.decodedFormat = ma_format_f32;
 		resourceManagerConfig.decodedChannels = 0;
-		resourceManagerConfig.decodedSampleRate = 48000;
+		//resourceManagerConfig.decodedSampleRate = 48000;
+		resourceManagerConfig.decodedSampleRate = 0;
 
 		resourceManagerConfig.jobThreadCount = 4;
 
-		result = ma_resource_manager_init(&resourceManagerConfig, &s_AudioEngineData->ResourceManager);
+		auto result = ma_resource_manager_init(&resourceManagerConfig, &s_AudioEngineData->ResourceManager);
 		if (result != MA_SUCCESS)
 		{
 			ENGINE_CORE_ERROR("Failed to initialize Resource Manager!");
@@ -122,6 +121,8 @@ namespace Engine
 			ENGINE_CORE_INFO("Initializing {}: {}", i, s_AudioEngineData->PlaybackDeviceInfos[i].name);
 			ma_device_config deviceConfig;
 			ma_engine_config engineConfig;
+			Ref<ma_engine> engine = s_AudioEngineData->Engines.emplace_back(CreateRef<ma_engine>());
+			Ref<ma_device> device = s_AudioEngineData->Devices.emplace_back(CreateRef<ma_device>());
 
 			// Config Device
 			deviceConfig = ma_device_config_init(ma_device_type_playback);
@@ -130,9 +131,9 @@ namespace Engine
 			deviceConfig.playback.channels = 0;
 			deviceConfig.sampleRate = s_AudioEngineData->ResourceManager.config.decodedSampleRate;
 			deviceConfig.dataCallback = data_callback;
-			deviceConfig.pUserData = &s_AudioEngineData->Engines[s_AudioEngineData->EngineCount]; // engine count?
+			deviceConfig.pUserData = engine.get(); // engine count?
 
-			result = ma_device_init(&s_AudioEngineData->Context, &deviceConfig, &s_AudioEngineData->Devices[s_AudioEngineData->EngineCount]); // engine count?
+			result = ma_device_init(&s_AudioEngineData->Context, &deviceConfig, device.get()); // engine count?
 			if (result != MA_SUCCESS)
 			{
 				ENGINE_CORE_ERROR("Failed to initialize device for {}.", s_AudioEngineData->PlaybackDeviceInfos[i].name); // chosen device ?
@@ -141,15 +142,15 @@ namespace Engine
 
 			// Config Engine
 			engineConfig = ma_engine_config_init();
-			engineConfig.pDevice = &s_AudioEngineData->Devices[s_AudioEngineData->EngineCount]; // engine count?
+			engineConfig.pDevice = device.get(); // engine count?
 			engineConfig.pResourceManager = &s_AudioEngineData->ResourceManager;
 			engineConfig.noAutoStart = MA_TRUE;
 
-			result = ma_engine_init(&engineConfig, &s_AudioEngineData->Engines[s_AudioEngineData->EngineCount]); // engine count?
+			result = ma_engine_init(&engineConfig, engine.get()); // engine count?
 			if (result != MA_SUCCESS)
 			{
 				ENGINE_CORE_ERROR("Failed to initialize engine for {}.", s_AudioEngineData->PlaybackDeviceInfos[i].name);  // chosen device ?
-				ma_device_uninit(&s_AudioEngineData->Devices[s_AudioEngineData->EngineCount]); // engine count?
+				ma_device_uninit(device.get()); // engine count?
 				continue;
 			}
 
@@ -160,7 +161,7 @@ namespace Engine
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
 			ENGINE_CORE_TRACE("Starting Engine: {}", i);
-			result = ma_engine_start(&s_AudioEngineData->Engines[i]);
+			result = ma_engine_start(s_AudioEngineData->Engines[i].get());
 			if (result != MA_SUCCESS)
 			{
 				ENGINE_CORE_WARN("Failed to start engine {}", i);
@@ -171,7 +172,7 @@ namespace Engine
 		for (uint32_t i = 0; i < s_AudioEngineData->PlaybackDeviceCount; i++)
 		{
 			ENGINE_CORE_TRACE("Stopping Device: {}", i);
-			result = ma_device_stop(&s_AudioEngineData->Devices[i]);
+			result = ma_device_stop(s_AudioEngineData->Devices[i].get());
 			if (result != MA_SUCCESS)
 			{
 				ENGINE_CORE_WARN("Failed to stop device {}", i);
@@ -182,38 +183,32 @@ namespace Engine
 			{
 				ENGINE_CORE_TRACE("Starting Device: {}", i);
 				s_AudioEngineData->OutputDevice = i;
-				result = ma_device_start(&s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice]);
+				result = ma_device_start(s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice].get());
 				if (result != MA_SUCCESS)
 				{
 					ENGINE_CORE_WARN("Failed to start device {}", i);
 				}
 			}
 		}
-#endif
 	}
 
 	void AudioEngine::Shutdown()
 	{
 		if (!s_AudioEngineData)
 			return;
-		
-		for (auto& [path, sound] : s_AudioEngineData->AudioClips)
-		{
-			ma_sound_uninit(&sound);
-		}
 
-		for (auto& [entityID, source] : s_AudioEngineData->AudioSources)
-		{
-			for (auto& sound : source.SoundInstances)
-			{
-				ma_sound_uninit(&sound);
-			}
-		}
+		PausePlayback(true);
+		
+		for (const auto& [path, sound] : s_AudioEngineData->AudioClips)
+			ma_sound_uninit(sound);
+
+		for (const auto& [entityID, buffer] : s_AudioEngineData->AudioBuffers)
+			ma_audio_buffer_uninit_and_free(buffer);
 
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			ma_engine_uninit(&s_AudioEngineData->Engines[i]);
-			ma_device_uninit(&s_AudioEngineData->Devices[i]);
+			ma_engine_uninit(s_AudioEngineData->Engines[i].get());
+			ma_device_uninit(s_AudioEngineData->Devices[i].get());
 		}
 
 		ma_context_uninit(&s_AudioEngineData->Context);
@@ -234,10 +229,10 @@ namespace Engine
 			return;
 		}
 
-		ma_device_stop(&s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice]);
+		ma_device_stop(s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice].get());
 
 		s_AudioEngineData->OutputDevice = deviceNumber;
-		ma_device_start(&s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice]);
+		ma_device_start(s_AudioEngineData->Devices[s_AudioEngineData->OutputDevice].get());
 	}
 
 	uint32_t AudioEngine::GetOutputDevice()
@@ -282,7 +277,7 @@ namespace Engine
 
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engines[i], linearVolume);
+			ma_result result = ma_engine_set_volume(s_AudioEngineData->Engines[i].get(), linearVolume);
 			if (result != MA_SUCCESS)
 				ENGINE_CORE_WARN("Failed to set master volume!");
 		}
@@ -314,7 +309,7 @@ namespace Engine
 		float volume = s_AudioEngineData->IsMutedMaster ? 0 : s_AudioEngineData->MasterVolume;
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			ma_result result = ma_engine_set_volume(&s_AudioEngineData->Engines[i], volume);
+			ma_result result = ma_engine_set_volume(s_AudioEngineData->Engines[i].get(), volume);
 			if (result != MA_SUCCESS)
 				ENGINE_CORE_WARN("Failed to set master volume!");
 		}
@@ -342,14 +337,14 @@ namespace Engine
 			return;
 		}
 
-		ma_sound& sound = s_AudioEngineData->AudioClips[handle];
+		ma_sound* sound = new ma_sound();
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			auto result = ma_sound_init_from_file(&s_AudioEngineData->Engines[i], path.generic_string().c_str(),
+			auto result = ma_sound_init_from_file(s_AudioEngineData->Engines[i].get(), path.generic_string().c_str(),
 				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE 
 				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
 				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM // TODO create stream implementation (only need to stream music or sounds over 2 seconds)
-				, nullptr, nullptr, &sound);
+				, nullptr, nullptr, sound);
 
 			if (result != MA_SUCCESS)
 			{
@@ -357,6 +352,7 @@ namespace Engine
 				return;
 			}
 		}
+		s_AudioEngineData->AudioClips[handle] = sound;
 	}
 
 	void AudioEngine::LoadSound(const Buffer& buffer, AssetHandle handle)
@@ -367,95 +363,127 @@ namespace Engine
 		if (!handle.IsValid())
 			return;
 
-		if (s_AudioEngineData->AudioClips.find(handle) != s_AudioEngineData->AudioClips.end())
+		if (s_AudioEngineData->AudioBufferConfigs.find(handle) != s_AudioEngineData->AudioBufferConfigs.end())
 		{
-			ENGINE_CORE_WARN("Audio Clip already loaded!");
+			ENGINE_CORE_WARN("Audio Buffer already loaded!");
 			return;
 		}
 
-		ma_audio_buffer_config config = ma_audio_buffer_config_init(
-			ma_format_f32,
-			0,
-			1000,
-			buffer.Data,
-			nullptr);
-
-		ma_audio_buffer audioBuffer;
-		{
-			auto result = ma_audio_buffer_init_copy(&config, &audioBuffer);
-			if (result != MA_SUCCESS) {
-				ENGINE_CORE_WARN("Failed to initialize from memory!");
-				return;
-			}
-		}
-
-		ma_sound& sound = s_AudioEngineData->AudioClips[handle];
+		Ref<ma_engine> engine;
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			auto result = ma_sound_init_from_data_source(&s_AudioEngineData->Engines[i], &audioBuffer,
-				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE
-				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
-				//| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM // TODO create stream implementation (only need to stream music or sounds over 2 seconds)
-				, nullptr, &sound);
+			engine = s_AudioEngineData->Engines[i];
+			ma_uint64 size_in_frames = 0;
+			void* frames_out = nullptr;
+			uint32_t sampleRate = engine->sampleRate;
 
+			ma_decoder_config decoder_config = ma_decoder_config_init(ma_format_f32, ma_engine_get_channels(engine.get()), sampleRate);
+			auto result = ma_decode_memory(buffer.Data, buffer.Size, &decoder_config, &size_in_frames, &frames_out);
 			if (result != MA_SUCCESS)
 			{
-				ENGINE_CORE_WARN("Failed to initialize sound from audio buffer!");
+				ENGINE_CORE_WARN("Failed to decode sound from memory!");
 				return;
 			}
+
+			ma_audio_buffer_config config = ma_audio_buffer_config_init(
+				ma_format_f32,
+				ma_engine_get_channels(engine.get()),
+				size_in_frames,
+				frames_out,
+				nullptr);
+			config.sampleRate = sampleRate;
+			s_AudioEngineData->AudioBufferConfigs[handle].Configs.emplace_back(config);
 		}
 	}
 
-	void AudioEngine::PlaySound(UUID entityID, AssetHandle clip, const SoundParams& params)
+	void AudioEngine::PlaySound(UUID entityID, AssetHandle handle, const SoundParams& params)
 	{
 		if (!s_AudioEngineData)
 			return;
 
-		if (!clip.IsValid())
+		if (!handle.IsValid())
 			return;
 
-		if (s_AudioEngineData->AudioClips.find(clip) == s_AudioEngineData->AudioClips.end())
-		{
-			ENGINE_CORE_WARN("Sound not loaded and cannot be played!");
-			return;
-		}
-
-		// Reset Sound Instance Index
 		AudioSource& source = s_AudioEngineData->AudioSources[entityID];
-		if (source.SoundInstancesIndex >= source.MAX_SOUND_INSTANCES)
-		{
-			ma_sound& sound = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
-			ma_sound_uninit(&sound);
-		}
-
-		// Create Sound Instance
-		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
+		if (source.SoundInstances == nullptr)
+			source.SoundInstances = new ma_sound[source.MAX_SOUND_INSTANCES];
 		source.SoundInstancesIndex++;
 
-		// Get Original Sound and Copy to Instance
-		ma_sound& originalSound = s_AudioEngineData->AudioClips.at(clip);
+		// Reset Sound Instance Index
+		if (source.SoundInstancesIndex >= source.MAX_SOUND_INSTANCES)
+			ma_sound_uninit(&source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES]);
+
+		// Create Sound Instance
+		ma_sound* soundInstance = &source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
 		for (uint32_t i = 0; i < s_AudioEngineData->EngineCount; i++)
 		{
-			auto result = ma_sound_init_copy(&s_AudioEngineData->Engines[i], &originalSound, 
-				MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE
-				| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
-				, nullptr, &soundInstance);
-			
-			if (result != MA_SUCCESS)
+			if (s_AudioEngineData->AudioBufferConfigs.find(handle) != s_AudioEngineData->AudioBufferConfigs.end())
 			{
-				ENGINE_CORE_WARN("Failed to initialize sound from sound!");
-				return;
+				ma_audio_buffer* audioBuffer;
+				ma_result result = MA_SUCCESS;
+				if (s_AudioEngineData->AudioBuffers.find(entityID) == s_AudioEngineData->AudioBuffers.end())
+				{
+					result = ma_audio_buffer_alloc_and_init(&s_AudioEngineData->AudioBufferConfigs[handle].Configs.at(i), &audioBuffer);
+					if (result != MA_SUCCESS)
+					{
+						ENGINE_CORE_WARN("Failed to allocate and initalize audio buffer based on config during playback!");
+						ma_audio_buffer_uninit_and_free(audioBuffer);
+						return;
+					}
+					s_AudioEngineData->AudioBuffers[entityID] = audioBuffer;
+				}
+				else
+				{
+					audioBuffer = s_AudioEngineData->AudioBuffers.at(entityID);
+					/*
+					result = ma_audio_buffer_init(&s_AudioEngineData->AudioBufferConfigs[handle], audioBuffer);
+					if (result != MA_SUCCESS)
+					{
+						ENGINE_CORE_WARN("Failed to initialize audio buffer based on config during playback!");
+						ma_audio_buffer_uninit(audioBuffer);
+						return;
+					}
+					*/
+				}
+
+				result = ma_sound_init_from_data_source(s_AudioEngineData->Engines[i].get(), audioBuffer,
+					MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
+					, nullptr, soundInstance);
+
+				if (result != MA_SUCCESS)
+				{
+					ENGINE_CORE_WARN("Failed to initialize sound from audio buffer on playback!");
+					return;
+				}
+			}
+			else
+			{
+				if (s_AudioEngineData->AudioClips.find(handle) == s_AudioEngineData->AudioClips.end())
+				{
+					ENGINE_CORE_WARN("Sound not loaded and cannot be played!");
+					return;
+				}
+
+				// Get Original Sound and Copy to Instance
+				auto result = ma_sound_init_copy(s_AudioEngineData->Engines[i].get(), s_AudioEngineData->AudioClips.at(handle),
+					MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE
+					| MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_ASYNC
+					, nullptr, soundInstance);
+
+				if (result != MA_SUCCESS)
+				{
+					ENGINE_CORE_WARN("Failed to initialize sound as copy of sound on playback!");
+					return;
+				}
 			}
 		}
 
-		ma_sound_set_looping(&soundInstance, params.Loop);
-
-		ma_sound_set_volume(&soundInstance, params.Volume);
-
-		ma_sound_set_pitch(&soundInstance, params.Pitch);
+		ma_sound_set_looping(soundInstance, params.Loop);
+		ma_sound_set_volume(soundInstance, params.Volume);
+		ma_sound_set_pitch(soundInstance, params.Pitch);
 
 		// Play Sound Instance
-		auto result = ma_sound_start(&soundInstance);
+		auto result = ma_sound_start(soundInstance);
 		if (result != MA_SUCCESS)
 		{
 			ENGINE_CORE_WARN("Failed to start sound!");
@@ -468,8 +496,31 @@ namespace Engine
 		if (!CheckForAudioInstance(entityID))
 			return;
 
-		for (auto& sound : s_AudioEngineData->AudioSources.at(entityID).SoundInstances)
-			ma_sound_stop(&sound);
+		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
+		for (uint32_t i = 0; i < source.MAX_SOUND_INSTANCES; i++)
+			ma_sound_stop(&source.SoundInstances[i]);
+	}
+
+	void AudioEngine::UninitSound(UUID entityID)
+	{
+		if (!CheckForAudioInstance(entityID))
+			return;
+
+		AudioSource source = s_AudioEngineData->AudioSources.at(entityID);
+		ma_sound* sound = source.SoundInstances;
+		for (uint32_t i = 0; i < source.MAX_SOUND_INSTANCES; i++)
+			ma_sound_uninit(sound++);
+	}
+
+	void AudioEngine::EraseAudioSource(UUID entityID)
+	{
+		if (!CheckForAudioInstance(entityID))
+			return;
+
+		ma_audio_buffer_uninit_and_free(s_AudioEngineData->AudioBuffers[entityID]);
+		s_AudioEngineData->AudioBuffers.erase(entityID);
+		
+		s_AudioEngineData->AudioSources.erase(entityID);
 	}
 
 	void AudioEngine::PausePlayback(bool pause)
@@ -486,8 +537,13 @@ namespace Engine
 			return false;
 
 		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
-		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
-		return ma_sound_is_playing(&soundInstance);
+		for (uint32_t i = 0; i < source.MAX_SOUND_INSTANCES; i++)
+		{
+			if (ma_sound_is_playing(&source.SoundInstances[i]))
+				return true;
+		}
+
+		return false;
 	}
 
 	bool AudioEngine::GetSoundLooping(UUID entityID)
@@ -496,8 +552,13 @@ namespace Engine
 			return false;
 
 		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
-		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
-		return ma_sound_is_looping(&soundInstance);
+		for (uint32_t i = 0; i < source.MAX_SOUND_INSTANCES; i++)
+		{
+			if (ma_sound_is_looping(&source.SoundInstances[i]))
+				return true;
+		}
+
+		return false;
 	}
 
 	void AudioEngine::SetSoundLooping(UUID entityID, bool state)
@@ -505,8 +566,9 @@ namespace Engine
 		if (!CheckForAudioInstance(entityID))
 			return;
 
-		for (auto& sound : s_AudioEngineData->AudioSources.at(entityID).SoundInstances)
-			ma_sound_set_looping(&sound, state);
+		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
+		for (uint32_t i = 0; i < source.MAX_SOUND_INSTANCES; i++)
+			ma_sound_set_looping(&source.SoundInstances[i], state);
 	}
 
 	float AudioEngine::GetSoundVolume(UUID entityID)
@@ -515,8 +577,10 @@ namespace Engine
 			return 0;
 
 		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
-		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
-		return ma_sound_get_volume(&soundInstance);
+		for (uint32_t i = 0; i < source.MAX_SOUND_INSTANCES; i++)
+			return ma_sound_get_volume(&source.SoundInstances[i]);
+
+		return 0;
 	}
 
 	void AudioEngine::SetSoundVolume(UUID entityID, float volume)
@@ -524,8 +588,9 @@ namespace Engine
 		if (!CheckForAudioInstance(entityID))
 			return;
 
-		for (auto& sound : s_AudioEngineData->AudioSources.at(entityID).SoundInstances)
-			ma_sound_set_volume(&sound, volume);
+		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
+		for (uint32_t i = 0; i < source.MAX_SOUND_INSTANCES; i++)
+			ma_sound_set_volume(&source.SoundInstances[i], volume);
 	}
 
 	float AudioEngine::GetSoundPitch(UUID entityID)
@@ -534,8 +599,10 @@ namespace Engine
 			return 0;
 
 		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
-		ma_sound& soundInstance = source.SoundInstances[source.SoundInstancesIndex % source.MAX_SOUND_INSTANCES];
-		return ma_sound_get_pitch(&soundInstance);
+		for (uint32_t i = 0; i < source.MAX_SOUND_INSTANCES; i++)
+			return ma_sound_get_pitch(&source.SoundInstances[i]);
+
+		return 0;
 	}
 
 	void AudioEngine::SetSoundPitch(UUID entityID, float pitch)
@@ -543,8 +610,9 @@ namespace Engine
 		if (!CheckForAudioInstance(entityID))
 			return;
 
-		for (auto& sound : s_AudioEngineData->AudioSources.at(entityID).SoundInstances)
-			ma_sound_set_pitch(&sound, pitch);
+		AudioSource& source = s_AudioEngineData->AudioSources.at(entityID);
+		for (uint32_t i = 0; i < source.MAX_SOUND_INSTANCES; i++)
+			ma_sound_set_pitch(&source.SoundInstances[i], pitch);
 	}
 
 }
