@@ -21,6 +21,8 @@
 	#define ENGINE_ENABLE_VERIFY
 #endif
 
+#define OPENGL_ENABLED 0
+
 #define ENGINE_EXPAND_MACRO(x) x
 #define ENGINE_STRINGIFY_MACRO(x) #x
 

@@ -1,17 +1,14 @@
 #pragma once
-#if OPENGL_DISABLED
 #include "Engine/Renderer/Texture.h"
-
-#include <glad/glad.h>
 
 namespace Engine
 {
-	class OpenGLTexture2D : public Texture2D
+	class VulkanTexture2D : public Texture2D
 	{
 	public:
-		OpenGLTexture2D() = default;
-		OpenGLTexture2D(const TextureSpecification& specification, Buffer data = Buffer());
-		virtual ~OpenGLTexture2D();
+		VulkanTexture2D() = default;
+		VulkanTexture2D(const TextureSpecification& specification, Buffer data = Buffer());
+		virtual ~VulkanTexture2D();
 
 		virtual uint32_t GetWidth() const override { return m_Width; }
 		virtual uint32_t GetHeight() const override { return m_Height; }
@@ -32,7 +29,6 @@ namespace Engine
 		uint32_t m_Width;
 		uint32_t m_Height;
 		uint32_t m_RendererID{};
-		GLenum m_InternalFormat, m_DataFormat;
+		//GLenum m_InternalFormat, m_DataFormat;
 	};
 }
-#endif

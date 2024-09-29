@@ -3,7 +3,11 @@
 
 #include <imgui.h>
 #include <imgui_internal.h>
+#if OPENGL_ENABLED
 #include <backends/imgui_impl_opengl3.h>
+#else
+#include <backends/imgui_impl_vulkan.h>
+#endif
 #include <backends/imgui_impl_glfw.h>
 
 #include "Engine/Core/Application.h"
@@ -53,16 +57,25 @@ namespace Engine
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 		m_Viewport = CreateScope<Viewport>();
 
-		// Setup Platfrom/Renderer bindings
+		// Setup Platform/Renderer bindings
+#if OPENGL_ENABLED
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 410");
+#else
+		ImGui_ImplGlfw_InitForVulkan(window, true);
+		//ImGui_ImplVulkan_Init();
+#endif
 	}
 
 	void ImGuiLayer::OnDetach()
 	{
 		ENGINE_PROFILE_FUNCTION();
-		
+
+#if OPENGL_ENABLED
 		ImGui_ImplOpenGL3_Shutdown();
+#else
+		ImGui_ImplVulkan_Shutdown();
+#endif
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
@@ -80,8 +93,12 @@ namespace Engine
 	void ImGuiLayer::Begin()
 	{
 		ENGINE_PROFILE_FUNCTION();
-		
+
+#if OPENGL_ENABLED
 		ImGui_ImplOpenGL3_NewFrame();
+#else
+		ImGui_ImplVulkan_NewFrame();
+#endif
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
@@ -98,13 +115,19 @@ namespace Engine
 		//Rendering
 		ImGui::Render();
 
+#if OPENGL_ENABLED
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#else
+		//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), );
+#endif
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
+#if OPENGL_ENABLED
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
 			glfwMakeContextCurrent(backup_current_context);
+#endif
 		}
 	}
 

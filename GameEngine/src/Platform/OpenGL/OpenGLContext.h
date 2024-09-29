@@ -1,4 +1,5 @@
 #pragma once
+#if OPENGL_DISABLED
 #include "Engine/Renderer/GraphicsContext.h"
 
 #include <GLFW/glfw3.h>
@@ -16,3 +17,4 @@ namespace Engine
 		GLFWwindow* m_WindowHandle;
 	};
 }
+#endif

@@ -22,11 +22,18 @@ project "GameEngine"
 		"vendor/ImGuizmo/ImGuizmo.h",
 		"vendor/ImGuizmo/ImGuizmo.cpp"
 	}
+	removefiles
+	{
+		"src/Platform/OpenGL/**.h",
+		"src/Platform/OpenGL/**.cpp"
+	}
 
 	defines
 	{
 		"_CRT_SECURE_NO_WARNINGS",
-		"GLFW_INCLUDE_NONE"
+		"GLFW_INCLUDE_VULKAN",
+		"GLM_FORCE_RADIANS",
+		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
 	}
 
 	includedirs
@@ -34,7 +41,7 @@ project "GameEngine"
 		"src",
 		"vendor/spdlog/include",
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.Glad}",
+		--"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
@@ -54,12 +61,13 @@ project "GameEngine"
 	links
 	{
 		"GLFW",
-		"Glad",
+		--"Glad",
 		"ImGui",
 		"yaml-cpp",
 		"box2d",
 		"msdf-atlas-gen",
-		"opengl32.lib",
+		--"opengl32.lib",
+		"%{Library.Vulkan}",
 		"%{Library.mono}"
 	}
 

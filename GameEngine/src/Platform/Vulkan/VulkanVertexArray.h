@@ -1,15 +1,14 @@
 #pragma once
-#if OPENGL_DISABLED
 
 #include "Engine/Renderer/VertexArray.h"
 
 namespace Engine
 {
-	class OpenGLVertexArray : public VertexArray
+	class VulkanVertexArray : public VertexArray
 	{
 	public:
-		OpenGLVertexArray();
-		~OpenGLVertexArray();
+		VulkanVertexArray();
+		~VulkanVertexArray();
 		
 		virtual void Bind() const override;
 		virtual void Unbind() const override;
@@ -26,4 +25,3 @@ namespace Engine
 		Ref<IndexBuffer> m_IndexBuffer;
 	};
 }
-#endif

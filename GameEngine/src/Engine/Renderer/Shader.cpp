@@ -2,7 +2,8 @@
 #include "Engine/Renderer/Shader.h"
 
 #include "Engine/Renderer/Renderer.h"
-#include "Platform/OpenGL/OpenGLShader.h"
+//#include "Platform/OpenGL/OpenGLShader.h"
+#include "Platform/Vulkan/VulkanShader.h"
 
 namespace Engine
 {
@@ -13,7 +14,8 @@ namespace Engine
 		switch (Renderer::GetAPI())
 		{
 			case RendererAPI::API::None:		ENGINE_CORE_ASSERT(false, "RendererAPI::API::None is currently not supported!");  return nullptr;
-			case RendererAPI::API::OpenGL:		return CreateRef<OpenGLShader>(filepath);
+			//case RendererAPI::API::OpenGL:		return CreateRef<OpenGLShader>(filepath);
+			case RendererAPI::API::Vulkan:		return CreateRef<VulkanShader>(filepath);
 		}
 
 		ENGINE_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -25,7 +27,8 @@ namespace Engine
 		switch (Renderer::GetAPI())
 		{
 			case RendererAPI::API::None:		ENGINE_CORE_ASSERT(false, "RendererAPI::API::None is currently not supported!");  return nullptr;
-			case RendererAPI::API::OpenGL:		return CreateRef<OpenGLShader>(name, vertexSrc, fragmentSrc);
+			//case RendererAPI::API::OpenGL:		return CreateRef<OpenGLShader>(name, vertexSrc, fragmentSrc);
+			case RendererAPI::API::Vulkan:		return CreateRef<VulkanShader>(name, vertexSrc, fragmentSrc);
 		}
 
 		ENGINE_CORE_ASSERT(false, "Unknown RendererAPI!");

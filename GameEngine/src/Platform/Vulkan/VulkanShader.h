@@ -1,21 +1,17 @@
 #pragma once
-#if OPENGL_DISABLED
 
 #include "Engine/Renderer/Shader.h"
 
 #include <glm/glm.hpp>
 
-// TODO: REMOVE!
-typedef unsigned int GLenum;
-
 namespace Engine
 {
-	class OpenGLShader : public Shader
+	class VulkanShader : public Shader
 	{
 	public:
-		OpenGLShader(const std::string& filepath);
-		OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
-		virtual ~OpenGLShader();
+		VulkanShader(const std::string& filepath);
+		VulkanShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
+		virtual ~VulkanShader();
 		
 		virtual void Bind() const override;
 		virtual void Unbind() const override;
@@ -43,20 +39,19 @@ namespace Engine
 		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
 	private:
 		std::string ReadFile(const std::string& filepath);
-		std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
+		//std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
 	
-		void CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shaderSources);
+		//void CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shaderSources);
 		void CompileOrGetOpenGLBinaries();
 		void CreateProgram();
-		void Reflect(GLenum stage, const std::vector<uint32_t>& shaderData);
+		//void Reflect(GLenum stage, const std::vector<uint32_t>& shaderData);
 	private:
 		uint32_t m_RenderID;
 		std::string m_Name;
 		std::string m_FilePath;
 		
-		std::unordered_map<GLenum, std::vector<uint32_t>> m_VulkanSPIRV, m_OpenGLSPIRV;
+		//std::unordered_map<GLenum, std::vector<uint32_t>> m_VulkanSPIRV, m_OpenGLSPIRV;
 		
-		std::unordered_map<GLenum, std::string> m_OpenGLSourceCode;
+		//std::unordered_map<GLenum, std::string> m_OpenGLSourceCode;
 	};
 }
-#endif

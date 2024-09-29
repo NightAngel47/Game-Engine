@@ -1,11 +1,10 @@
 #pragma once
-#if OPENGL_DISABLED
 
 #include "Engine/Renderer/RendererAPI.h"
 
 namespace Engine
 {
-	class OpenGLRendererAPI : public RendererAPI
+	class VulkanRendererAPI : public RendererAPI
 	{
 	public:
 		virtual void Init() override;
@@ -19,4 +18,3 @@ namespace Engine
 		virtual void SetLineWidth(float width) override;
 	};
 }
-#endif

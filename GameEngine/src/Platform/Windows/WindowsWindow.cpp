@@ -7,7 +7,8 @@
 
 #include "Engine/Renderer/Renderer.h"
 
-#include "Platform/OpenGL/OpenGLContext.h"
+//#include "Platform/OpenGl/OpenGlContext.h"
+#include "Platform/Vulkan/VulkanContext.h"
 
 namespace Engine
 {
@@ -66,14 +67,17 @@ namespace Engine
 				glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 			}
 			
-			#if defined(ENGINE_DEBUG)
+			#if OPENGL_ENABLED
 				if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
 					glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+			#else
+				if (Renderer::GetAPI() == RendererAPI::API::Vulkan)
+					glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 			#endif
 			m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 			++s_GLFWWindowCount;
 		}
-		
+
 		m_Context = GraphicsContext::Create(m_Window);
 		m_Context->Init();
 		
@@ -188,6 +192,8 @@ namespace Engine
 	{
 		ENGINE_PROFILE_FUNCTION();
 		
+		m_Context->Shutdown();
+
 		glfwDestroyWindow(m_Window);
 		--s_GLFWWindowCount;
 		

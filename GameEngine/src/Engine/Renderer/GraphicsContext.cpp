@@ -2,7 +2,8 @@
 #include "Engine/Renderer/GraphicsContext.h"
 
 #include "Engine/Renderer/Renderer.h"
-#include "Platform/OpenGL/OpenGLContext.h"
+//#include "Platform/OpenGL/OpenGLContext.h"
+#include "Platform/Vulkan/VulkanContext.h"
 
 namespace Engine {
 
@@ -11,7 +12,8 @@ namespace Engine {
 		switch (Renderer::GetAPI())
 		{
 			case RendererAPI::API::None:    ENGINE_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-			case RendererAPI::API::OpenGL:  return CreateScope<OpenGLContext>(static_cast<GLFWwindow*>(window));
+			//case RendererAPI::API::OpenGL:  return CreateScope<OpenGLContext>(static_cast<GLFWwindow*>(window));
+			case RendererAPI::API::Vulkan:  return CreateScope<VulkanContext>(static_cast<GLFWwindow*>(window));
 		}
 
 		ENGINE_CORE_ASSERT(false, "Unknown RendererAPI!");

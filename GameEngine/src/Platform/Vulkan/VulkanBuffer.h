@@ -1,16 +1,14 @@
 #pragma once
-
-#if OPENGL_DISABLED
 #include "Engine/Renderer/Buffer.h"
 
 namespace Engine
 {
-	class OpenGLVertexBuffer : public VertexBuffer
+	class VulkanVertexBuffer : public VertexBuffer
 	{
 	public:
-		OpenGLVertexBuffer(uint32_t size);
-		OpenGLVertexBuffer(float* vertices, uint32_t size);
-		virtual ~OpenGLVertexBuffer();
+		VulkanVertexBuffer(uint32_t size);
+		VulkanVertexBuffer(float* vertices, uint32_t size);
+		virtual ~VulkanVertexBuffer();
 		
 		virtual void Bind() const override;
 		virtual void Unbind() const override;
@@ -23,11 +21,11 @@ namespace Engine
 		BufferLayout m_Layout;
 	};
 	
-	class OpenGLIndexBuffer : public IndexBuffer
+	class VulkanIndexBuffer : public IndexBuffer
 	{
 	public:
-		OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
-		virtual ~OpenGLIndexBuffer();
+		VulkanIndexBuffer(uint32_t* indices, uint32_t count);
+		virtual ~VulkanIndexBuffer();
 		
 		virtual void Bind() const override;
 		virtual void Unbind() const override;
@@ -37,4 +35,3 @@ namespace Engine
 		uint32_t m_Count;
 	};
 }
-#endif

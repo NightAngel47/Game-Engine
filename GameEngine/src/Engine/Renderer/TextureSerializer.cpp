@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-	class OpenGLTexture2D;
+	//class OpenGLTexture2D;
 
 	//TODO: Remove? Reevaluate asset pipeline
 	void TextureSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const

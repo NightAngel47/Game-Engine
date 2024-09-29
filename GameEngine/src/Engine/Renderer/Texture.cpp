@@ -4,6 +4,7 @@
 
 #include "Engine/Renderer/Renderer.h"
 #include "Platform/OpenGL/OpenGLTexture.h"
+#include "Platform/Vulkan/VulkanTexture.h"
 
 namespace Engine
 {
@@ -12,7 +13,8 @@ namespace Engine
 		switch (Renderer::GetAPI())
 		{
 			case RendererAPI::API::None:		ENGINE_CORE_ASSERT(false, "RendererAPI::API::None is currently not supported!");  return nullptr;
-			case RendererAPI::API::OpenGL:		return CreateRef<OpenGLTexture2D>(specification, data);
+			//case RendererAPI::API::OpenGL:		return CreateRef<OpenGLTexture2D>(specification, data);
+			case RendererAPI::API::Vulkan:		return CreateRef<VulkanTexture2D>(specification, data);
 		}
 
 		ENGINE_CORE_ASSERT(false, "Unknown RendererAPI!");

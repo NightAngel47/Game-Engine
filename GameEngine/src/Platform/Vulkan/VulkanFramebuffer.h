@@ -1,14 +1,13 @@
 #pragma once
-#if OPENGL_DISABLED
 #include "Engine/Renderer/Framebuffer.h"
 
 namespace Engine
 {
-	class OpenGLFramebuffer : public Framebuffer
+	class VulkanFramebuffer : public Framebuffer
 	{
 	public:
-		OpenGLFramebuffer(const FramebufferSpecification& spec);
-		virtual ~OpenGLFramebuffer();
+		VulkanFramebuffer(const FramebufferSpecification& spec);
+		virtual ~VulkanFramebuffer();
 
 		void Invalidate();
 		
@@ -35,4 +34,3 @@ namespace Engine
 	};
 	
 }
-#endif
